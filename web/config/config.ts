@@ -53,8 +53,14 @@ export default defineConfig({
             {
               path: '/welcome',
               name: 'welcome',
-              icon: 'smile',
+              icon: 'dashboard',
               component: './Welcome',
+            },
+            {
+              path: '/display',
+              name: 'display',
+              icon: 'home',
+              component: './Display',
             },
             {
               path: '/admin',
