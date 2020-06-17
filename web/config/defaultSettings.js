@@ -10,7 +10,7 @@ const proSettings = {
   menu: {
     locale: true,
   },
-  title: 'Ant Design Pro',
+  title: '建筑能耗统计分析系统',
   pwa: false,
   iconfontUrl: '',
 };
