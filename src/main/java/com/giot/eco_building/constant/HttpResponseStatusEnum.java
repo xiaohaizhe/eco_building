@@ -6,7 +6,9 @@ import lombok.AllArgsConstructor;
 public enum HttpResponseStatusEnum implements CommonResponse {
 
     SUCCESS(0, "success"),                            // 成功请求
+    FAILURE(1, "failure"),                            // 失败请求
     FORBIDDEN_OPERATION(2, "forbidden"),               // 权限不足
+    EXCEPTION(100,"exception"),                         //异常
 
     USER_HAS_EXISTED(10001, "用户已存在"),
     ;

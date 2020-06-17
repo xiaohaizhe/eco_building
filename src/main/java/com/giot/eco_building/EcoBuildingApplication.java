@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing
-public class EcoBuildingApplication {
+public class  EcoBuildingApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(EcoBuildingApplication.class, args);

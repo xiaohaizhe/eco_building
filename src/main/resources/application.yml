@@ -1,11 +1,14 @@
 spring:
+  aop:
+    proxy-target-class: true
+    auto: true
   thymeleaf:
     cache: false
   datasource:
-    url: jdbc:mysql://localhost:3306/security00?useUnicode=true&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+    url: jdbc:mysql://localhost:3306/security00?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password:
+    password: 1234
   jpa:
     hibernate:
       ddl-auto: update
@@ -13,3 +16,14 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     open-in-view: false
     database-platform: org.hibernate.dialect.MySQL5Dialect
+
+
+baidu:
+  address:
+    url: http://api.map.baidu.com/geocoding/v3/
+    ak: vEe2dQodlX1GvI6L9qRIvf753savFWFt
+logging:
+  file:
+    path: eco_building-log
+  level:
+    root: info

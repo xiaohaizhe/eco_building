@@ -6,6 +6,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -17,7 +18,8 @@ import java.util.Date;
 @Table
 @Data
 @EntityListeners(AuditingEntityListener.class)
-public class User {
+public class User implements Serializable {
+    private static final long serialVersionUID = 1705613187469042461L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -43,11 +45,11 @@ public class User {
      * 最新修改时间
      */
     @LastModifiedDate
-    @Column(nullable = false)
+    @Column(nullable = false, name = "last_modified")
     private Date lastModified;
     /**
      * 删除标记位：0-有效，1-无效
      */
-    @Column(nullable = false, columnDefinition = "bit default 0")
+    @Column(nullable = false, columnDefinition = "bit default 0", name = "del_status")
     private Boolean delStatus;
 }
