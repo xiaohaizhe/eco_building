@@ -109,4 +109,15 @@ export default defineConfig({
   manifest: {
     basePath: '/',
   },
+  externals: {
+    AMap: 'AMap',
+    Loca: 'Loca'
+    // BMapLib:'BMapLib'
+  },
+  scripts: [
+    // 'http://api.map.baidu.com/api?ak=OWB4sxHnYQfCyiwxxdNvM9CDzsyDBX40',
+    // 'http://api.map.baidu.com/library/Heatmap/2.0/src/Heatmap_min.js'
+    'https://webapi.amap.com/maps?v=1.4.15&key=7e23601269dc69a706d1c8c1a7783247',
+    'https://webapi.amap.com/loca?v=1.3.2&key=7e23601269dc69a706d1c8c1a7783247'
+  ]
 });
