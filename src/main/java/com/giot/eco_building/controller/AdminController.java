@@ -1,10 +1,15 @@
 package com.giot.eco_building.controller;
 
+import com.giot.eco_building.aop.SystemControllerLog;
 import com.giot.eco_building.bean.WebResponse;
+import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.entity.User;
 import com.giot.eco_building.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @Author: pyt
@@ -21,13 +26,9 @@ public class AdminController {
         this.userService = userService;
     }
 
-    @GetMapping("/test")
-    public String testUser(){
-        return "I am admin. I can get this interface.";
-    }
-
     @PostMapping("/register")
-    public WebResponse save(@RequestBody User user){
+    @SystemControllerLog(description = "添加用户")
+    public WebResponse save(@RequestBody User user) {
         return userService.insert(user);
     }
 

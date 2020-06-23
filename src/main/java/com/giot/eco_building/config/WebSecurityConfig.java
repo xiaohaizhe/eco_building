@@ -1,5 +1,6 @@
 package com.giot.eco_building.config;
 
+import com.giot.eco_building.service.ActionService;
 import com.giot.eco_building.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -17,6 +18,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private UserService userService;
+
+    private ActionService actionService;
+
+    @Autowired
+    public void setActionService(ActionService actionService) {
+        this.actionService = actionService;
+    }
 
     @Autowired
     public void setUserService(UserService userService) {
@@ -37,13 +45,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/test", "/register").permitAll()
-                .antMatchers("/visitor/**").hasAnyAuthority("USER","ADMIN","VISITOR")
-                .antMatchers("/user/**").hasAnyAuthority("USER","ADMIN")
+                .antMatchers("/project/**", "/register").permitAll()
+                .antMatchers("/visitor/**").hasAnyAuthority("USER", "ADMIN", "VISITOR")
+                .antMatchers("/user/**").hasAnyAuthority("USER", "ADMIN")
                 .antMatchers("/admin/**").hasAuthority("ADMIN")
                 .and()
                 .logout().logoutUrl("/logout")
-                .logoutSuccessHandler(new CustomLogoutSuccessHandler())
+                .logoutSuccessHandler(new CustomLogoutSuccessHandler(actionService))
                 .clearAuthentication(true).permitAll()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationEntryPoint())
@@ -58,8 +66,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      */
     private CustomJSONLoginFilter customJSONLoginFilter() {
         CustomJSONLoginFilter customJSONLoginFilter = new CustomJSONLoginFilter("/login", userService);
-        customJSONLoginFilter.setAuthenticationFailureHandler(new CustomAuthenticationFailureHandler());
-        customJSONLoginFilter.setAuthenticationSuccessHandler(new CustomAuthenticationSuccessHandler());
+        customJSONLoginFilter.setAuthenticationFailureHandler(new CustomAuthenticationFailureHandler(actionService));
+        customJSONLoginFilter.setAuthenticationSuccessHandler(new CustomAuthenticationSuccessHandler(actionService));
         return customJSONLoginFilter;
     }
 }

@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 /**
  * @Author: pyt
  * @Date: 2020/6/9 10:32
- * @Description:
- * HTTP 统一响应结果
+ * @Description: HTTP 统一响应结果
  */
 @Data
 @NoArgsConstructor
@@ -56,8 +55,31 @@ public class WebResponse {
         return new WebResponse(HttpResponseStatusEnum.SUCCESS.getCode(), HttpResponseStatusEnum.SUCCESS.getMessage(), result);
     }
 
-    public static  WebResponse failure(HttpResponseStatusEnum response){
+    /**
+     * 响应失败
+     * @param
+     * @return
+     */
+    public static WebResponse failure() {
+        return new WebResponse(HttpResponseStatusEnum.FAILURE.getCode(),HttpResponseStatusEnum.FAILURE.getMessage(), null);
+    }
+
+    /**
+     * 响应失败
+     * @param response
+     * @return
+     */
+    public static WebResponse failure(HttpResponseStatusEnum response) {
         return new WebResponse(response.getCode(), response.getMessage(), null);
+    }
+
+    /**
+     * 响应异常
+     * @param e
+     * @return
+     */
+    public static WebResponse exception(Exception e) {
+        return new WebResponse(HttpResponseStatusEnum.EXCEPTION.getCode(), e.getMessage(), null);
     }
 
     /**
