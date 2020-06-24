@@ -1,0 +1,104 @@
+
+.info {
+    padding: .75rem 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: .25rem;
+    background-color: #696969;
+    position: relative;
+    width: auto;
+    max-width: 22rem;
+    opacity: 0.85;
+    border-width: 0;
+    color: #fff;
+    box-shadow: 0 2px 6px 0 rgba(114, 124, 245, .5);
+  
+    .title{
+      text-align: center;
+    }
+    .close{
+      position: absolute;
+      right: 6px;
+      top: 6px;
+      cursor: pointer;
+      width: 17px;
+      height: 17px;
+      text-align: center;
+      background-image: url(../../assets/close.svg);
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+  }
+  
+  .type{
+    position: absolute;
+    z-index: 999;
+    top: 5px;
+    left: 5px;
+    max-width: 33%;
+  }
+  .ant-radio-group {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    color: rgba(0, 0, 0, 0.65);
+    font-size: 14px;
+    font-variant: tabular-nums;
+    line-height: 1.5715;
+    list-style: none;
+    font-feature-settings: 'tnum', "tnum";
+    display: inline-block;
+    line-height: unset;
+  
+  }
+  .ant-radio-group-solid .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+    color: #fff;
+    background: #26B99A;
+    border-color: #26B99A;
+}
+  .ant-radio-button-wrapper:first-child {
+    border-left: 1px solid #d9d9d9;
+    border-radius: 2px 0 0 2px;
+  
+  }
+  .ant-radio-button-wrapper {
+    position: relative;
+    display: inline-block;
+    height: 32px;
+    margin: 0;
+    padding: 0 15px;
+    color: rgba(0, 0, 0, 0.65);
+    line-height: 30px;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-top-width: 1.02px;
+    border-left-width: 0;
+    cursor: pointer;
+    transition: color 0.3s, background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  }
+  .itemSelect{
+    padding: 20px 0;
+    background-color: #696969;
+    opacity: 0.9;
+    max-height: 600px;
+    overflow: auto;
+    box-shadow: 0 2px 6px 0 rgba(114, 124, 245, .5);
+    .ant-picker-input > input:placeholder-shown{
+      text-align: center !important;
+    }
+    .ant-checkbox-wrapper,.ant-form-item-label > label{
+      color: #fff;
+    }
+    .site-input-right {
+      border-left-width: 0;
+    }
+    .site-input-split {
+      background-color: #fff;
+    }
+    .foldBtn{
+      position: absolute;
+      right: 25px;
+      top: 40px;
+      color: #fff;
+      z-index: 999;
+    }
+  }

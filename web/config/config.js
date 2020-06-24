@@ -101,6 +101,11 @@ export default defineConfig({
   theme: {
     // ...darkTheme,
     'primary-color': defaultSettings.primaryColor,
+    'menu-dark-bg': '#2A3F54',
+    'menu-dark-submenu-bg': '#2A3F54',
+    'menu-dark-popup-bg':'#2A3F54',
+    'layout-sider-background':'#2A3F54',
+    'layout-header-background':'#EDEDED'
   },
   // @ts-ignore
   title: false,

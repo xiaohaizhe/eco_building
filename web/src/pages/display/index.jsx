@@ -1,16 +1,25 @@
 import React from 'react';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
+import {UpOutlined } from '@ant-design/icons';
 import AMap from 'AMap';
 import Loca from 'Loca'
-
+import { Radio,Popover } from 'antd';
+import ItemSelect from './components/ItemSelect';
+import  './index.less';
 var infoWin;
-var tableDom;
-
+const content = (
+  <div>
+    <p>Content</p>
+    <p>Content</p>
+  </div>
+);
+const type = [{"name":"水","value":'0'},{"name":"电","value":'1'},{"name":"汽","value":'2'}];
 class Display extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-
+      show:true,
+      radio:'1'
     };
 
   }
@@ -19,26 +28,34 @@ class Display extends React.Component {
     this.loadMap()
   }
 
-  openInfoWin(map, event, content) {
-    debugger
+  //打开详情浮窗
+  openInfoWin(map, event,title,address, content) {
+    var tableDom;
     if (!infoWin) {
         infoWin = new AMap.InfoWindow({
           autoMove:false,
             isCustom: true,  //使用自定义窗体
-            offset: new AMap.Pixel(130, 100)
+            offset: new AMap.Pixel(170, 100)
         });
     }
 
     var x = event.offsetX;
     var y = event.offsetY;
     var lngLat = map.containerToLngLat(new AMap.Pixel(x, y));
-
     if (!tableDom) {
         let infoDom = document.createElement('div');
         infoDom.className = 'info';
+        let closeDom = document.createElement('div');
+        closeDom.className = 'close';
+        closeDom.onclick = closeInfoWin;
+        let infoHTML ='<p class="title">'+ title +'</p>'+
+                      '<p>'+address+'</p>'
+        infoDom.innerHTML = infoHTML;
         tableDom = document.createElement('table');
+        infoDom.appendChild(closeDom);
         infoDom.appendChild(tableDom);
         infoWin.setContent(infoDom);
+        
     }
 
     var trStr = '';
@@ -54,14 +71,15 @@ class Display extends React.Component {
 
     tableDom.innerHTML = trStr;
     infoWin.open(map, lngLat);
-  }
-
-  closeInfoWin() {
-    if (infoWin) {
-        infoWin.close();
+    
+    //关闭浮窗
+    function closeInfoWin() {
+      if (infoWin) {
+          infoWin.close();
+      }
     }
   }
-
+  //生成地图
   loadMap(){
     let that = this;
     var map = new AMap.Map('container', {
@@ -88,9 +106,7 @@ class Display extends React.Component {
           '#598dc0',
           '#313695'
       ];
-
-      layer.on('mousemove', function (ev) {
-
+      layer.on('click', function (ev) {
         // 事件类型
         var type = ev.type;
         // 当前元素的原始数据
@@ -98,17 +114,32 @@ class Display extends React.Component {
         // 原始鼠标事件
         var originalEvent = ev.originalEvent;
 
-        that.openInfoWin(map, originalEvent, {
-            '名称': rawData.name,
-            '位置': rawData.lnglat
+        that.openInfoWin(map, originalEvent, rawData.title,rawData.address,{
+            '建筑类型：': rawData.name,
+            '最近一年单位面积电耗：': rawData.name,
+            '最近一年单位面积水耗：': rawData.name,
+            '最近一年单位面积气耗：': rawData.name,
+            '节能标准：': rawData.name,
+            '是否经过节能改造：': rawData.name,
+            '绿建等级：': rawData.name,
+            '供冷方式：': rawData.name,
+            '供暖方式：': rawData.name,
+            '可再生能源利用：': rawData.name
           });
       });
 
-      layer.on('mouseleave', function (ev) {
-          that.closeInfoWin();
-      });
+      // layer.on('mouseleave', function (ev) {
+      //     that.closeInfoWin();
+      // });
       
-      var data = [{"lnglat":[116.258446,37.686622],"name":"景县","style":2,'value':500},{"lnglat":[113.559954,22.124049],"name":"圣方济各堂区",'value':600},{"lnglat":[116.366794,39.915309],"name":"西城区",'value':999}]
+      var data = [{
+      "lnglat":[116.258446,37.686622],
+      "title":'xxx项目',
+      "name":"景县",
+      "style":2,
+      'value':500
+      },
+      {"lnglat":[113.559954,22.124049],"name":"圣方济各堂区","title":'xxx项目','address':'江苏省南京市玄武区孝陵卫街道中山门大街200号','value':600},{"lnglat":[116.366794,39.915309],"name":"西城区","title":'xxx项目','address':'江苏省南京市玄武区孝陵卫街道中山门大街200号','value':999}]
       //设置数据源
       layer.setData(data, {
         lnglat: 'lnglat'   // 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。
@@ -146,11 +177,27 @@ class Display extends React.Component {
 
     layer.render();
   }
-
+  toggleForm(e){
+    if(e == this.state.radio){
+      this.setState({"show":!this.state.show})
+    }else{
+      this.setState({"show":true,"radio":e})
+    }
+    
+  }
   render(){
     return (
       <PageHeaderWrapper>
-        <div id='container' style={{height:'500px',width:'100%'}}></div>
+        <div id='container' style={{height:'700px',width:'100%',postion:'relative'}}>
+          <div className="type" >
+            <ul className="ant-radio-group ant-radio-group-solid">
+              {type.map((item, index) => {
+                    return <li key={item.value} className={`ant-radio-button-wrapper ${this.state.radio==item.value?'ant-radio-button-wrapper-checked':''}`} onClick={()=>this.toggleForm(item.value)}>{item.name}</li>
+                })}
+            </ul>
+            {this.state.show && <ItemSelect></ItemSelect>}
+          </div>
+        </div>
       </PageHeaderWrapper>)
     }
 }
