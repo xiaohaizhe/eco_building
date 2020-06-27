@@ -1,9 +1,10 @@
 export default {
   'menu.welcome': '总览',
   'menu.display': '图上展示',
+  'menu.log': '日志管理',
   'menu.more-blocks': '更多区块',
   'menu.home': '首页',
-  'menu.admin': '管理页',
+  'menu.admin': '用户管理',
   'menu.admin.sub-page': '二级管理页',
   'menu.login': '登录',
   'menu.register': '注册',

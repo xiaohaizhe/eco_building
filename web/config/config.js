@@ -62,19 +62,26 @@ export default defineConfig({
               component: './display',
             },
             {
+              path: '/log',
+              name: 'log',
+              icon: 'dashboard',
+              authority: ['user'],
+              component: './log',
+            },
+            {
               path: '/admin',
               name: 'admin',
               icon: 'crown',
-              component: './Admin',
+              component: './userManage',
               authority: ['admin'],
               routes: [
-                {
-                  path: '/admin/sub-page',
-                  name: 'sub-page',
-                  icon: 'smile',
-                  component: './Welcome',
-                  authority: ['admin'],
-                },
+                // {
+                //   path: '/admin/sub-page',
+                //   name: 'sub-page',
+                //   icon: 'smile',
+                //   component: './Welcome',
+                //   authority: ['admin'],
+                // },
               ],
             },
             {

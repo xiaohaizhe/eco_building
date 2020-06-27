@@ -18,7 +18,7 @@ class Display extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      show:true,
+      show:false,
       radio:'1'
     };
 
@@ -99,10 +99,10 @@ class Display extends React.Component {
       var colors = [
           '#a50026',
           '#e34a33',
-          '#fca55d',
-          '#fee99d',
-          '#e9f6e8',
-          '#a3d3e6',
+          '#FF5722',
+          '#ffeb3b',
+          '#4caf50',
+          '#03a9f4',
           '#598dc0',
           '#313695'
       ];
@@ -132,14 +132,70 @@ class Display extends React.Component {
       //     that.closeInfoWin();
       // });
       
-      var data = [{
-      "lnglat":[116.258446,37.686622],
-      "title":'xxx项目',
-      "name":"景县",
-      "style":2,
-      'value':500
+      var data = [
+      {
+        "lnglat":[116.258446,37.686622],
+        "title":'xxx项目',
+        "name":"景县",
+        "style":2,
+        'value':500
       },
-      {"lnglat":[113.559954,22.124049],"name":"圣方济各堂区","title":'xxx项目','address':'江苏省南京市玄武区孝陵卫街道中山门大街200号','value':600},{"lnglat":[116.366794,39.915309],"name":"西城区","title":'xxx项目','address':'江苏省南京市玄武区孝陵卫街道中山门大街200号','value':999}]
+      {
+        "lnglat":[113.559954,22.124049],
+        "name":"圣方济各堂区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':760
+      },
+      {
+        "lnglat":[116.366794,39.915309],
+        "name":"西城区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':880
+      },
+      {
+        "lnglat":[116.6,39.92],
+        "name":"aa区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':650
+      },
+      {
+        "lnglat":[116.5,39.92],
+        "name":"bb区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':550
+      },
+      {
+        "lnglat":[115.9,39.89],
+        "name":"cc区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':440
+      },
+      {
+        "lnglat":[115.895,39.905],
+        "name":"dd区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':220
+      },
+      {
+        "lnglat":[116.91,42],
+        "name":"ff区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':260
+      },
+      {
+        "lnglat":[116.123,39.87],
+        "name":"ee区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':100
+      }]
       //设置数据源
       layer.setData(data, {
         lnglat: 'lnglat'   // 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。
