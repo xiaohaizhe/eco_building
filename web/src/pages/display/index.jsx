@@ -141,7 +141,7 @@ class Display extends React.Component {
         'value':500
       },
       {
-        "lnglat":[113.559954,22.124049],
+        "lnglat":[116.559954,43.124049],
         "name":"圣方济各堂区",
         "title":'xxx项目',
         'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
@@ -195,6 +195,48 @@ class Display extends React.Component {
         "title":'xxx项目',
         'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
         'value':100
+      },
+      {
+        "lnglat":[116.123,39.8766],
+        "name":"ee区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':1000
+      },
+      {
+        "lnglat":[116.23,39.8711],
+        "name":"ee区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':987
+      },
+      {
+        "lnglat":[116.323,39.8712],
+        "name":"ee区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':874
+      },
+      {
+        "lnglat":[116.231,40],
+        "name":"ee区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':712
+      },
+      {
+        "lnglat":[116.432,39.99],
+        "name":"ee区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':621
+      },
+      {
+        "lnglat":[116.32,39.97],
+        "name":"ee区",
+        "title":'xxx项目',
+        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
+        'value':499
       }]
       //设置数据源
       layer.setData(data, {

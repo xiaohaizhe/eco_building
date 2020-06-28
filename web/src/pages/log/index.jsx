@@ -9,33 +9,41 @@ const Log = () => {
     const actionRef = useRef();
     const columns = [
       {
-        title: '用户名',
-        dataIndex: 'name',
-        rules: [
-          {
-            required: true,
-            message: '用户名为必填项',
-          },
-        ],
+        title: '操作类型',
+        dataIndex: 'type',
+        // valueType:'option',
+        valueEnum:{
+                  0: {
+                    text: '登入',
+                    status: '0',
+                  },
+                  1: {
+                    text: '登出',
+                    status: '1',
+                  },
+                  2: {
+                    text: '上传',
+                    status: '2',
+                  },
+                  3: {
+                    text: '删除',
+                    status: '3',
+                  },
+                  4: {
+                    text: '全部',
+                    status: '4',
+                  }
+               },
       },
       {
-        title: '操作',
-        dataIndex: 'option',
-        valueType: 'option',
-        render: (_, record) => (
-          <>
-            <a
-              onClick={() => {
-                handleUpdateModalVisible(true);
-                setStepFormValues(record);
-              }}
-            >
-              编辑
-            </a>
-            <Divider type="vertical" />
-            <a href="">删除</a>
-          </>
-        ),
+        title: '操作人',
+        dataIndex: 'name',
+        hideInSearch:'true'
+      },
+      {
+        title: '操作时间',
+        dataIndex: 'time',
+        valueType:'dateTimeRange',
       },
     ];
     return (
@@ -44,36 +52,10 @@ const Log = () => {
           headerTitle="查询表格"
           actionRef={actionRef}
           rowKey="key"
-          options={false} 
-          toolBarRender={(action, { selectedRows }) => [
-            <Button type="primary" onClick={() => handleModalVisible(true)}>
-              <PlusOutlined /> 新建
-            </Button>,
-            selectedRows && selectedRows.length > 0 && (
-                <Button>
-                批量删除
-                </Button>
-            ),
-          ]}
-          tableAlertRender={({ selectedRowKeys, selectedRows }) => (
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowKeys.length}
-              </a>{' '}
-              项&nbsp;&nbsp;
-              {/* <span>
-                服务调用次数总计 {selectedRows.reduce((pre, item) => pre + item.callNo, 0)} 万
-              </span> */}
-            </div>
-          )}
+          options={false}
           request={(params, sorter, filter) => queryRule({ ...params, sorter, filter })}
           columns={columns}
-          rowSelection={{}}
+          // rowSelection={{}}
         />
       </PageHeaderWrapper>
     );

@@ -64,14 +64,14 @@ export default defineConfig({
             {
               path: '/log',
               name: 'log',
-              icon: 'dashboard',
+              icon: 'profile',
               authority: ['user'],
               component: './log',
             },
             {
               path: '/admin',
               name: 'admin',
-              icon: 'crown',
+              icon: 'user',
               component: './userManage',
               authority: ['admin'],
               routes: [
@@ -84,12 +84,12 @@ export default defineConfig({
                 // },
               ],
             },
-            {
-              name: 'list.table-list',
-              icon: 'table',
-              path: '/list',
-              component: './ListTableList',
-            },
+            // {
+            //   name: 'list.table-list',
+            //   icon: 'table',
+            //   path: '/list',
+            //   component: './ListTableList',
+            // },
             {
               component: './404',
             },

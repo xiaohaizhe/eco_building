@@ -37,7 +37,7 @@ const Login = props => {
       <LoginForm activeKey={type} onTabChange={setType} onSubmit={handleSubmit}>
         <Tab key="account" tab="账户密码登录">
           {status === 'error' && loginType === 'account' && !submitting && (
-            <LoginMessage content="账户或密码错误（admin/ant.design）" />
+            <LoginMessage content="账户或密码错误（admin/123456）" />
           )}
 
           <UserName
@@ -52,7 +52,7 @@ const Login = props => {
           />
           <Password
             name="password"
-            placeholder="密码: ant.design"
+            placeholder="密码: 123456"
             rules={[
               {
                 required: true,
@@ -61,7 +61,7 @@ const Login = props => {
             ]}
           />
         </Tab>
-        <Tab key="mobile" tab="手机号登录">
+        {/* <Tab key="mobile" tab="手机号登录">
           {status === 'error' && loginType === 'mobile' && !submitting && (
             <LoginMessage content="验证码错误" />
           )}
@@ -92,7 +92,7 @@ const Login = props => {
               },
             ]}
           />
-        </Tab>
+        </Tab> */}
         <div>
           <Checkbox checked={autoLogin} onChange={e => setAutoLogin(e.target.checked)}>
             自动登录
@@ -107,10 +107,10 @@ const Login = props => {
         </div>
         <Submit loading={submitting}>登录</Submit>
         <div className={styles.other}>
-          其他登录方式
+          {/* 其他登录方式
           <AlipayCircleOutlined className={styles.icon} />
           <TaobaoCircleOutlined className={styles.icon} />
-          <WeiboCircleOutlined className={styles.icon} />
+          <WeiboCircleOutlined className={styles.icon} /> */}
           <Link className={styles.register} to="/user/register">
             注册账户
           </Link>
