@@ -1,29 +1,19 @@
 package com.giot.eco_building.aop;
 
-import com.alibaba.fastjson.JSONObject;
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
-import com.giot.eco_building.entity.Action;
-import com.giot.eco_building.entity.User;
 import com.giot.eco_building.service.ActionService;
-import com.giot.eco_building.utils.IpUtil;
-import org.apache.tomcat.jni.Local;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.lang.reflect.Method;
-import java.time.LocalDate;
-import java.util.Date;
 
 /**
  * @Author: pyt

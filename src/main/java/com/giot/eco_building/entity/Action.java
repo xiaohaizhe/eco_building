@@ -2,14 +2,12 @@ package com.giot.eco_building.entity;
 
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.exception.DataException;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import java.time.LocalDate;
 import java.util.Date;
 
 /**

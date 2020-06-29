@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -15,7 +16,10 @@ import java.util.List;
  */
 public interface ProjectService {
     boolean insert(Project project) throws IOException;
+
+    void insertAll(List<Project> projectList);
+
     boolean update(Project project);
-    List<String> findCityList();
-    WebResponse importExcel(MultipartFile file, HttpServletRequest request) throws IOException;
+
+    WebResponse importExcel(MultipartFile file, HttpServletRequest request) throws IOException, ParseException;
 }

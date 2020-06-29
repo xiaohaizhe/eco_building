@@ -1,5 +1,6 @@
 package com.giot.eco_building.controller;
 
+import com.giot.eco_building.aop.SystemControllerLog;
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.service.ProjectService;
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.text.ParseException;
 
 /**
  * @Author: pyt
@@ -39,10 +41,11 @@ public class ProjectController {
     }*/
 
     @PostMapping("importExcel")
+    @SystemControllerLog(description = "导入表格")
     public WebResponse importExcel(MultipartFile file, HttpServletRequest request) {
         try {
             return projectService.importExcel(file, request);
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             e.printStackTrace();
             return WebResponse.exception(e);
         }
