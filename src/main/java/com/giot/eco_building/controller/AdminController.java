@@ -2,14 +2,10 @@ package com.giot.eco_building.controller;
 
 import com.giot.eco_building.aop.SystemControllerLog;
 import com.giot.eco_building.bean.WebResponse;
-import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.entity.User;
 import com.giot.eco_building.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @Author: pyt
@@ -30,6 +26,23 @@ public class AdminController {
     @SystemControllerLog(description = "添加用户")
     public WebResponse save(@RequestBody User user) {
         return userService.insert(user);
+    }
+
+    @PostMapping("/update")
+    @SystemControllerLog(description = "编辑用户")
+    public WebResponse update(@RequestBody User user) {
+        return userService.insert(user);
+    }
+
+    @PostMapping("/delete")
+    @SystemControllerLog(description = "删除用户")
+    public WebResponse delete(Long userId) {
+        return userService.delete(userId);
+    }
+
+    @GetMapping("/userPage")
+    public WebResponse userPage(Integer number, Integer size) {
+        return userService.getUserPage(number, size);
     }
 
 }

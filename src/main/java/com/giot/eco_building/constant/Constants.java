@@ -103,13 +103,19 @@ public class Constants {
      * 登录
      * 登出
      * 添加用户
+     * 编辑用户
+     * 删除用户
      * 导入表格
      */
     public enum ActionType {
         LOGIN("登录", 0),
         LOGOUT("登出", 1),
+
         ADD_USER("添加用户", 2),
-        IMPORT_EXCEL("导入表格", 3),
+        UPDATE_USER("编辑用户", 3),
+        DELETE_USER("删除用户", 4),
+
+        IMPORT_EXCEL("导入表格", 5),
         ;
         private String value;
         private Integer code;

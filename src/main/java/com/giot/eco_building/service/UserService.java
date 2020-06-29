@@ -14,12 +14,30 @@ import java.io.IOException;
 public interface UserService {
     /**
      * 添加新用户
+     *
      * @return
      */
     WebResponse insert(User user);
 
     /**
+     * 根据userId删除用户
+     *
+     * @param userId
+     * @return
+     */
+    WebResponse delete(Long userId);
+
+    /**
+     * 获取用户分页
+     * @param number
+     * @param size
+     * @return
+     */
+    WebResponse getUserPage(Integer number,Integer size);
+
+    /**
      * 查询用户信息
+     *
      * @param username
      * @return
      */
