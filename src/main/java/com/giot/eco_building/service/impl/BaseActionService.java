@@ -12,8 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -60,29 +62,11 @@ public class BaseActionService implements ActionService {
      * @return
      */
     @Override
-    public WebResponse getActionPage(Integer number, Integer size, Integer actionType, String start, String end) {
+    public WebResponse getActionPage(Long userId, Integer number, Integer size, Integer actionType, String start, String end) {
         Sort sort = Sort.by(Sort.Direction.DESC,
                 "actionTime"); //创建时间降序排序
         Pageable pageable = PageRequest.of(number - 1, size, sort);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Date sdate = new Date();
-        Date edate = new Date();
-        boolean flag = false;
-        if (start != null && end != null) {
-            flag = true;
-            try {
-                sdate = sdf.parse(start);
-                edate = sdf.parse(end);
-                Calendar c = Calendar.getInstance();
-                c.setTime(edate);
-                c.add(Calendar.DAY_OF_MONTH, 1);
-                edate = c.getTime();
-            } catch (ParseException e) {
-                flag = false;
-            }
-        }
-        Page<Action> actionPage;
-        if (actionType != -1) {
+        /*if (actionType != -1) {
             Integer[] types = {actionType};
             if (flag) {
                 actionPage = actionRepository.findAllByTypeInAndActionTimeBetween(types, sdate, edate, pageable);
@@ -96,7 +80,46 @@ public class BaseActionService implements ActionService {
             } else {
                 actionPage = actionRepository.findAllByTypeIn(types, pageable);
             }
-        }
+        }*/
+        Specification<Action> actionSpecification = (Specification<Action>) (root, criteriaQuery, criteriaBuilder) -> {
+            //处理时间数据
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date sdate = new Date();
+            Date edate = new Date();
+            boolean flag = false;
+            if (start != null && end != null) {
+                flag = true;
+                try {
+                    sdate = sdf.parse(start);
+                    edate = sdf.parse(end);
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(edate);
+                    c.add(Calendar.DAY_OF_MONTH, 1);
+                    edate = c.getTime();
+                } catch (ParseException e) {
+                    flag = false;
+                }
+            }
+            List<Predicate> list = new ArrayList<>();//查询条件集
+            //1.userId
+            if (userId != null) list.add(criteriaBuilder.equal(root.get("userId").as(Long.class), userId));
+            //2.type
+            Path<Integer> path = root.get("type");
+            CriteriaBuilder.In<Integer> in = criteriaBuilder.in(path);
+            if (actionType != -1) {
+                in.value(actionType);
+            } else {
+                in.value(0);
+                in.value(1);
+                in.value(2);
+                in.value(3);
+            }
+            list.add(criteriaBuilder.and(criteriaBuilder.and(in)));
+            //3.date
+            if (flag) list.add(criteriaBuilder.between(root.get("actionTime"), sdate, edate));
+            return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
+        };
+        Page<Action> actionPage = actionRepository.findAll(actionSpecification, pageable);
 
         return WebResponse.success(actionPage.getContent(), actionPage.getTotalPages(), actionPage.getTotalElements());
     }

@@ -14,7 +14,7 @@ public interface ActionService {
 
     void add(Constants.ActionType type, String msg, User user);
 
-    WebResponse getActionPage(Integer number, Integer size, Integer actionType, String start, String end);
+    WebResponse getActionPage(Long userId,Integer number, Integer size, Integer actionType, String start, String end);
 
     WebResponse getActionType();
 }

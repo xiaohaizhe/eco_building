@@ -28,7 +28,7 @@ public class ActionController {
     }
 
     @GetMapping("/actionPage")
-    public WebResponse getActionPages(Integer number, Integer size, Integer actionType, String start, String end) {
-        return actionService.getActionPage(number, size, actionType, start, end);
+    public WebResponse getActionPages(Long userId, Integer number, Integer size, Integer actionType, String start, String end) {
+        return actionService.getActionPage(userId, number, size, actionType, start, end);
     }
 }

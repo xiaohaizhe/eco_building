@@ -2,6 +2,7 @@ package com.giot.eco_building.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -22,6 +23,7 @@ import java.util.Date;
 @EntityListeners(AuditingEntityListener.class)
 public class User implements Serializable {
     private static final long serialVersionUID = 1705613187469042461L;
+    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
