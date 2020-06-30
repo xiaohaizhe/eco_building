@@ -6,6 +6,7 @@ import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import com.giot.eco_building.entity.User;
 import com.giot.eco_building.repository.UserRepository;
 import com.giot.eco_building.service.UserService;
+import lombok.extern.flogger.Flogger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -101,7 +102,7 @@ public class BaseUserService implements UserService {
     public WebResponse getUserPage(Integer number, Integer size) {
         Sort sort = Sort.by(Sort.Direction.DESC,
                 "created"); //创建时间降序排序
-        Pageable pageable = PageRequest.of(number, size, sort);
+        Pageable pageable = PageRequest.of(number - 1, size, sort);
         Page<User> userPage = userRepository.findAllByAuthorityAndDelStatus(Constants.Authority.USER.getValue(),
                 Constants.DelStatus.NORMAL.isValue(), pageable);
         return WebResponse.success(userPage.getContent(), userPage.getTotalPages(), userPage.getTotalElements());
@@ -114,7 +115,7 @@ public class BaseUserService implements UserService {
             ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             HttpServletRequest request = requestAttributes.getRequest();
             HttpSession session = request.getSession();
-            session.setAttribute("userId", user.getId());
+            session.setAttribute("user", user);
         }
         return user;
     }

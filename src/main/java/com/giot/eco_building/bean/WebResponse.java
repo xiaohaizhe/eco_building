@@ -66,7 +66,7 @@ public class WebResponse {
      * 成功响应
      */
     public static WebResponse success() {
-        return new WebResponse(HttpResponseStatusEnum.SUCCESS.getCode(), HttpResponseStatusEnum.SUCCESS.getMessage(), null);
+        return new WebResponse(HttpResponseStatusEnum.SUCCESS.getCode(), HttpResponseStatusEnum.SUCCESS.getMessage());
     }
 
     /**

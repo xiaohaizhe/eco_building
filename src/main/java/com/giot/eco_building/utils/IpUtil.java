@@ -1,5 +1,6 @@
 package com.giot.eco_building.utils;
 
+import com.giot.eco_building.entity.User;
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Description:
  */
 public class IpUtil {
-    public static Map<String, Long> userIdMap = new ConcurrentHashMap<>();
+    public static Map<String, User> userMap = new ConcurrentHashMap<>();
 
     public static HttpServletRequest getRequest() {
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -30,25 +31,25 @@ public class IpUtil {
         return session;
     }
 
-    public static Long getUserId() {
+    public static User getUser() {
         return getUserId(getRequest().getSession().getId());
     }
 
-    public static Long getUserId(String sessionId) {
-        Long userId = null;
-        if (userIdMap.keySet().contains(sessionId)) {
-            userId = userIdMap.get(sessionId);
+    public static User getUserId(String sessionId) {
+        User user = null;
+        if (userMap.keySet().contains(sessionId)) {
+            user = userMap.get(sessionId);
         } else {
-            userId = (Long) getSession().getAttribute("userId");
-            if (userId != null) {
-                userIdMap.put(sessionId, userId);
+            user = (User) getSession().getAttribute("user");
+            if (user != null) {
+                userMap.put(sessionId, user);
             }
         }
-        return userId;
+        return user;
     }
 
     public static void removeSession(String sessionId) {
-        userIdMap.remove(sessionId);
+        userMap.remove(sessionId);
     }
 
     public static String getIpAddr() {

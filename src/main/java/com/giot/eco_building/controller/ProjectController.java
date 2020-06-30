@@ -41,7 +41,7 @@ public class ProjectController {
     }*/
 
     @PostMapping("importExcel")
-    @SystemControllerLog(description = "导入表格")
+    @SystemControllerLog(description = "上传")
     public WebResponse importExcel(MultipartFile file, HttpServletRequest request) {
         try {
             return projectService.importExcel(file, request);

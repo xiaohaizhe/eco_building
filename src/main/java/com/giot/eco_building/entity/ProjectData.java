@@ -1,5 +1,6 @@
 package com.giot.eco_building.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
@@ -38,6 +39,7 @@ public class ProjectData {
     /**
      * 实际时间
      */
+    @JsonFormat(pattern = "yyyy-MM", timezone = "GMT+8")
     @Column(name = "actual_date")
     private Date actualDate;
     /**
@@ -74,12 +76,14 @@ public class ProjectData {
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private Date created;
     /**
      * 最新修改时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
     @Column(nullable = false, name = "last_modified")
     private Date lastModified;

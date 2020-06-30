@@ -1,14 +1,22 @@
 package com.giot.eco_building.service.impl;
 
+import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.entity.Action;
+import com.giot.eco_building.entity.User;
 import com.giot.eco_building.repository.ActionRepository;
 import com.giot.eco_building.service.ActionService;
 import com.giot.eco_building.utils.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @Author: pyt
@@ -26,20 +34,89 @@ public class BaseActionService implements ActionService {
 
     @Override
     public void add(Constants.ActionType type, String msg) {
-        Long userId = IpUtil.getUserId();
-        add(type, msg, userId);
+        User user = IpUtil.getUser();
+        add(type, msg, user);
     }
 
     @Override
-    public void add(Constants.ActionType type, String msg, Long userId) {
-        if (userId != null) {
+    public void add(Constants.ActionType type, String msg, User user) {
+        if (user != null) {
             Action action = new Action();
-            action.setUserId(userId);
+            action.setUserId(user.getId());
+            action.setUserName(user.getUsername());
             action.setActionIp(IpUtil.getIpAddr());
             action.setType(type.getCode());
             action.setActionDesc(type.getValue() + msg);
             action.setActionTime(new Date());
             actionRepository.save(action);
         }
+    }
+
+    /**
+     * 管理员查看全部操作日志
+     *
+     * @param number
+     * @param size
+     * @return
+     */
+    @Override
+    public WebResponse getActionPage(Integer number, Integer size, Integer actionType, String start, String end) {
+        Sort sort = Sort.by(Sort.Direction.DESC,
+                "actionTime"); //创建时间降序排序
+        Pageable pageable = PageRequest.of(number - 1, size, sort);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date sdate = new Date();
+        Date edate = new Date();
+        boolean flag = false;
+        if (start != null && end != null) {
+            flag = true;
+            try {
+                sdate = sdf.parse(start);
+                edate = sdf.parse(end);
+                Calendar c = Calendar.getInstance();
+                c.setTime(edate);
+                c.add(Calendar.DAY_OF_MONTH, 1);
+                edate = c.getTime();
+            } catch (ParseException e) {
+                flag = false;
+            }
+        }
+        Page<Action> actionPage;
+        if (actionType != -1) {
+            Integer[] types = {actionType};
+            if (flag) {
+                actionPage = actionRepository.findAllByTypeInAndActionTimeBetween(types, sdate, edate, pageable);
+            } else {
+                actionPage = actionRepository.findAllByTypeIn(types, pageable);
+            }
+        } else {
+            Integer[] types = {0, 1, 2, 3};
+            if (flag) {
+                actionPage = actionRepository.findAllByTypeInAndActionTimeBetween(types, sdate, edate, pageable);
+            } else {
+                actionPage = actionRepository.findAllByTypeIn(types, pageable);
+            }
+        }
+
+        return WebResponse.success(actionPage.getContent(), actionPage.getTotalPages(), actionPage.getTotalElements());
+    }
+
+    /**
+     * 操作类型：
+     * 登入/登出-0
+     * 上传-3
+     * 删除-2
+     * 全部--1
+     *
+     * @return
+     */
+    @Override
+    public WebResponse getActionType() {
+        Map<String, Integer> actionType = new HashMap<>();
+        actionType.put("登入/登出", 0);
+        actionType.put("删除", 2);
+        actionType.put("上传", 3);
+        actionType.put("全部", -1);
+        return WebResponse.success(actionType);
     }
 }

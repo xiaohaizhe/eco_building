@@ -1,5 +1,6 @@
 package com.giot.eco_building.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.utils.validation.LocationValidation;
@@ -262,12 +263,14 @@ public class Project implements Serializable {
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private Date created;
     /**
      * 最新修改时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
     @Column(nullable = false, name = "last_modified")
     private Date lastModified;
