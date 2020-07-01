@@ -46,6 +46,7 @@ public class BaseProjectDataService implements ProjectDataService {
      * 项目数据：
      * 存在-更新
      * 不存在-存储
+     *
      * @param projectDataList
      */
     @Override
@@ -87,4 +88,13 @@ public class BaseProjectDataService implements ProjectDataService {
         }
         projectDataRepository.saveAll(realDataList);
     }
+
+    @Override
+    public com.giot.eco_building.entity.ProjectData getLatestYearData(Long projectId, Integer type) {
+        com.giot.eco_building.entity.ProjectData projectData =
+                projectDataRepository.findTopByProjectIdAndIsMonthAndTypeAndValueGreaterThanOrderByActualDateDesc(projectId, false, type, (double) 0);
+        return projectData;
+    }
+
+
 }

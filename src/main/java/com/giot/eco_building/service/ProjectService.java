@@ -19,7 +19,23 @@ public interface ProjectService {
 
     void insertAll(List<Project> projectList);
 
+    void reDealWithProjectAddress();
+
+    void latestYearData();
+
     boolean update(Project project);
 
+    WebResponse getAddress(Integer level, String superiorDirectory);
+
+    WebResponse getAddress();
+
     WebResponse importExcel(MultipartFile file, HttpServletRequest request) throws IOException, ParseException;
+
+    WebResponse screen(String province, String city, String district, String street,
+                //多选
+                String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
+                Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode, Integer[] WhetherToUseRenewableResources,
+                //范围
+                Double[] area, Integer[] floor, String[] date,
+                Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea);
 }

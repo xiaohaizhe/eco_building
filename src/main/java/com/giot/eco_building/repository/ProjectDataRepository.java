@@ -15,4 +15,6 @@ import java.util.Optional;
 @Repository
 public interface ProjectDataRepository extends JpaRepository<ProjectData, Long> {
     Optional<ProjectData> findByProjectIdAndActualDateAndTypeAndIsMonth(Long projectId, Date actualDate, Integer type, Boolean isMonth);
+
+    ProjectData findTopByProjectIdAndIsMonthAndTypeAndValueGreaterThanOrderByActualDateDesc(Long projectId, Boolean isMonth, Integer type, Double value);
 }

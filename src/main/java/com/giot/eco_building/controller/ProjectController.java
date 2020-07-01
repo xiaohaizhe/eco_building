@@ -50,4 +50,16 @@ public class ProjectController {
             return WebResponse.exception(e);
         }
     }
+
+    //用于测试，更正数据
+    @PostMapping("address")
+    public void reDealWithProjectAddress() {
+        projectService.reDealWithProjectAddress();
+    }
+
+    //用于测试，更正数据
+    @PostMapping("data")
+    public void latestYearData() {
+        projectService.latestYearData();
+    }
 }

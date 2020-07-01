@@ -1,5 +1,6 @@
 package com.giot.eco_building.bean;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.giot.eco_building.constant.CommonResponse;
 import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import lombok.AllArgsConstructor;
@@ -28,9 +29,11 @@ public class WebResponse {
     /**
      * 结果
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Object result;
-
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer totalPages;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long size;
 
     public WebResponse(Integer code, String message) {

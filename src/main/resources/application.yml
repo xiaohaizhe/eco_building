@@ -5,7 +5,7 @@ spring:
   thymeleaf:
     cache: false
   profiles:
-    active: pro
+    active: dev
 management:
   endpoint:
     shutdown:
@@ -16,7 +16,9 @@ management:
         include: shutdown
 baidu:
   address:
-    url: http://api.map.baidu.com/geocoding/v3/
+    url:
+      code: http://api.map.baidu.com/geocoding/v3/
+      decode: http://api.map.baidu.com/reverse_geocoding/v3/
     ak: vEe2dQodlX1GvI6L9qRIvf753savFWFt
 logging:
   file:

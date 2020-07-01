@@ -2,6 +2,7 @@ package com.giot.eco_building.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.utils.validation.LocationValidation;
 import lombok.Data;
@@ -245,24 +246,28 @@ public class Project implements Serializable {
     /**
      * 单位面积电耗
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Column(name = "power_consumption_per_unit_area")
     private Double powerConsumptionPerUnitArea;
 
     /**
      * 单位面积水耗
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Column(name = "water_consumption_per_unit_area")
     private Double waterConsumptionPerUnitArea;
 
     /**
      * 单位面积气耗
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Column(name = "gas_consumption_per_unit_area")
     private Double gasConsumptionPerUnitArea;
 
     /**
      * 创建时间
      */
+    @JsonIgnore
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false)
@@ -270,6 +275,7 @@ public class Project implements Serializable {
     /**
      * 最新修改时间
      */
+    @JsonIgnore
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
     @Column(nullable = false, name = "last_modified")
@@ -277,6 +283,7 @@ public class Project implements Serializable {
     /**
      * 删除标记位：0-有效，1-无效
      */
+    @JsonIgnore
     @Column(nullable = false, columnDefinition = "bit default 0", name = "del_status")
     private Boolean delStatus;
 }

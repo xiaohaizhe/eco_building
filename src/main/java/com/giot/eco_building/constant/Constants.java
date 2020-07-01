@@ -76,11 +76,12 @@ public class Constants {
         CATERING("餐饮", 3),
         HOSPITAL("医院", 4),
         HOTEL("酒店", 5),
+        OTHER("其他", 6);
         //        RESIDENTIAL_AND_COMMERCIAL_COMPLEX("商住两用"),
 //        HOTEL("宾馆"),
 //        INDUSTRY("工业"),
 //        COMMERCE("商业"),
-        OTHER("其他", 6);
+
         private String value;
         private Integer code;
 

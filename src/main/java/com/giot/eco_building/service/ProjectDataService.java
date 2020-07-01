@@ -11,4 +11,6 @@ import java.util.List;
  */
 public interface ProjectDataService {
     void insertAll(List<ProjectData> projectDataList);
+
+    com.giot.eco_building.entity.ProjectData getLatestYearData(Long projectId,Integer type);
 }

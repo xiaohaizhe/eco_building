@@ -39,7 +39,7 @@ class BaseProjectServiceTest {
     }
 
     @Test
-    void update(){
+    void update() {
         Project project = new Project();
         project.setId(645131296309248l);
         project.setName("test1");
@@ -48,13 +48,28 @@ class BaseProjectServiceTest {
     }
 
     @Test
-    void testLayFetchType(){
-        List<Project> projects =projectRepository.findAll();
+    void testLayFetchType() {
+        List<Project> projects = projectRepository.findAll();
         for (Project pro :
                 projects) {
             System.out.println(pro.toString());
             System.out.println(pro.getPhoto());
         }
 
+    }
+
+    @Test
+    public void getProvinces() {
+        List<String> result = projectRepository.findDistinctCityByProvince("江苏省");
+        for (String s :
+                result) {
+            System.out.println(s);
+        }
+    }
+
+
+    @Test
+    public void getAddress() {
+        System.out.println(projectService.getAddress());
     }
 }
