@@ -37,12 +37,12 @@ const Login = props => {
       <LoginForm activeKey={type} onTabChange={setType} onSubmit={handleSubmit}>
         <Tab key="account" tab="账户密码登录">
           {status === 'error' && loginType === 'account' && !submitting && (
-            <LoginMessage content="账户或密码错误（admin/123456）" />
+            <LoginMessage content="账户或密码错误" />
           )}
 
           <UserName
-            name="userName"
-            placeholder="用户名: admin or user"
+            name="username"
+            placeholder="用户名:"
             rules={[
               {
                 required: true,
@@ -52,7 +52,7 @@ const Login = props => {
           />
           <Password
             name="password"
-            placeholder="密码: 123456"
+            placeholder="密码:"
             rules={[
               {
                 required: true,
@@ -94,16 +94,16 @@ const Login = props => {
           />
         </Tab> */}
         <div>
-          <Checkbox checked={autoLogin} onChange={e => setAutoLogin(e.target.checked)}>
+          {/* <Checkbox checked={autoLogin} onChange={e => setAutoLogin(e.target.checked)}>
             自动登录
-          </Checkbox>
-          <a
+          </Checkbox> */}
+          {/* <a
             style={{
               float: 'right',
             }}
           >
             忘记密码
-          </a>
+          </a> */}
         </div>
         <Submit loading={submitting}>登录</Submit>
         <div className={styles.other}>

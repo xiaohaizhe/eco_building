@@ -1,19 +1,14 @@
 import React from 'react';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import {UpOutlined } from '@ant-design/icons';
+import {DownOutlined,UpOutlined } from '@ant-design/icons';
 import AMap from 'AMap';
 import Loca from 'Loca'
-import { Radio,Popover } from 'antd';
+import { Radio } from 'antd';
 import ItemSelect from './components/ItemSelect';
 import  './index.less';
 var infoWin;
-const content = (
-  <div>
-    <p>Content</p>
-    <p>Content</p>
-  </div>
-);
 const type = [{"name":"水","value":'0'},{"name":"电","value":'1'},{"name":"汽","value":'2'}];
+const legend = [{"color":'#a50026',"value":'0.875-1.000'}];
 class Display extends React.Component {
   constructor(props) {
     super(props);
@@ -35,7 +30,7 @@ class Display extends React.Component {
         infoWin = new AMap.InfoWindow({
           autoMove:false,
             isCustom: true,  //使用自定义窗体
-            offset: new AMap.Pixel(170, 100)
+            offset: new AMap.Pixel(170, 200)
         });
     }
 
@@ -51,9 +46,13 @@ class Display extends React.Component {
         let infoHTML ='<p class="title">'+ title +'</p>'+
                       '<p>'+address+'</p>'
         infoDom.innerHTML = infoHTML;
+        let bottonDom = document.createElement('button');
+        bottonDom.className = 'ant-btn ant-btn-primary btnFix';
+        bottonDom.innerHTML = '详细数据';
         tableDom = document.createElement('table');
         infoDom.appendChild(closeDom);
         infoDom.appendChild(tableDom);
+        infoDom.appendChild(bottonDom);
         infoWin.setContent(infoDom);
         
     }
@@ -68,7 +67,7 @@ class Display extends React.Component {
                 '<td class="content">' + val + '</td>' +
             '</tr>'
     }
-
+    
     tableDom.innerHTML = trStr;
     infoWin.open(map, lngLat);
     
@@ -98,12 +97,12 @@ class Display extends React.Component {
 
       var colors = [
           '#a50026',
-          '#e34a33',
+          '#f44336',
+          '#f44336',
           '#FF5722',
-          '#ffeb3b',
-          '#4caf50',
           '#03a9f4',
-          '#598dc0',
+          '#2196f3',
+          '#3f51b5',
           '#313695'
       ];
       layer.on('click', function (ev) {
@@ -116,15 +115,15 @@ class Display extends React.Component {
 
         that.openInfoWin(map, originalEvent, rawData.title,rawData.address,{
             '建筑类型：': rawData.name,
-            '最近一年单位面积电耗：': rawData.name,
-            '最近一年单位面积水耗：': rawData.name,
-            '最近一年单位面积气耗：': rawData.name,
-            '节能标准：': rawData.name,
-            '是否经过节能改造：': rawData.name,
-            '绿建等级：': rawData.name,
-            '供冷方式：': rawData.name,
-            '供暖方式：': rawData.name,
-            '可再生能源利用：': rawData.name
+            '最近一年单位面积电耗：': "2000",
+            '最近一年单位面积水耗：': "200",
+            '最近一年单位面积气耗：': "100",
+            '节能标准：': "50%",
+            '是否经过节能改造：': "否",
+            '绿建等级：': '1 星',
+            '供冷方式：': '集中供冷',
+            '供暖方式：': '分户供暖',
+            '可再生能源利用：': '太阳能'
           });
       });
 
@@ -145,7 +144,8 @@ class Display extends React.Component {
         "name":"圣方济各堂区",
         "title":'xxx项目',
         'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':760
+        'value':760,
+
       },
       {
         "lnglat":[116.366794,39.915309],
@@ -246,28 +246,51 @@ class Display extends React.Component {
       layer.setOptions({
         unit: 'px',
         style: {
-            radius: 6,
+            radius: 10,
             height: 0,
             // 根据车辆类型设定不同填充颜色
             color: function (obj) {
                 var value = obj.value.value;
-                if(value>875){
-                  return colors[0];
-                }else if(value>750){
-                  return colors[1];
-                }else if(value>625){
-                  return colors[2];
-                }else if(value>500){
-                  return colors[3];
-                }else if(value>375){
-                  return colors[4];
-                }else if(value>250){
-                  return colors[5];
-                }else if(value>125){
-                  return colors[6];
-                }else{
-                  return colors[7];
-                }
+                var max = 1000;
+                var min = 0;
+                return gradientColor(value,max,min);
+                // if(value>875){
+                //   return colors[0];
+                // }else if(value>750){
+                //   return colors[1];
+                // }else if(value>625){
+                //   return colors[2];
+                // }else if(value>500){
+                //   return colors[3];
+                // }else if(value>375){
+                //   return colors[4];
+                // }else if(value>250){
+                //   return colors[5];
+                // }else if(value>125){
+                //   return colors[6];
+                // }else{
+                //   return colors[7];
+                // }
+
+                function gradientColor(data,max,min){
+                  //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
+                    let startR = 255;
+                    let startG = 0;
+                    let startB = 0;
+                   
+                  //   let endRGB = this.colorRgb('#0000ff');
+                    let endR = 0;
+                    let endG = 0;
+                    let endB = 255;
+                   
+                    let step = (max-data)/(max-min);
+                    let sR = (endR-startR)*step;//总差值
+                    let sG = (endG-startG)*step;
+                    let sB = (endB-startB)*step;
+                   
+                    var color = 'rgb('+parseInt((sR+startR))+','+parseInt((sG+startG))+','+parseInt((sB+startB))+')';
+                    return color;
+                   }
             },
             opacity: 1
         }
@@ -275,12 +298,9 @@ class Display extends React.Component {
 
     layer.render();
   }
-  toggleForm(e){
-    if(e == this.state.radio){
+  toggleForm(){
       this.setState({"show":!this.state.show})
-    }else{
-      this.setState({"show":true,"radio":e})
-    }
+
     
   }
   render(){
@@ -288,13 +308,34 @@ class Display extends React.Component {
       <PageHeaderWrapper>
         <div id='container' style={{height:'700px',width:'100%',postion:'relative'}}>
           <div className="type" >
-            <ul className="ant-radio-group ant-radio-group-solid">
+            {/* <ul className="ant-radio-group ant-radio-group-solid">
               {type.map((item, index) => {
                     return <li key={item.value} className={`ant-radio-button-wrapper ${this.state.radio==item.value?'ant-radio-button-wrapper-checked':''}`} onClick={()=>this.toggleForm(item.value)}>{item.name}</li>
                 })}
-            </ul>
+            </ul> */}
+            <Radio.Group defaultValue="a" buttonStyle="solid">
+              <Radio.Button value="a">水</Radio.Button>
+              <Radio.Button value="b">电</Radio.Button>
+              <Radio.Button value="c">汽</Radio.Button>
+            </Radio.Group>
+            <div className="ant-radio-button-wrapper" onClick={()=>this.toggleForm()}>
+              {this.state.show?<UpOutlined />:<DownOutlined />}
+            </div>
             {this.state.show && <ItemSelect></ItemSelect>}
           </div>
+          <div className="legend">
+            <div className="gradientLegend"></div>
+            <p className="max">1000</p>
+            <p className="min">0</p>
+          </div>
+          
+          {/* <ul>
+            {type.map((item, index) => {
+                return <li key={item.value} className={`ant-radio-button-wrapper ${this.state.radio==item.value?'ant-radio-button-wrapper-checked':''}`} >
+                          {item.name}
+                        </li>
+            })}
+          </ul> */}
         </div>
       </PageHeaderWrapper>)
     }

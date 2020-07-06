@@ -1,22 +1,30 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect} from 'react';
+import { getUserPage } from '@/services/userManage';
+
+
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Divider, Dropdown, Menu, message, Input } from 'antd';
 import ProTable from '@ant-design/pro-table';
 import { queryRule, updateRule, addRule, removeRule } from '../../pages/ListTableList/service';
 
-const userManage = () => {
+const fetchData =async (params, sort, filter) =>{
+  const res =await getUserPage({number:params.current,size:params.pageSize});
+  return {
+    data:res.result,
+    current: 1,
+    total:res.size,
+    pageSize:20
+  }
+}
+
+const userManage = props => {
     const actionRef = useRef();
     const columns = [
       {
         title: '用户名',
-        dataIndex: 'name',
-        rules: [
-          {
-            required: true,
-            message: '用户名为必填项',
-          },
-        ],
+        dataIndex: 'username',
+        hideInSearch:'true'
       },
       {
         title: '操作',
@@ -41,10 +49,11 @@ const userManage = () => {
     return (
       <PageHeaderWrapper>
         <ProTable
-          headerTitle="查询表格"
+          headerTitle="用户表格"
           actionRef={actionRef}
           rowKey="key"
           options={false} 
+          search={false}
           toolBarRender={(action, { selectedRows }) => [
             <Button type="primary" onClick={() => handleModalVisible(true)}>
               <PlusOutlined /> 新建
@@ -71,7 +80,7 @@ const userManage = () => {
               </span> */}
             </div>
           )}
-          request={(params, sorter, filter) => queryRule({ ...params, sorter, filter })}
+          request={fetchData}
           columns={columns}
           rowSelection={{}}
         />

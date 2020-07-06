@@ -2,40 +2,33 @@ import React from 'react';
 import { Cascader,Form, Input, Button, Checkbox,DatePicker  } from 'antd';
 const { RangePicker } = DatePicker;
 
-const options1 = [
+const options1 =  [
   {
-    value: 'jiangsu',
-    label: '江苏',
-    children: [
-      {
-        value: 'nanjing',
-        label: '南京',
-        children: [
+      "children": [
           {
-            value: 'gulouqu',
-            label: '鼓楼区',
-            children: [
-              {
-                value: 'gulouqu',
-                label: '鼓楼区',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        value: 'xuzhou',
-        label: '徐州',
-        children: [
-          {
-            value: 'gulouqu',
-            label: '鼓楼区',
-          },
-        ],
-      },
-    ],
-  }
-];
+              "children": [
+                  {
+                      "children": [
+                          {
+                              "label": "古新路",
+                              "value": "古新路"
+                          },
+                          {
+                              "label": "春天大道",
+                              "value": "春天大道"
+                          }
+                      ],
+                      "label": "青浦区",
+                      "value": "青浦区"
+                  }
+              ],
+              "label": "上海市",
+              "value": "上海市"
+          }
+      ],
+      "label": "上海市",
+      "value": "上海市"
+  },]
 const buildingType = [
   { label: '商场', value: '商场' },
   { label: '酒店', value: '酒店' },
@@ -46,10 +39,10 @@ const buildingType = [
   { label: '其他', value: '其他' }
 ];
 const floor = [
-  { label: '1~3层（低层）', value: '1~3层（低层）' },
-  { label: '4~6层（多层）', value: '4~6层（多层）' },
-  { label: '7层以上（高层）', value: '7层以上（高层）' },
-  { label: '其他', value: '其他' }
+  { label: '1~3层（低层）', value: '0' },
+  { label: '4~6层（多层）', value: '1' },
+  { label: '7层以上（高层）', value: '2' },
+  { label: '其他', value: '3' }
 ];
 const green = [
   { label: '0', value: '0' },
@@ -107,200 +100,242 @@ const onFinishFailed = errorInfo => {
 function onChange(value) {
   console.log(value);
 }
-
-const ItemSelect = props => {
-  const { modalVisible, onCancel } = props;
-  return (
-    <div className="itemSelect">
-      <Form
-        {...layout}
-        name="basic"
-        initialValues={{ remember: true }}
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
-      >
-        <Form.Item
-          label="位置"
-          name="username"
+//层数变化
+// const floorChange = value =>{
+//   if(value.indexOf('3')){
+//     this.setState({'other':true})
+//   }
+// }
+class ItemSelect extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      other:false
+    };
+  
+  }
+  //层数变化
+  floorChange(value){
+    if(value.indexOf('3')>-1){
+      this.setState({'other':true})
+    }else{
+      this.setState({'other':false})
+    }
+  }
+  render(){
+    return (
+      <div className="itemSelect">
+        <Form
+          {...layout}
+          name="basic"
+          initialValues={{ remember: true }}
+          onFinish={onFinish}
+          onFinishFailed={onFinishFailed}
         >
-          <Cascader options={options1} onChange={onChange} changeOnSelect  style={{width: 280}} placeholder="请选择位置" />
-        </Form.Item>
-        <Form.Item
-          label="建筑类型"
-          name="buildingType"
-        >
-          <Checkbox.Group options={buildingType} defaultValue={['Apple']} onChange={onChange} />
-        </Form.Item>
-        <Form.Item
-          label="建筑面积"
-          name="buildingArea"
-        >
-          <Input.Group compact>
-            <Input style={{ width: 100, textAlign: 'center' }} placeholder="最小值" />
-            <Input
-              className="site-input-split"
-              style={{
-                width: 30,
-                borderLeft: 0,
-                borderRight: 0,
-                pointerEvents: 'none',
-              }}
-              placeholder="~"
-              disabled
-            />
-            <Input
-              className="site-input-right"
-              style={{
-                width: 150,
-                textAlign: 'center',
-              }}
-              placeholder="最大值"
-              suffix="㎡"
-            />
-          </Input.Group>
-        </Form.Item>
-        <Form.Item
-          label="建成时间"
-          name="buildYear"
-        >
-          <RangePicker picker="year"/>
-        </Form.Item>
-        <Form.Item
-          label="层数"
-          name="floor"
-        >
-          <Checkbox.Group options={floor} defaultValue={['其他']} onChange={onChange} />
-        </Form.Item>
-        <Form.Item
-          label="绿建等级"
-          name="green"
-        >
-          <Checkbox.Group options={green} defaultValue={['1']} onChange={onChange} />
-        </Form.Item>
-        <Form.Item
-          label="节能标准"
-          name="standard"
-        >
-          <Checkbox.Group options={standard} defaultValue={['1']} onChange={onChange} />
-        </Form.Item>
-        <Form.Item
-          label="是否经过节能改造"
-          name="isReform"
-        >
-          <Checkbox.Group options={isReform} defaultValue={['1']} onChange={onChange} />
-        </Form.Item>
-        <Form.Item
-          label="供冷方式"
-          name="cooling"
-        >
-          <Checkbox.Group options={isReform} defaultValue={['1']} onChange={onChange} />
-        </Form.Item>
-        <Form.Item
-          label="供暖方式"
-          name="heating"
-        >
-          <Checkbox.Group options={isReform} defaultValue={['1']} onChange={onChange} />
-        </Form.Item>
-        <Form.Item
-          label="可再生能源利用"
-          name="renewable "
-        >
-          <Checkbox.Group options={renewable} defaultValue={['1']} onChange={onChange} />
-        </Form.Item>
-        <Form.Item
-          label="单位面积电耗"
-          name="electric"
-        >
-          <Input.Group compact>
-            <Input style={{ width: 100, textAlign: 'center' }} placeholder="最小值" />
-            <Input
-              className="site-input-split"
-              style={{
-                width: 30,
-                borderLeft: 0,
-                borderRight: 0,
-                pointerEvents: 'none',
-              }}
-              placeholder="~"
-              disabled
-            />
-            <Input
-              className="site-input-right"
-              style={{
-                width: 150,
-                textAlign: 'center',
-              }}
-              placeholder="最大值"
-              suffix="kWh/㎡"
-            />
-          </Input.Group>
-        </Form.Item>
-        <Form.Item
-          label="单位面积气耗"
-          name="gas"
-        >
-          <Input.Group compact>
-            <Input style={{ width: 100, textAlign: 'center' }} placeholder="最小值" />
-            <Input
-              className="site-input-split"
-              style={{
-                width: 30,
-                borderLeft: 0,
-                borderRight: 0,
-                pointerEvents: 'none',
-              }}
-              placeholder="~"
-              disabled
-            />
-            <Input
-              className="site-input-right"
-              style={{
-                width: 150,
-                textAlign: 'center',
-              }}
-              placeholder="最大值"
-              suffix="m³/㎡"
-            />
-          </Input.Group>
-        </Form.Item>
-        <Form.Item
-          label="单位面积水耗"
-          name="water"
-        >
-          <Input.Group compact>
-            <Input style={{ width: 100, textAlign: 'center' }} placeholder="最小值" />
-            <Input
-              className="site-input-split"
-              style={{
-                width: 30,
-                borderLeft: 0,
-                borderRight: 0,
-                pointerEvents: 'none',
-              }}
-              placeholder="~"
-              disabled
-            />
-            <Input
-              className="site-input-right"
-              style={{
-                width: 150,
-                textAlign: 'center',
-              }}
-              placeholder="最大值"
-              suffix="m³/㎡"
-            />
-          </Input.Group>
-        </Form.Item>
-        <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
-          <Button type="primary" htmlType="submit">
-            筛选
-          </Button>
-        </Form.Item>
-      </Form>
-      
-      
-    </div>
-  );
-};
+          <Form.Item
+            label="位置"
+            name="username"
+          >
+            <Cascader options={options1} onChange={onChange} changeOnSelect  style={{width: 280}} placeholder="请选择位置" />
+          </Form.Item>
+          <Form.Item
+            label="建筑类型"
+            name="buildingType"
+          >
+            <Checkbox.Group options={buildingType} defaultValue={['Apple']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="建筑面积"
+            name="buildingArea"
+          >
+            <Input.Group compact>
+              <Input style={{ width: 100, textAlign: 'center' }} placeholder="最小值" />
+              <Input
+                className="site-input-split"
+                style={{
+                  width: 30,
+                  borderLeft: 0,
+                  borderRight: 0,
+                  pointerEvents: 'none',
+                }}
+                placeholder="~"
+                disabled
+              />
+              <Input
+                className="site-input-right"
+                style={{
+                  width: 150,
+                  textAlign: 'center',
+                }}
+                placeholder="最大值"
+                suffix="㎡"
+              />
+            </Input.Group>
+          </Form.Item>
+          <Form.Item
+            label="建成时间"
+            name="buildYear"
+          >
+            <RangePicker picker="year"/>
+          </Form.Item>
+          <Form.Item
+            label="层数"
+            name="floor"
+          >
+            <Checkbox.Group options={floor} defaultValue={['其他']} onChange={(v)=>this.floorChange(v)} />
+            {this.state.other &&  <Input.Group compact >
+              <Input style={{ width: 50, textAlign: 'center' }}/>
+              <Input
+                className="site-input-split"
+                style={{
+                  width: 30,
+                  borderLeft: 0,
+                  borderRight: 0,
+                  pointerEvents: 'none',
+                }}
+                placeholder="~"
+                disabled
+              />
+              <Input
+                className="site-input-right"
+                style={{
+                  width: 50,
+                  textAlign: 'center',
+                }}
+              />
+            </Input.Group>}
+          </Form.Item>
+          <Form.Item
+            label="绿建等级"
+            name="green"
+          >
+            <Checkbox.Group options={green} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="节能标准"
+            name="standard"
+          >
+            <Checkbox.Group options={standard} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="是否经过节能改造"
+            name="isReform"
+          >
+            <Checkbox.Group options={isReform} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="供冷方式"
+            name="cooling"
+          >
+            <Checkbox.Group options={isReform} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="供暖方式"
+            name="heating"
+          >
+            <Checkbox.Group options={isReform} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="可再生能源利用"
+            name="renewable "
+          >
+            <Checkbox.Group options={renewable} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="单位面积电耗"
+            name="electric"
+          >
+            <Input.Group compact>
+              <Input style={{ width: 100, textAlign: 'center' }} placeholder="最小值" />
+              <Input
+                className="site-input-split"
+                style={{
+                  width: 30,
+                  borderLeft: 0,
+                  borderRight: 0,
+                  pointerEvents: 'none',
+                }}
+                placeholder="~"
+                disabled
+              />
+              <Input
+                className="site-input-right"
+                style={{
+                  width: 150,
+                  textAlign: 'center',
+                }}
+                placeholder="最大值"
+                suffix="kWh/㎡"
+              />
+            </Input.Group>
+          </Form.Item>
+          <Form.Item
+            label="单位面积气耗"
+            name="gas"
+          >
+            <Input.Group compact>
+              <Input style={{ width: 100, textAlign: 'center' }} placeholder="最小值" />
+              <Input
+                className="site-input-split"
+                style={{
+                  width: 30,
+                  borderLeft: 0,
+                  borderRight: 0,
+                  pointerEvents: 'none',
+                }}
+                placeholder="~"
+                disabled
+              />
+              <Input
+                className="site-input-right"
+                style={{
+                  width: 150,
+                  textAlign: 'center',
+                }}
+                placeholder="最大值"
+                suffix="m³/㎡"
+              />
+            </Input.Group>
+          </Form.Item>
+          <Form.Item
+            label="单位面积水耗"
+            name="water"
+          >
+            <Input.Group compact>
+              <Input style={{ width: 100, textAlign: 'center' }} placeholder="最小值" />
+              <Input
+                className="site-input-split"
+                style={{
+                  width: 30,
+                  borderLeft: 0,
+                  borderRight: 0,
+                  pointerEvents: 'none',
+                }}
+                placeholder="~"
+                disabled
+              />
+              <Input
+                className="site-input-right"
+                style={{
+                  width: 150,
+                  textAlign: 'center',
+                }}
+                placeholder="最大值"
+                suffix="m³/㎡"
+              />
+            </Input.Group>
+          </Form.Item>
+          <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
+            <Button type="primary" htmlType="submit">
+              筛选
+            </Button>
+          </Form.Item>
+        </Form>
+        
+        
+      </div>
+    );
+  }
+} 
 
 export default ItemSelect;
