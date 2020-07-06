@@ -1,6 +1,9 @@
 package com.giot.eco_building.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.utils.validation.LocationValidation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -59,16 +62,28 @@ public class Project implements Serializable {
      * 纬度
      */
     @LocationValidation(min = 3.86f, max = 53.55f)
-    private Float latitude;
+    private Double latitude;
     /**
      * 经度
      */
     @LocationValidation(min = 73.66f, max = 135.06f)
-    private Float longitude;
+    private Double longitude;
     /**
      * 建筑类型
      */
-    private String type;
+    @Column(name = "architectural_type")
+    private String architecturalType;
+
+    public void setArchitecturalType(String architecturalType) {
+        String[] types = {"办公", "商场", "文化教育", "餐饮", "医院", "酒店", "其他"};
+        for (int i = 0; i < types.length; i++) {
+            if (architecturalType.equals(types[i])) {
+                this.architecturalType = architecturalType;
+                break;
+            }
+        }
+    }
+
     /**
      * 建筑面积
      */
@@ -81,8 +96,7 @@ public class Project implements Serializable {
     /**
      * 楼层
      */
-    @Column(name = "number_of_floors")
-    private Integer numberOfFloors;
+    private Integer floor;
     /**
      * 项目图片
      */
@@ -92,26 +106,184 @@ public class Project implements Serializable {
     @XmlSchemaType(name = "base64Binary")
     private Byte[] photo;
     /**
+     * 绿建等级：
+     * 0星-0
+     * 1星-1
+     * 2星-2
+     * 3星-3
+     * 未知-4
+     */
+    private Integer gbes;
+
+    public void setGbes(String gbes) {
+        int code;
+        switch (gbes) {
+            case "0星":
+                code = 0;
+                break;
+            case "1星":
+                code = 1;
+                break;
+            case "2星":
+                code = 2;
+                break;
+            case "3星":
+                code = 3;
+                break;
+            default:
+                code = 4;
+                break;
+        }
+        this.gbes = code;
+    }
+
+    /**
+     * 节能标准：
+     * 不执行节能标准-0
+     * 50%-1
+     * 65%-2
+     * 75%以上-3
+     * 未知-4
+     */
+    @Column(name = "energy_saving_standard")
+    private Integer energySavingStandard;
+
+    public void setEnergySavingStandard(String energySavingStandard) {
+        int code;
+        switch (energySavingStandard) {
+            case "不执行节能标准":
+                code = 0;
+                break;
+            case "50%":
+                code = 1;
+                break;
+            case "65%":
+                code = 2;
+                break;
+            case "75%以上":
+                code = 3;
+                break;
+            default:
+                code = 4;
+                break;
+        }
+        this.energySavingStandard = code;
+    }
+
+    /**
+     * 是否经过节能改造：
+     * 是
+     * 否
+     * 未知
+     */
+    @Column(name = "energy_saving_transformation_or_not")
+    private Integer energySavingTransformationOrNot;
+
+    public void setEnergySavingTransformationOrNot(String energySavingTransformationOrNot) {
+        int code;
+        switch (energySavingTransformationOrNot) {
+            case "是":
+                code = 0;
+                break;
+            case "否":
+                code = 1;
+                break;
+            default:
+                code = 2;
+                break;
+        }
+        this.energySavingTransformationOrNot = code;
+    }
+
+    /**
+     * 供暖方式：
+     * 集中供暖
+     * 分户供暖
+     * 无供暖
+     * 未知
+     */
+    @Column(name = "heating_mode")
+    private Integer HeatingMode;
+    /**
+     * 供冷方式：
+     * 集中供冷
+     * 分户供冷
+     * 无供冷
+     * 未知
+     */
+    @Column(name = "cooling_mode")
+    private Integer CoolingMode;
+
+    public void setCoolingMode(String coolingMode) {
+        int code;
+        switch (coolingMode) {
+            case "集中供冷":
+                code = 0;
+                break;
+            case "分户供冷":
+                code = 1;
+                break;
+            case "无供冷":
+                code = 2;
+                break;
+            default:
+                code = 3;
+                break;
+        }
+        this.CoolingMode = code;
+    }
+
+    /**
+     * 是否利用可再生资源：
+     * 否
+     * 太阳能
+     * 浅层地热能
+     * 未知
+     */
+    @Column(name = "whether_to_use_renewabler_esources")
+    private Integer WhetherToUseRenewableResources;
+
+    /**
+     * 单位面积电耗
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Column(name = "power_consumption_per_unit_area")
+    private Double powerConsumptionPerUnitArea;
+
+    /**
+     * 单位面积水耗
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Column(name = "water_consumption_per_unit_area")
+    private Double waterConsumptionPerUnitArea;
+
+    /**
+     * 单位面积气耗
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Column(name = "gas_consumption_per_unit_area")
+    private Double gasConsumptionPerUnitArea;
+
+    /**
      * 创建时间
      */
+    @JsonIgnore
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private Date created;
     /**
      * 最新修改时间
      */
+    @JsonIgnore
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
     @Column(nullable = false, name = "last_modified")
     private Date lastModified;
     /**
      * 删除标记位：0-有效，1-无效
      */
+    @JsonIgnore
     @Column(nullable = false, columnDefinition = "bit default 0", name = "del_status")
     private Boolean delStatus;
-
-    public String getAddress() {
-        return this.province + this.city + this.district + this.street;
-    }
-
-
 }

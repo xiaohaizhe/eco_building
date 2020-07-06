@@ -3,6 +3,7 @@ package com.giot.eco_building.config;
 import com.alibaba.fastjson.JSON;
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
+import com.giot.eco_building.entity.User;
 import com.giot.eco_building.service.ActionService;
 import com.giot.eco_building.utils.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +30,9 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         String sessionId = request.getRequestedSessionId();
-        Long userId = IpUtil.getUserId(sessionId);
+        User user = IpUtil.getUserId(sessionId);
         IpUtil.removeSession(sessionId);
-        actionService.add(Constants.ActionType.LOGOUT, "成功", userId);
+        actionService.add(Constants.ActionType.LOGOUT, "成功", user);
         WebResponse httpServletResponse = WebResponse.success("退出成功");
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

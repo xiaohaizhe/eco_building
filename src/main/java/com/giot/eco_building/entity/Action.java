@@ -1,15 +1,16 @@
 package com.giot.eco_building.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.exception.DataException;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -20,6 +21,7 @@ import java.util.Date;
 @Entity
 @Data
 public class Action {
+    @JsonIgnore
     @Id
     @GeneratedValue(generator = "SnowflakeId")
     @GenericGenerator(name = "SnowflakeId", strategy = "com.giot.eco_building.utils.SnowflakeId")
@@ -32,20 +34,26 @@ public class Action {
     /**
      * 操作类型
      */
+    @JsonIgnore
     private Integer type;
     /**
      * 操作ip
      */
+    @JsonIgnore
     @Column(name = "action_ip")
     private String actionIp;
     /**
      * 操作用户
      */
+    @JsonIgnore
     @Column(name = "user_id")
     private Long userId;
+    @Column(name = "user_name")
+    private String userName;
     /**
      * 操作时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false, name = "action_time")
     private Date actionTime;

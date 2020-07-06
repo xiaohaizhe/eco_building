@@ -40,7 +40,7 @@ public class LoggerAdvice {
     public void doAfterThrowException(JoinPoint joinPoint, Exception ex) {
         logger.info("接口:{}调用异常,exception={}",
                 joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName(),
-                ex.toString());
+                ex);
     }
 
     @AfterReturning(returning = "object", pointcut = "log()")

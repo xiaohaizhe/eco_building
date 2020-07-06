@@ -3,27 +3,19 @@ package com.giot.eco_building.config;
 import com.alibaba.fastjson.JSON;
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
-import com.giot.eco_building.entity.Action;
-import com.giot.eco_building.entity.User;
 import com.giot.eco_building.service.ActionService;
-import com.giot.eco_building.service.impl.BaseActionService;
 import com.giot.eco_building.utils.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 认证成功处理器
@@ -39,7 +31,10 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     @Override
     public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException {
         actionService.add(Constants.ActionType.LOGIN, "成功");
-        WebResponse response = WebResponse.success("登录成功");
+        Map<String, Object> user = new HashMap<>();
+        user.put("id", IpUtil.getUser().getId());
+        user.put("authority", IpUtil.getUser().getAuthority());
+        WebResponse response = WebResponse.success(user);
         httpServletResponse.setStatus(HttpServletResponse.SC_OK);
         httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
         httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.toString());

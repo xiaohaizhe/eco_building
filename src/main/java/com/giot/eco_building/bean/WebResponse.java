@@ -1,5 +1,6 @@
 package com.giot.eco_building.bean;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.giot.eco_building.constant.CommonResponse;
 import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,6 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class WebResponse {
 
     /**
@@ -29,7 +29,31 @@ public class WebResponse {
     /**
      * 结果
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Object result;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer totalPages;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long size;
+
+    public WebResponse(Integer code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    public WebResponse(Integer code, String message, Object result) {
+        this.code = code;
+        this.message = message;
+        this.result = result;
+    }
+
+    public WebResponse(Integer code, String message, Object result, Integer totalPages, Long size) {
+        this.code = code;
+        this.message = message;
+        this.result = result;
+        this.totalPages = totalPages;
+        this.size = size;
+    }
 
     public WebResponse(HttpResponseStatusEnum httpResponseStatusEnum) {
         this.code = httpResponseStatusEnum.getCode();
@@ -45,7 +69,7 @@ public class WebResponse {
      * 成功响应
      */
     public static WebResponse success() {
-        return new WebResponse(HttpResponseStatusEnum.SUCCESS.getCode(), HttpResponseStatusEnum.SUCCESS.getMessage(), null);
+        return new WebResponse(HttpResponseStatusEnum.SUCCESS.getCode(), HttpResponseStatusEnum.SUCCESS.getMessage());
     }
 
     /**
@@ -56,16 +80,26 @@ public class WebResponse {
     }
 
     /**
-     * 响应失败
-     * @param
-     * @return
+     * 成功响应
      */
-    public static WebResponse failure() {
-        return new WebResponse(HttpResponseStatusEnum.FAILURE.getCode(),HttpResponseStatusEnum.FAILURE.getMessage(), null);
+    public static WebResponse success(Object result, Integer totalPage, Long totalSize) {
+        return new WebResponse(HttpResponseStatusEnum.SUCCESS.getCode(), HttpResponseStatusEnum.SUCCESS.getMessage(),
+                result, totalPage, totalSize);
     }
 
     /**
      * 响应失败
+     *
+     * @param
+     * @return
+     */
+    public static WebResponse failure() {
+        return new WebResponse(HttpResponseStatusEnum.FAILURE.getCode(), HttpResponseStatusEnum.FAILURE.getMessage(), null);
+    }
+
+    /**
+     * 响应失败
+     *
      * @param response
      * @return
      */
@@ -75,6 +109,7 @@ public class WebResponse {
 
     /**
      * 响应异常
+     *
      * @param e
      * @return
      */
