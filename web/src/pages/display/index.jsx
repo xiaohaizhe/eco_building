@@ -4,25 +4,46 @@ import {DownOutlined,UpOutlined } from '@ant-design/icons';
 import AMap from 'AMap';
 import Loca from 'Loca'
 import { Radio } from 'antd';
+import { connect } from 'umi';
 import ItemSelect from './components/ItemSelect';
 import  './index.less';
 var infoWin;
-const type = [{"name":"水","value":'0'},{"name":"电","value":'1'},{"name":"汽","value":'2'}];
-const legend = [{"color":'#a50026',"value":'0.875-1.000'}];
-class Display extends React.Component {
+class display extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       show:false,
-      radio:'1'
+      radio:'1',
+      max:0,
+      min:0
     };
 
   }
 
   componentDidMount() {
-    this.loadMap()
+    const { dispatch} = this.props;
+    if (dispatch) {
+      dispatch({
+        type: 'display/getMap',
+      });
+    }
+    // this.loadMap(mapData,elec);
   }
-
+  
+  componentDidUpdate(preProps) {
+    const {display} = this.props;
+    const { mapData,elec,gas,water } = display;
+    if (preProps && JSON.stringify(preProps.display) !== JSON.stringify(display)) {
+      if(this.state.radio=='0'){
+        this.loadMap(mapData,water);
+      }else if (this.state.radio=='1'){
+        this.loadMap(mapData,elec);
+      }else if(this.state.radio=='2'){
+        this.loadMap(mapData,gas);
+      }
+      
+    }
+  }
   //打开详情浮窗
   openInfoWin(map, event,title,address, content) {
     var tableDom;
@@ -79,13 +100,14 @@ class Display extends React.Component {
     }
   }
   //生成地图
-  loadMap(){
+  loadMap(mapData,typeData){
+    debugger
     let that = this;
     var map = new AMap.Map('container', {
-          center: [116.400389, 39.93729],
+          center: [108.5525, 34.3227],
           mapStyle:'amap://styles/macaron',
           rotation: 0,
-          zoom: 11.3,
+          zoom: 4.5,
           pitch: 0,
           skyColor: '#33216a'
       });
@@ -95,17 +117,8 @@ class Display extends React.Component {
           eventSupport: true
       });
 
-      var colors = [
-          '#a50026',
-          '#f44336',
-          '#f44336',
-          '#FF5722',
-          '#03a9f4',
-          '#2196f3',
-          '#3f51b5',
-          '#313695'
-      ];
       layer.on('click', function (ev) {
+        debugger
         // 事件类型
         var type = ev.type;
         // 当前元素的原始数据
@@ -131,116 +144,21 @@ class Display extends React.Component {
       //     that.closeInfoWin();
       // });
       
-      var data = [
-      {
-        "lnglat":[116.258446,37.686622],
-        "title":'xxx项目',
-        "name":"景县",
-        "style":2,
-        'value':500
-      },
-      {
-        "lnglat":[116.559954,43.124049],
-        "name":"圣方济各堂区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':760,
-
-      },
-      {
-        "lnglat":[116.366794,39.915309],
-        "name":"西城区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':880
-      },
-      {
-        "lnglat":[116.6,39.92],
-        "name":"aa区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':650
-      },
-      {
-        "lnglat":[116.5,39.92],
-        "name":"bb区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':550
-      },
-      {
-        "lnglat":[115.9,39.89],
-        "name":"cc区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':440
-      },
-      {
-        "lnglat":[115.895,39.905],
-        "name":"dd区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':220
-      },
-      {
-        "lnglat":[116.91,42],
-        "name":"ff区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':260
-      },
-      {
-        "lnglat":[116.123,39.87],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':100
-      },
-      {
-        "lnglat":[116.123,39.8766],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':1000
-      },
-      {
-        "lnglat":[116.23,39.8711],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':987
-      },
-      {
-        "lnglat":[116.323,39.8712],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':874
-      },
-      {
-        "lnglat":[116.231,40],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':712
-      },
-      {
-        "lnglat":[116.432,39.99],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':621
-      },
-      {
-        "lnglat":[116.32,39.97],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':499
-      }]
+      // var data = [
+      // {
+      //   "lnglat":[116.258446,37.686622],
+      //   "title":'xxx项目',
+      //   "name":"景县",
+      //   "style":2,
+      //   'value':500
+      // }]
       //设置数据源
-      layer.setData(data, {
-        lnglat: 'lnglat'   // 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。
+      layer.setData(mapData, {
+        lnglat:function (obj) {
+          var value = obj.value;
+          return [value['longitude'], value['latitude']];
+        },
+        type:'json'// 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。
       });
       //设置参数
       layer.setOptions({
@@ -251,26 +169,9 @@ class Display extends React.Component {
             // 根据车辆类型设定不同填充颜色
             color: function (obj) {
                 var value = obj.value.value;
-                var max = 1000;
-                var min = 0;
+                var max = typeData[1];
+                var min = typeData[0];
                 return gradientColor(value,max,min);
-                // if(value>875){
-                //   return colors[0];
-                // }else if(value>750){
-                //   return colors[1];
-                // }else if(value>625){
-                //   return colors[2];
-                // }else if(value>500){
-                //   return colors[3];
-                // }else if(value>375){
-                //   return colors[4];
-                // }else if(value>250){
-                //   return colors[5];
-                // }else if(value>125){
-                //   return colors[6];
-                // }else{
-                //   return colors[7];
-                // }
 
                 function gradientColor(data,max,min){
                   //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
@@ -299,24 +200,25 @@ class Display extends React.Component {
     layer.render();
   }
   toggleForm(){
+    debugger
       this.setState({"show":!this.state.show})
-
-    
   }
+  toggleRadio(e){
+    debugger
+    this.setState({
+      radio: e.target.value,
+    });
+  };
   render(){
     return (
       <PageHeaderWrapper>
-        <div id='container' style={{height:'700px',width:'100%',postion:'relative'}}>
+        <div className="display">
+          <div id='container' style={{height:'700px',width:'100%'}}></div>
           <div className="type" >
-            {/* <ul className="ant-radio-group ant-radio-group-solid">
-              {type.map((item, index) => {
-                    return <li key={item.value} className={`ant-radio-button-wrapper ${this.state.radio==item.value?'ant-radio-button-wrapper-checked':''}`} onClick={()=>this.toggleForm(item.value)}>{item.name}</li>
-                })}
-            </ul> */}
-            <Radio.Group defaultValue="a" buttonStyle="solid">
-              <Radio.Button value="a">水</Radio.Button>
-              <Radio.Button value="b">电</Radio.Button>
-              <Radio.Button value="c">汽</Radio.Button>
+            <Radio.Group value={this.state.radio} buttonStyle="solid" onChange={(e)=>this.toggleRadio(e)}>
+              <Radio.Button value="0">水</Radio.Button>
+              <Radio.Button value="1">电</Radio.Button>
+              <Radio.Button value="2">汽</Radio.Button>
             </Radio.Group>
             <div className="ant-radio-button-wrapper" onClick={()=>this.toggleForm()}>
               {this.state.show?<UpOutlined />:<DownOutlined />}
@@ -325,20 +227,15 @@ class Display extends React.Component {
           </div>
           <div className="legend">
             <div className="gradientLegend"></div>
-            <p className="max">1000</p>
-            <p className="min">0</p>
+            <p className="max">{this.state.max}</p>
+            <p className="min">{this.state.min}</p>
           </div>
-          
-          {/* <ul>
-            {type.map((item, index) => {
-                return <li key={item.value} className={`ant-radio-button-wrapper ${this.state.radio==item.value?'ant-radio-button-wrapper-checked':''}`} >
-                          {item.name}
-                        </li>
-            })}
-          </ul> */}
         </div>
       </PageHeaderWrapper>)
     }
 }
 
-export default Display
+export default connect(({ display, loading }) => ({
+  display,
+  loading: loading.models.display,
+}))(display);
