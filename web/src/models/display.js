@@ -1,32 +1,64 @@
-import { getMap } from '@/services/display';
+import { getMap,getAddressOnMap } from '@/services/display';
 
 const DisplayModel = {
   namespace: 'display',
   state: {
     mapData: [],
-    elec:[],
-    gas:[],
-    water:[]
+    maxMin:[{
+      max:0,
+      min:0
+    },{
+      max:0,
+      min:0
+    },{
+      max:0,
+      min:0
+    }],
+    address:[],
+    itemParams:{}
   },
   effects: {
-    *getMap(_,{ call, put }) {
-      const response = yield call(getMap);
-      console.log(response)
+    *getMap(_,{ call, put, select }) {
+      const {itemParams} = yield select(state => state.display)
+      const response = yield call(getMap,itemParams);
+      // console.log(response)
       yield put({
         type: 'save',
         payload: response,
       });
     },
+    *getAddressOnMap(_,{ call, put }){
+      const response = yield call(getAddressOnMap);
+      yield put({
+        type: 'saveAddress',
+        payload: response,
+      });
+    },
+    *getParams({payload},{ call, put }){
+      debugger
+      yield put({
+        type: 'saveParams',
+        payload: payload,
+      });
+      yield put({
+        type: 'getMap'
+      });
+    }
   },
   reducers: {
     save(state, { payload }){
-        debugger
         let elec = payload.result.elec.split('-');
         let gas = payload.result.gas.split('-');
         let water = payload.result.water.split('-');
-        return { ...state, mapData: payload.result.project,elec:elec,gas:gas,water:water};
+        let maxMin = [{max:water[1],min:water[0]},{max:elec[1],min:elec[0]},{max:gas[1],min:gas[0]}]
+        return { ...state, mapData: payload.result.project,maxMin:maxMin};
     },
-
+    saveAddress(state, { payload }){
+      return { ...state, address: payload.result};
+    },
+    saveParams(state, { payload }){
+      return { ...state, itemParams: payload};
+    }
 
   },
 };

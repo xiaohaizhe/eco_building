@@ -49,7 +49,6 @@ const OperationModal = props => {
   
   useEffect(() => {
     if (current) {
-      debugger
       form.setFieldsValue({
         username:current.username,
         id:current.id?current.id:'',

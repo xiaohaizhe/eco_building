@@ -13,35 +13,27 @@ class display extends React.Component {
     super(props);
     this.state = {
       show:false,
-      radio:'1',
-      max:0,
-      min:0
+      radio:'1'
     };
 
   }
 
   componentDidMount() {
-    const { dispatch} = this.props;
+    const { dispatch,display} = this.props;
+    const { mapData,maxMin } = display;
     if (dispatch) {
       dispatch({
         type: 'display/getMap',
       });
     }
-    // this.loadMap(mapData,elec);
+    this.loadMap(mapData,maxMin[this.state.radio]);
   }
   
   componentDidUpdate(preProps) {
-    const {display} = this.props;
-    const { mapData,elec,gas,water } = display;
+    const { display } = this.props;
+    const { mapData,maxMin } = display;
     if (preProps && JSON.stringify(preProps.display) !== JSON.stringify(display)) {
-      if(this.state.radio=='0'){
-        this.loadMap(mapData,water);
-      }else if (this.state.radio=='1'){
-        this.loadMap(mapData,elec);
-      }else if(this.state.radio=='2'){
-        this.loadMap(mapData,gas);
-      }
-      
+        this.loadMap(mapData,maxMin[this.state.radio]);
     }
   }
   //打开详情浮窗
@@ -101,7 +93,6 @@ class display extends React.Component {
   }
   //生成地图
   loadMap(mapData,typeData){
-    debugger
     let that = this;
     var map = new AMap.Map('container', {
           center: [108.5525, 34.3227],
@@ -118,25 +109,24 @@ class display extends React.Component {
       });
 
       layer.on('click', function (ev) {
-        debugger
         // 事件类型
         var type = ev.type;
         // 当前元素的原始数据
         var rawData = ev.rawData;
         // 原始鼠标事件
         var originalEvent = ev.originalEvent;
-
-        that.openInfoWin(map, originalEvent, rawData.title,rawData.address,{
+        
+        that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
             '建筑类型：': rawData.name,
-            '最近一年单位面积电耗：': "2000",
-            '最近一年单位面积水耗：': "200",
-            '最近一年单位面积气耗：': "100",
-            '节能标准：': "50%",
-            '是否经过节能改造：': "否",
-            '绿建等级：': '1 星',
-            '供冷方式：': '集中供冷',
-            '供暖方式：': '分户供暖',
-            '可再生能源利用：': '太阳能'
+            '最近一年单位面积电耗：': rawData.powerConsumptionPerUnitArea || 0,
+            '最近一年单位面积水耗：': rawData.waterConsumptionPerUnitArea || 0,
+            '最近一年单位面积气耗：': rawData.gasConsumptionPerUnitArea || 0,
+            '节能标准：': rawData.energySavingStandard,
+            '是否经过节能改造：': rawData.energySavingTransformationOrNot,
+            '绿建等级：': rawData.gbes,
+            '供冷方式：': rawData.coolingMode,
+            '供暖方式：': rawData.heatingMode,
+            '可再生能源利用：': rawData.whetherToUseRenewableResources
           });
       });
 
@@ -168,10 +158,23 @@ class display extends React.Component {
             height: 0,
             // 根据车辆类型设定不同填充颜色
             color: function (obj) {
-                var value = obj.value.value;
-                var max = typeData[1];
-                var min = typeData[0];
-                return gradientColor(value,max,min);
+                if(typeData.max-typeData.min===0){
+                  return '#0000ff';
+                }else{
+                  var value = 0;
+                  if(that.state.radio=='0'){
+                    value = obj.value.waterConsumptionPerUnitArea || 0;
+                  }else if (that.state.radio=='1'){
+                    value = obj.value.powerConsumptionPerUnitArea || 0;
+                  }else if(that.state.radio=='2'){
+                    value = obj.value.gasConsumptionPerUnitArea || 0;
+                  }
+                  var max = typeData.max;
+                  var min = typeData.min;
+                  
+                  return gradientColor(value,max,min);
+                }
+                
 
                 function gradientColor(data,max,min){
                   //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
@@ -179,7 +182,7 @@ class display extends React.Component {
                     let startG = 0;
                     let startB = 0;
                    
-                  //   let endRGB = this.colorRgb('#0000ff');
+                  //   let endRGB = this.colorRgb('#0000ff'); 
                     let endR = 0;
                     let endG = 0;
                     let endB = 255;
@@ -200,16 +203,19 @@ class display extends React.Component {
     layer.render();
   }
   toggleForm(){
-    debugger
       this.setState({"show":!this.state.show})
   }
   toggleRadio(e){
-    debugger
+    const { display } = this.props;
+    const { mapData,maxMin } = display;
     this.setState({
       radio: e.target.value,
     });
+    this.loadMap(mapData,maxMin[e.target.value]);
   };
   render(){
+    const { display } = this.props;
+    const { maxMin } = display;
     return (
       <PageHeaderWrapper>
         <div className="display">
@@ -227,8 +233,8 @@ class display extends React.Component {
           </div>
           <div className="legend">
             <div className="gradientLegend"></div>
-            <p className="max">{this.state.max}</p>
-            <p className="min">{this.state.min}</p>
+            <p className="max">{Math.ceil(maxMin[this.state.radio].max)}</p>
+            <p className="min">{Math.ceil(maxMin[this.state.radio].min)}</p>
           </div>
         </div>
       </PageHeaderWrapper>)
