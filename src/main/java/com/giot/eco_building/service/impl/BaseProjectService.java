@@ -237,61 +237,96 @@ public class BaseProjectService implements ProjectService {
             }
         }
         logger.info("end up dealing witn excel.....");
+        logger.info("start updating project info");
+        List<Project> projectList = projectRepository.findAll();
+        for (Project project :
+                projectList) {
+            updateProjectAddress(project);
+            updateLatestYearData(project);
+        }
+        logger.info("end up updating project info");
         return WebResponse.success();
     }
 
+    /**
+     * 项目省市区街道全为空
+     * 但经纬度不为空的情况下
+     * 更新项目的省市区街道信息
+     */
+    private void updateProjectAddress(Project project) {
+        if (project.getProvince() == null && project.getCity() == null
+                && project.getDistrict() == null && project.getStreet() == null
+                && project.getLongitude() != null && project.getLatitude() != null) {
+            double longitude = project.getLongitude();
+            double latitude = project.getLatitude();
+            try {
+                JSONObject addressComponent = getAddress(longitude, latitude);
+                if (addressComponent != null) {
+                    String city = addressComponent.getString("city");
+                    String province = addressComponent.getString("province");
+                    String street = addressComponent.getString("street");
+                    String district = addressComponent.getString("district");
+                    project.setProvince(province);
+                    project.setCity(city);
+                    project.setDistrict(district);
+                    project.setStreet(street);
+                    projectRepository.saveAndFlush(project);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.info(e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 项目省市区街道全为空
+     * 但经纬度不为空的情况下
+     * 更新项目的省市区街道信息
+     */
     @Override
     public void reDealWithProjectAddress() {
         List<Project> projects = projectRepository.findAll();
         for (Project project :
                 projects) {
-            if (project.getProvince() == null && project.getCity() == null
-                    && project.getDistrict() == null && project.getStreet() == null
-                    && project.getLongitude() != null && project.getLatitude() != null) {
-                double longitude = project.getLongitude();
-                double latitude = project.getLatitude();
-                try {
-                    JSONObject addressComponent = getAddress(longitude, latitude);
-                    if (addressComponent != null) {
-                        String city = addressComponent.getString("city");
-                        String province = addressComponent.getString("province");
-                        String street = addressComponent.getString("street");
-                        String district = addressComponent.getString("district");
-                        project.setProvince(province);
-                        project.setCity(city);
-                        project.setDistrict(district);
-                        project.setStreet(street);
-                        projectRepository.saveAndFlush(project);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
+            updateProjectAddress(project);
         }
     }
 
+    /**
+     * 更新项目的最近一年的水电气单位面积消耗数据
+     *
+     * @param project
+     */
+    private void updateLatestYearData(Project project) {
+        if (project != null && project.getId() != null && project.getArea() != null && project.getArea() > 0) {
+            double area = project.getArea();
+            com.giot.eco_building.entity.ProjectData waterData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.WATER.getCode());
+            if (waterData != null) {
+                project.setWaterConsumptionPerUnitArea(waterData.getValue() / area);
+            }
+            com.giot.eco_building.entity.ProjectData elecData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.ELECTRICITY.getCode());
+            if (elecData != null) {
+                project.setPowerConsumptionPerUnitArea(elecData.getValue() / area);
+            }
+            com.giot.eco_building.entity.ProjectData gasData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.GAS.getCode());
+            if (gasData != null) {
+                project.setGasConsumptionPerUnitArea(gasData.getValue() / area);
+            }
+            projectRepository.saveAndFlush(project);
+        }
+    }
+
+    /**
+     * 在使用表导入项目数据之后
+     * 更新项目的最近一年的水电气单位面积消耗数据
+     */
     @Override
     public void latestYearData() {
         List<Project> projects = projectRepository.findAll();
         for (Project project :
                 projects) {
-            if (project.getArea() != null && project.getArea() > 0) {
-                double area = project.getArea();
-                com.giot.eco_building.entity.ProjectData waterData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.WATER.getCode());
-                if (waterData != null) {
-                    project.setWaterConsumptionPerUnitArea(waterData.getValue() / area);
-                }
-                com.giot.eco_building.entity.ProjectData elecData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.ELECTRICITY.getCode());
-                if (elecData != null) {
-                    project.setPowerConsumptionPerUnitArea(elecData.getValue() / area);
-                }
-                com.giot.eco_building.entity.ProjectData gasData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.GAS.getCode());
-                if (gasData != null) {
-                    project.setGasConsumptionPerUnitArea(gasData.getValue() / area);
-                }
-                projectRepository.saveAndFlush(project);
-            }
+            updateLatestYearData(project);
         }
     }
 
