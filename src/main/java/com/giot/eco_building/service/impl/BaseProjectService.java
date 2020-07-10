@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
-import com.giot.eco_building.entity.Action;
+import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.ProjectData;
 import com.giot.eco_building.repository.ProjectRepository;
@@ -13,13 +13,13 @@ import com.giot.eco_building.service.ProjectService;
 import com.giot.eco_building.utils.ExcelUtil;
 import com.giot.eco_building.utils.HttpUtil;
 import com.giot.eco_building.utils.UpdateUtil;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +49,7 @@ public class BaseProjectService implements ProjectService {
     private String AK;
 
     private ProjectRepository projectRepository;
+
 
     private ExcelUtil excelUtil;
 
@@ -372,11 +373,13 @@ public class BaseProjectService implements ProjectService {
     @Override
     public WebResponse screen(String province, String city, String district, String street,
                               //多选
-                              String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard, Integer[] energySavingTransformationOrNot,
-                              Integer[] HeatingMode, Integer[] CoolingMode, Integer[] WhetherToUseRenewableResources,
+                              String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
+                              Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode,
+                              Integer[] WhetherToUseRenewableResources,
                               //范围
                               Double[] area, Integer[] floor, String[] date,
-                              Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea) {
+                              Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea,
+                              Double[] waterConsumptionPerUnitArea) {
         Specification<Project> projectSpecification = (Specification<Project>) (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> list = new ArrayList<>();//查询条件集
             //1. province,  city,  district,  street
@@ -455,37 +458,67 @@ public class BaseProjectService implements ProjectService {
             }
             //3.Double[] area, Integer[] floor, String[] date,
             //Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea
-            if (area != null && area.length == 2) {
-                list.add(criteriaBuilder.between(root.get("area"), area[0], area[1]));
+            if (area != null) {
+                if (area.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("area"), area[0], area[1]));
+                } else if (area.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("area"), area[0]));
+                }
+
             }
-            if (floor != null && floor.length == 2) {
-                list.add(criteriaBuilder.between(root.get("floor"), floor[0], floor[1]));
+            if (floor != null) {
+                if (floor.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("floor"), floor[0], floor[1]));
+                } else if (floor.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("floor"), floor[0]));
+                }
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
             Date sdate = new Date();
             Date edate = new Date();
-            if (date != null && date.length == 2) {
+            if (date != null) {
                 Boolean flag = true;
-                try {
-                    sdate = sdf.parse(date[0]);
-                    edate = sdf.parse(date[1]);
-                    Calendar c = Calendar.getInstance();
-                    c.setTime(edate);
-                    c.add(Calendar.YEAR, 1);
-                    edate = c.getTime();
-                } catch (ParseException e) {
-                    flag = false;
+                if (date.length == 2) {
+                    try {
+                        sdate = sdf.parse(date[0]);
+                        edate = sdf.parse(date[1]);
+                        Calendar c = Calendar.getInstance();
+                        c.setTime(edate);
+                        c.add(Calendar.YEAR, 1);
+                        edate = c.getTime();
+                    } catch (ParseException e) {
+                        flag = false;
+                    }
+                    if (flag) list.add(criteriaBuilder.between(root.get("builtTime"), sdate, edate));
+                } else if (date.length == 1) {
+                    try {
+                        sdate = sdf.parse(date[0]);
+                    } catch (ParseException e) {
+                        flag = false;
+                    }
+                    if (flag) list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("builtTime"), sdate));
                 }
-                if (flag) list.add(criteriaBuilder.between(root.get("builtTime"), sdate, edate));
             }
             if (powerConsumptionPerUnitArea != null && powerConsumptionPerUnitArea.length == 2) {
-                list.add(criteriaBuilder.between(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0], powerConsumptionPerUnitArea[1]));
+                if (powerConsumptionPerUnitArea.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0], powerConsumptionPerUnitArea[1]));
+                } else if (powerConsumptionPerUnitArea.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0]));
+                }
             }
-            if (gasConsumptionPerUnitArea != null && gasConsumptionPerUnitArea.length == 2) {
-                list.add(criteriaBuilder.between(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0], gasConsumptionPerUnitArea[1]));
+            if (gasConsumptionPerUnitArea != null) {
+                if (gasConsumptionPerUnitArea.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0], gasConsumptionPerUnitArea[1]));
+                } else if (gasConsumptionPerUnitArea.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0]));
+                }
             }
-            if (waterConsumptionPerUnitArea != null && waterConsumptionPerUnitArea.length == 2) {
-                list.add(criteriaBuilder.between(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0], waterConsumptionPerUnitArea[1]));
+            if (waterConsumptionPerUnitArea != null) {
+                if (waterConsumptionPerUnitArea.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0], waterConsumptionPerUnitArea[1]));
+                } else if (waterConsumptionPerUnitArea.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0]));
+                }
             }
             return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
         };
@@ -530,5 +563,15 @@ public class BaseProjectService implements ProjectService {
         result.put("gas", "" + gasMin + "-" + gasMax);
         result.put("elec", "" + elecMin + "-" + elecMax);
         return WebResponse.success(result);
+    }
+
+    @Override
+    public WebResponse projectDetail(Long projectId) {
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        if (projectOptional.isPresent()) {
+            return WebResponse.success(projectOptional.get());
+        } else {
+            return WebResponse.failure(HttpResponseStatusEnum.PROJECT_NOT_EXISTED);
+        }
     }
 }

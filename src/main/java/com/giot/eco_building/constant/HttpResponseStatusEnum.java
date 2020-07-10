@@ -13,6 +13,8 @@ public enum HttpResponseStatusEnum implements CommonResponse {
     USER_HAS_EXISTED(10001, "用户已存在"),
     USER_NOT_EXISTED(10002, "用户不存在"),
     USERNAME_NOT_EXISTED(10003, "用户名不存在"),
+
+    PROJECT_NOT_EXISTED(20001, "项目不存在"),
     ;
     private Integer code;
     private String message;

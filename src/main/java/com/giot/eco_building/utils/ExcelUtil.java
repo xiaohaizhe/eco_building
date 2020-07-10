@@ -4,6 +4,8 @@ import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.ProjectData;
 import com.giot.eco_building.repository.ProjectRepository;
+import com.giot.eco_building.service.UploadService;
+import com.microsoft.schemas.office.visio.x2012.main.ShapeSheetType;
 import jdk.nashorn.internal.objects.annotations.Setter;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ooxml.POIXMLDocumentPart;
@@ -12,6 +14,7 @@ import org.apache.poi.xssf.usermodel.*;
 import org.openxmlformats.schemas.drawingml.x2006.spreadsheetDrawing.CTMarker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +41,13 @@ public class ExcelUtil {
                     "气耗", "全年气耗(m3)", "逐月气耗 (m3)",
                     "水耗", "全年水耗(m3)", "逐月水耗 (m3)"};
     private ProjectRepository projectRepository;
+
+    private UploadService uploadService;
+
+    @Autowired
+    public void setUploadService(UploadService uploadService) {
+        this.uploadService = uploadService;
+    }
 
     @Setter
     public void setProjectRepository(ProjectRepository projectRepository) {
@@ -96,8 +106,8 @@ public class ExcelUtil {
      * @param sheet
      * @return
      */
-    private Map<String, PictureData> getPicture(HSSFSheet sheet) {
-        Map<String, PictureData> map = new HashMap<>();
+    private Map<Integer, PictureData> getPicture(HSSFSheet sheet) {
+        Map<Integer, PictureData> map = new HashMap<>();
         List<HSSFShape> list = sheet.getDrawingPatriarch().getChildren();
         for (HSSFShape shape :
                 list) {
@@ -105,7 +115,7 @@ public class ExcelUtil {
                 HSSFPicture picture = (HSSFPicture) shape;
                 HSSFClientAnchor clientAnchor = (HSSFClientAnchor) picture.getAnchor();
                 PictureData pictureData = picture.getPictureData();
-                String key = clientAnchor.getRow1() + "-" + clientAnchor.getCol1();
+                Integer key = clientAnchor.getRow1();
                 map.put(key, pictureData);
             }
         }
@@ -118,8 +128,8 @@ public class ExcelUtil {
      * @param sheet
      * @return
      */
-    private Map<String, PictureData> getPicture(XSSFSheet sheet) {
-        Map<String, PictureData> map = new HashMap<>();
+    private Map<Integer, PictureData> getPicture(XSSFSheet sheet) {
+        Map<Integer, PictureData> map = new HashMap<>();
         List<POIXMLDocumentPart> list = sheet.getRelations();
         for (POIXMLDocumentPart part :
                 list) {
@@ -130,7 +140,7 @@ public class ExcelUtil {
                     XSSFPicture picture = (XSSFPicture) shape;
                     XSSFClientAnchor anchor = picture.getPreferredSize();
                     CTMarker marker = anchor.getFrom();
-                    String key = marker.getRow() + "-" + marker.getCol();
+                    Integer key = marker.getRow();
                     map.put(key, picture.getPictureData());
                 }
             }
@@ -346,7 +356,7 @@ public class ExcelUtil {
         }
     }
 
-    public Map<String, Object> mapToProject(Map<Integer, Object> map) throws ParseException {
+    public Map<String, Object> mapToProject(Map<Integer, Object> map) throws ParseException, IOException {
         SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy");
         SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMM");
 
@@ -379,32 +389,43 @@ public class ExcelUtil {
 
         Object index6 = map.get(6);
         if (index6 != null) project.setArchitecturalType((String) index6);
+        else project.setArchitecturalType("无");
 
         Object index7 = map.get(7);
 //        CellType.FORMULA未完成
 //        if (index7 != null) project.setBuiltTime();
         /*
+         */
         //项目概况图，另作处理
         Object index8 = map.get(8);
-        if (index8 != null) project.setPhone((String) index8);*/
+        if (index8 != null) {
+            logger.info("项目图片：" + index8);
+            project.setImgUrl((String) index8);
+        }
 
         Object index9 = map.get(9);
         if (index9 != null) project.setGbes((String) index9);
+        else project.setGbes("无");
 
         Object index10 = map.get(10);
         if (index10 != null) project.setEnergySavingStandard((String) index10);
+        else project.setEnergySavingStandard("无");
 
         Object index11 = map.get(11);
         if (index11 != null) project.setEnergySavingTransformationOrNot((String) index11);
+        else project.setEnergySavingTransformationOrNot("无");
 
         Object index12 = map.get(12);
         if (index12 != null) project.setCoolingMode((String) index12);
+        else project.setCoolingMode("无");
 
         Object index13 = map.get(13);
-//        if (index13 != null) project.setHeatingMode((String) index13);
+        if (index13 != null) project.setHeatingMode((String) index13);
+        else project.setHeatingMode("无");
 
         Object index14 = map.get(14);
-//        if (index14 != null) project.setCoolingMode((String) index14);
+        if (index14 != null) project.setWhetherToUseRenewableResources((String) index14);
+        else project.setWhetherToUseRenewableResources("无");
 
         Object index15 = map.get(15);
         if (index15 != null && index15 instanceof Double) project.setLongitude((Double) index15);
@@ -484,126 +505,12 @@ public class ExcelUtil {
         return key.length() == 4;
     }
 
-
-   /* public void dealWithExcelFile(MultipartFile file) throws IOException {
-        logger.info("start deal witn excel.....");
-        Workbook wb = getWorkbook(file);
-        if (wb != null) {
-            int sheetNum = wb.getNumberOfSheets();
-            logger.info("{}文件共有{}页", file.getOriginalFilename(), sheetNum);
-            for (int i = 0; i < sheetNum; i++) {
-
-                Sheet sheet = wb.getSheetAt(i);
-                int rowNum = sheet.getPhysicalNumberOfRows();
-                logger.info("------------------------------------");
-                logger.info("第{}页共有{}行数据", (i + 1), rowNum);
-                */
-
-    /**
-     * 当页数据量>0(第一行为字段名称，第二行为水电气日期标识)
-     *//*
-                if (rowNum > 2) {
-                    logger.info("开始根据第一行确定字段index");
-                    //处理每页的第1行数据，获取字段index
-                    Integer[] columNamesIndex = dealWithFirstRow(sheet.getRow(0));
-                    //处理每页的第2行数据，获取水电气数据index
-                    Map<String, List<Map<String, Integer>>> dataMap = dealWithSecondRow(sheet.getRow(1), columNamesIndex);
-                    //保存项目基础数据与水电气数据
-                    List<Map<Integer, Object>> projectList = new ArrayList<>();
-                    for (int j = 2; j < rowNum; j++) {
-                        Row row = sheet.getRow(j);
-                        if (row != null) {
-                            int cellNum = row.getPhysicalNumberOfCells();
-                            logger.info("第{}行共有{}个参数", (j + 1), cellNum);
-                            int nameIndex = columNamesIndex[0];
-                            Cell nameCell = row.getCell(nameIndex);
-                            if (nameCell != null && nameCell.getCellType().equals(CellType.STRING)) {
-                                String projectName = (String) getCellData(nameCell);
-                                logger.info("项目:{}的数据有效，开始处理>>>>>>>", projectName);
-                                Map<Integer, Object> projectBaseData = new HashMap<>();
-                                projectBaseData.put(0, getCellData(nameCell));
-                                int baseDataIndexEnd = columNamesIndex.length - 9;
-                                //1.处理表格中的基础数据
-                                for (int k = 1; k < baseDataIndexEnd; k++) {
-                                    if (columNamesIndex[k] == null) continue;
-                                    int cindex = columNamesIndex[k];
-                                    Cell cCell = row.getCell(cindex);
-                                    Object cellData = getCellData(cCell);
-                                    if (cellData != null) {
-                                        projectBaseData.put(k, cellData);
-                                    }
-                                }
-
-                                //2.处理表格中的水电气数据:
-                                // water_year,electricity_year,gas_year,
-                                // water_month,electricity_month,gas_month
-                                List<Map<String, Integer>> water_year_list = dataMap.get("water_year");
-                                Map<String, Double> waterYearData = getTimeAndDataByYearAndMonthList(water_year_list, row);
-                                List<Map<String, Integer>> water_month_list = dataMap.get("water_month");
-                                Map<String, Double> waterMonthData = getTimeAndDataByYearAndMonthList(water_month_list, row);
-                                waterMonthData.putAll(waterYearData);
-
-                                List<Map<String, Integer>> electricity_year_list = dataMap.get("electricity_year");
-                                Map<String, Double> electricityYearData = getTimeAndDataByYearAndMonthList(electricity_year_list, row);
-                                List<Map<String, Integer>> electricity_month_list = dataMap.get("electricity_month");
-                                Map<String, Double> electricityMonthData = getTimeAndDataByYearAndMonthList(electricity_month_list, row);
-                                electricityMonthData.putAll(electricityYearData);
-
-                                List<Map<String, Integer>> gas_year_list = dataMap.get("gas_year");
-                                Map<String, Double> gasYearData = getTimeAndDataByYearAndMonthList(gas_year_list, row);
-                                List<Map<String, Integer>> gas_month_list = dataMap.get("gas_month");
-                                Map<String, Double> gasMonthData = getTimeAndDataByYearAndMonthList(gas_month_list, row);
-                                gasMonthData.putAll(gasYearData);
-
-                                Map<String, Object> projectData = new HashMap<>();
-                                projectData.put(Constants.DataType.WATER.getValue(), waterMonthData);
-                                projectData.put(Constants.DataType.GAS.getValue(), gasMonthData);
-                                projectData.put(Constants.DataType.ELECTRICITY.getValue(), electricityMonthData);
-
-                                projectBaseData.put(-1, projectData);
-                                projectList.add(projectBaseData);
-                            }
-                        }
-                    }
-                    *//*
-                    //处理图片
-                    Map<String, PictureData> map = new HashMap<>();
-                    if (sheet instanceof XSSFSheet) {
-                        map = getPicture((XSSFSheet) sheet);
-                    } else if (sheet instanceof HSSFSheet) {
-                        map = getPicture((HSSFSheet) sheet);
-                    }
-                    for (String key :
-                            map.keySet()) {
-                        logger.info("{}:{}", key, map.get(key));
-                    }
-                    exportPicture(map);*//*
-                    List<Project> projects = new ArrayList<>();
-                    List<ProjectData> projectDataList = new ArrayList<>();
-                    for (Map<Integer, Object> map :
-                            projectList) {
-                        Map<String, Object> resultMap = mapToProject(map);
-                        Project project = (Project) resultMap.get("project");
-                        projects.add(project);
-
-                        List<ProjectData> dataList = (List<ProjectData>) resultMap.get("data");
-                        projectDataList.addAll(dataList);
-                    }
-                    insertAll(projects);
-
-                } else {
-                    logger.info("第{}页无数据", (i + 1));
-                }
-            }
-        }
-    }*/
-
     /**
      * 处理excel一页数据
      *
      * @param sheet
      */
-    public List<Map<Integer, Object>> dealWithSheet(Sheet sheet) {
+    public List<Map<Integer, Object>> dealWithSheet(Sheet sheet) throws IOException {
         int rowNum = sheet.getPhysicalNumberOfRows();
         logger.info("------------------------------------");
         /**
@@ -617,6 +524,14 @@ public class ExcelUtil {
             Integer[] columNamesIndex = dealWithFirstRow(sheet.getRow(0));
             //处理每页的第2行数据，获取水电气数据index
             Map<String, List<Map<String, Integer>>> dataMap = dealWithSecondRow(sheet.getRow(1), columNamesIndex);
+//            Map<Integer, String> nameMap = new HashMap<>();
+            //处理图片
+            Map<Integer, PictureData> picMap = new HashMap<>();
+            if (sheet instanceof XSSFSheet) {
+                picMap = getPicture((XSSFSheet) sheet);
+            } else if (sheet instanceof HSSFSheet) {
+                picMap = getPicture((HSSFSheet) sheet);
+            }
             for (int j = 2; j < rowNum; j++) {
                 Row row = sheet.getRow(j);
                 if (row != null) {
@@ -629,6 +544,7 @@ public class ExcelUtil {
                         logger.info("项目:{}的数据有效，开始处理>>>>>>>", projectName);
                         Map<Integer, Object> projectBaseData = new HashMap<>();
                         projectBaseData.put(0, getCellData(nameCell));
+
                         int baseDataIndexEnd = columNamesIndex.length - 9;
                         //1.处理表格中的基础数据
                         for (int k = 1; k < baseDataIndexEnd; k++) {
@@ -640,6 +556,12 @@ public class ExcelUtil {
                                 projectBaseData.put(k, cellData);
                             }
                         }
+                        //处理基础数据中的图片数据
+                        PictureData projectPic = picMap.get(j);
+                        if (projectPic != null) {
+                            String imgUrl = uploadService.uploadProjectImg(projectPic.getData());
+                            projectBaseData.put(8, imgUrl);
+                        } else projectBaseData.put(8, null);
 
                         //2.处理表格中的水电气数据:
                         // water_year,electricity_year,gas_year,
@@ -672,30 +594,7 @@ public class ExcelUtil {
                     }
                 }
             }
-                    /*
-                    //处理图片
-                    Map<String, PictureData> map = new HashMap<>();
-                    if (sheet instanceof XSSFSheet) {
-                        map = getPicture((XSSFSheet) sheet);
-                    } else if (sheet instanceof HSSFSheet) {
-                        map = getPicture((HSSFSheet) sheet);
-                    }
-                    for (String key :
-                            map.keySet()) {
-                        logger.info("{}:{}", key, map.get(key));
-                    }
-                    exportPicture(map);*/
-            /*List<Project> projects = new ArrayList<>();
-            List<ProjectData> projectDataList = new ArrayList<>();
-            for (Map<Integer, Object> map :
-                    projectList) {
-                Map<String, Object> resultMap = mapToProject(map);
-                Project project = (Project) resultMap.get("project");
-                projects.add(project);
 
-                List<ProjectData> dataList = (List<ProjectData>) resultMap.get("data");
-                projectDataList.addAll(dataList);
-            }*/
 
         } else {
             logger.info("当页无数据");

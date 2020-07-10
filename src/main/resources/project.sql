@@ -13,7 +13,7 @@ CREATE TABLE `project`  (
   `architectural_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `floor` int(11) NULL DEFAULT NULL,
   `built_time` datetime(0) NULL DEFAULT NULL,
-  `photo` longblob NULL,
+  `img_url` varchar(255) NULL,
   `gbes` int(11) NULL DEFAULT NULL,
   `energy_saving_standard` int(11) NULL DEFAULT NULL,
   `whether_to_use_renewabler_esources` int(11) NULL DEFAULT NULL,

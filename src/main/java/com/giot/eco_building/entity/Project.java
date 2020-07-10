@@ -3,7 +3,6 @@ package com.giot.eco_building.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.utils.validation.LocationValidation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -98,13 +97,10 @@ public class Project implements Serializable {
      */
     private Integer floor;
     /**
-     * 项目图片
+     * 项目图片地址
      */
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    @JsonIgnore
-    @XmlSchemaType(name = "base64Binary")
-    private Byte[] photo;
+    @Column(name = "img_url")
+    private String imgUrl;
     /**
      * 绿建等级：
      * 0星-0
@@ -204,6 +200,26 @@ public class Project implements Serializable {
      */
     @Column(name = "heating_mode")
     private Integer HeatingMode;
+
+    public void setHeatingMode(String heatingMode) {
+        int code;
+        switch (heatingMode) {
+            case "集中供暖":
+                code = 0;
+                break;
+            case "分户供暖":
+                code = 1;
+                break;
+            case "无供暖":
+                code = 2;
+                break;
+            default:
+                code = 3;
+                break;
+        }
+        this.HeatingMode = code;
+    }
+
     /**
      * 供冷方式：
      * 集中供冷
@@ -242,6 +258,25 @@ public class Project implements Serializable {
      */
     @Column(name = "whether_to_use_renewabler_esources")
     private Integer WhetherToUseRenewableResources;
+
+    public void setWhetherToUseRenewableResources(String whetherToUseRenewableResources) {
+        int code;
+        switch (whetherToUseRenewableResources) {
+            case "否":
+                code = 0;
+                break;
+            case "太阳能":
+                code = 1;
+                break;
+            case "浅层地热能":
+                code = 2;
+                break;
+            default:
+                code = 3;
+                break;
+        }
+        this.CoolingMode = code;
+    }
 
     /**
      * 单位面积电耗

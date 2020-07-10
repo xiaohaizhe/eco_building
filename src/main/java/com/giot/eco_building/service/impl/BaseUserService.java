@@ -9,12 +9,15 @@ import com.giot.eco_building.service.UserService;
 import lombok.extern.flogger.Flogger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -33,7 +36,7 @@ import java.util.Optional;
 @Slf4j
 public class BaseUserService implements UserService {
     private UserRepository userRepository;
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
 
     @Autowired
     public BaseUserService(UserRepository userRepository) {
@@ -52,6 +55,7 @@ public class BaseUserService implements UserService {
         if (username == null || "".equals(username)) {
             return WebResponse.failure(HttpResponseStatusEnum.USERNAME_NOT_EXISTED);
         }
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
         if (user.getId() == null) {
             if (exist(username)) {
                 return WebResponse.failure(HttpResponseStatusEnum.USER_HAS_EXISTED);

@@ -47,16 +47,6 @@ class BaseProjectServiceTest {
         projectService.update(project);
     }
 
-    @Test
-    void testLayFetchType() {
-        List<Project> projects = projectRepository.findAll();
-        for (Project pro :
-                projects) {
-            System.out.println(pro.toString());
-            System.out.println(pro.getPhoto());
-        }
-
-    }
 
     @Test
     public void getProvinces() {

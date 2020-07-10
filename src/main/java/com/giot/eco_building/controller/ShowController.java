@@ -51,16 +51,21 @@ public class ShowController {
 
     @GetMapping("/screen")
     public WebResponse screen(String province, String city, String district, String street,
-                       //多选
-                       String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
-                       Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode, Integer[] WhetherToUseRenewableResources,
-                       //范围
-                       Double[] area, Integer[] floor, String[] date,
-                       Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea) {
+                              //多选
+                              String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
+                              Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode, Integer[] WhetherToUseRenewableResources,
+                              //范围
+                              Double[] area, Integer[] floor, String[] date,
+                              Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea) {
         return projectService.screen(province, city, district, street,
                 architecturalType, gbes, energySavingStandard,
                 energySavingTransformationOrNot, HeatingMode, CoolingMode, WhetherToUseRenewableResources,
                 area, floor, date,
                 powerConsumptionPerUnitArea, gasConsumptionPerUnitArea, waterConsumptionPerUnitArea);
+    }
+
+    @GetMapping("/projectDetail")
+    public WebResponse showProejctDetail(Long projectId) {
+        return projectService.projectDetail(projectId);
     }
 }

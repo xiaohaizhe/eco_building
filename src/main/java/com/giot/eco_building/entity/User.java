@@ -23,7 +23,6 @@ import java.util.Date;
 @EntityListeners(AuditingEntityListener.class)
 public class User implements Serializable {
     private static final long serialVersionUID = 1705613187469042461L;
-    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,7 +33,6 @@ public class User implements Serializable {
     /**
      * 密码
      */
-    @JsonIgnore
     private String password;
     /**
      * 权限
