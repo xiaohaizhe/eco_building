@@ -1,20 +1,14 @@
 import React from 'react';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import {UpOutlined } from '@ant-design/icons';
+import {DownOutlined,UpOutlined } from '@ant-design/icons';
 import AMap from 'AMap';
 import Loca from 'Loca'
-import { Radio,Popover } from 'antd';
+import { Radio } from 'antd';
+import { connect } from 'umi';
 import ItemSelect from './components/ItemSelect';
 import  './index.less';
 var infoWin;
-const content = (
-  <div>
-    <p>Content</p>
-    <p>Content</p>
-  </div>
-);
-const type = [{"name":"水","value":'0'},{"name":"电","value":'1'},{"name":"汽","value":'2'}];
-class Display extends React.Component {
+class display extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -25,9 +19,23 @@ class Display extends React.Component {
   }
 
   componentDidMount() {
-    this.loadMap()
+    const { dispatch,display} = this.props;
+    const { mapData,maxMin } = display;
+    if (dispatch) {
+      dispatch({
+        type: 'display/getMap',
+      });
+    }
+    this.loadMap(mapData,maxMin[this.state.radio]);
   }
-
+  
+  componentDidUpdate(preProps) {
+    const { display } = this.props;
+    const { mapData,maxMin } = display;
+    if (preProps && JSON.stringify(preProps.display) !== JSON.stringify(display)) {
+        this.loadMap(mapData,maxMin[this.state.radio]);
+    }
+  }
   //打开详情浮窗
   openInfoWin(map, event,title,address, content) {
     var tableDom;
@@ -35,7 +43,7 @@ class Display extends React.Component {
         infoWin = new AMap.InfoWindow({
           autoMove:false,
             isCustom: true,  //使用自定义窗体
-            offset: new AMap.Pixel(170, 100)
+            offset: new AMap.Pixel(170, 200)
         });
     }
 
@@ -51,9 +59,13 @@ class Display extends React.Component {
         let infoHTML ='<p class="title">'+ title +'</p>'+
                       '<p>'+address+'</p>'
         infoDom.innerHTML = infoHTML;
+        let bottonDom = document.createElement('button');
+        bottonDom.className = 'ant-btn ant-btn-primary btnFix';
+        bottonDom.innerHTML = '详细数据';
         tableDom = document.createElement('table');
         infoDom.appendChild(closeDom);
         infoDom.appendChild(tableDom);
+        infoDom.appendChild(bottonDom);
         infoWin.setContent(infoDom);
         
     }
@@ -68,7 +80,7 @@ class Display extends React.Component {
                 '<td class="content">' + val + '</td>' +
             '</tr>'
     }
-
+    
     tableDom.innerHTML = trStr;
     infoWin.open(map, lngLat);
     
@@ -80,13 +92,13 @@ class Display extends React.Component {
     }
   }
   //生成地图
-  loadMap(){
+  loadMap(mapData,typeData){
     let that = this;
     var map = new AMap.Map('container', {
-          center: [116.400389, 39.93729],
+          center: [108.5525, 34.3227],
           mapStyle:'amap://styles/macaron',
           rotation: 0,
-          zoom: 11.3,
+          zoom: 4.5,
           pitch: 0,
           skyColor: '#33216a'
       });
@@ -96,16 +108,6 @@ class Display extends React.Component {
           eventSupport: true
       });
 
-      var colors = [
-          '#a50026',
-          '#e34a33',
-          '#FF5722',
-          '#ffeb3b',
-          '#4caf50',
-          '#03a9f4',
-          '#598dc0',
-          '#313695'
-      ];
       layer.on('click', function (ev) {
         // 事件类型
         var type = ev.type;
@@ -113,18 +115,18 @@ class Display extends React.Component {
         var rawData = ev.rawData;
         // 原始鼠标事件
         var originalEvent = ev.originalEvent;
-
-        that.openInfoWin(map, originalEvent, rawData.title,rawData.address,{
+        
+        that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
             '建筑类型：': rawData.name,
-            '最近一年单位面积电耗：': rawData.name,
-            '最近一年单位面积水耗：': rawData.name,
-            '最近一年单位面积气耗：': rawData.name,
-            '节能标准：': rawData.name,
-            '是否经过节能改造：': rawData.name,
-            '绿建等级：': rawData.name,
-            '供冷方式：': rawData.name,
-            '供暖方式：': rawData.name,
-            '可再生能源利用：': rawData.name
+            '最近一年单位面积电耗：': rawData.powerConsumptionPerUnitArea || 0,
+            '最近一年单位面积水耗：': rawData.waterConsumptionPerUnitArea || 0,
+            '最近一年单位面积气耗：': rawData.gasConsumptionPerUnitArea || 0,
+            '节能标准：': rawData.energySavingStandard,
+            '是否经过节能改造：': rawData.energySavingTransformationOrNot,
+            '绿建等级：': rawData.gbes,
+            '供冷方式：': rawData.coolingMode,
+            '供暖方式：': rawData.heatingMode,
+            '可再生能源利用：': rawData.whetherToUseRenewableResources
           });
       });
 
@@ -132,142 +134,67 @@ class Display extends React.Component {
       //     that.closeInfoWin();
       // });
       
-      var data = [
-      {
-        "lnglat":[116.258446,37.686622],
-        "title":'xxx项目',
-        "name":"景县",
-        "style":2,
-        'value':500
-      },
-      {
-        "lnglat":[116.559954,43.124049],
-        "name":"圣方济各堂区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':760
-      },
-      {
-        "lnglat":[116.366794,39.915309],
-        "name":"西城区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':880
-      },
-      {
-        "lnglat":[116.6,39.92],
-        "name":"aa区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':650
-      },
-      {
-        "lnglat":[116.5,39.92],
-        "name":"bb区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':550
-      },
-      {
-        "lnglat":[115.9,39.89],
-        "name":"cc区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':440
-      },
-      {
-        "lnglat":[115.895,39.905],
-        "name":"dd区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':220
-      },
-      {
-        "lnglat":[116.91,42],
-        "name":"ff区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':260
-      },
-      {
-        "lnglat":[116.123,39.87],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':100
-      },
-      {
-        "lnglat":[116.123,39.8766],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':1000
-      },
-      {
-        "lnglat":[116.23,39.8711],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':987
-      },
-      {
-        "lnglat":[116.323,39.8712],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':874
-      },
-      {
-        "lnglat":[116.231,40],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':712
-      },
-      {
-        "lnglat":[116.432,39.99],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':621
-      },
-      {
-        "lnglat":[116.32,39.97],
-        "name":"ee区",
-        "title":'xxx项目',
-        'address':'江苏省南京市玄武区孝陵卫街道中山门大街200号',
-        'value':499
-      }]
+      // var data = [
+      // {
+      //   "lnglat":[116.258446,37.686622],
+      //   "title":'xxx项目',
+      //   "name":"景县",
+      //   "style":2,
+      //   'value':500
+      // }]
       //设置数据源
-      layer.setData(data, {
-        lnglat: 'lnglat'   // 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。
+      layer.setData(mapData, {
+        lnglat:function (obj) {
+          var value = obj.value;
+          return [value['longitude'], value['latitude']];
+        },
+        type:'json'// 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。
       });
       //设置参数
       layer.setOptions({
         unit: 'px',
         style: {
-            radius: 6,
+            radius: 10,
             height: 0,
             // 根据车辆类型设定不同填充颜色
             color: function (obj) {
-                var value = obj.value.value;
-                if(value>875){
-                  return colors[0];
-                }else if(value>750){
-                  return colors[1];
-                }else if(value>625){
-                  return colors[2];
-                }else if(value>500){
-                  return colors[3];
-                }else if(value>375){
-                  return colors[4];
-                }else if(value>250){
-                  return colors[5];
-                }else if(value>125){
-                  return colors[6];
+                if(typeData.max-typeData.min===0){
+                  return '#0000ff';
                 }else{
-                  return colors[7];
+                  var value = 0;
+                  if(that.state.radio=='0'){
+                    value = obj.value.waterConsumptionPerUnitArea || 0;
+                  }else if (that.state.radio=='1'){
+                    value = obj.value.powerConsumptionPerUnitArea || 0;
+                  }else if(that.state.radio=='2'){
+                    value = obj.value.gasConsumptionPerUnitArea || 0;
+                  }
+                  var max = typeData.max;
+                  var min = typeData.min;
+                  
+                  return gradientColor(value,max,min);
                 }
+                
+
+                function gradientColor(data,max,min){
+                  //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
+                    let startR = 255;
+                    let startG = 0;
+                    let startB = 0;
+                   
+                  //   let endRGB = this.colorRgb('#0000ff'); 
+                    let endR = 0;
+                    let endG = 0;
+                    let endB = 255;
+                   
+                    let step = (max-data)/(max-min);
+                    let sR = (endR-startR)*step;//总差值
+                    let sG = (endG-startG)*step;
+                    let sB = (endB-startB)*step;
+                   
+                    var color = 'rgb('+parseInt((sR+startR))+','+parseInt((sG+startG))+','+parseInt((sB+startB))+')';
+                    return color;
+                   }
             },
             opacity: 1
         }
@@ -275,29 +202,46 @@ class Display extends React.Component {
 
     layer.render();
   }
-  toggleForm(e){
-    if(e == this.state.radio){
+  toggleForm(){
       this.setState({"show":!this.state.show})
-    }else{
-      this.setState({"show":true,"radio":e})
-    }
-    
   }
+  toggleRadio(e){
+    const { display } = this.props;
+    const { mapData,maxMin } = display;
+    this.setState({
+      radio: e.target.value,
+    });
+    this.loadMap(mapData,maxMin[e.target.value]);
+  };
   render(){
+    const { display } = this.props;
+    const { maxMin } = display;
     return (
       <PageHeaderWrapper>
-        <div id='container' style={{height:'700px',width:'100%',postion:'relative'}}>
+        <div className="display">
+          <div id='container' style={{height:'700px',width:'100%'}}></div>
           <div className="type" >
-            <ul className="ant-radio-group ant-radio-group-solid">
-              {type.map((item, index) => {
-                    return <li key={item.value} className={`ant-radio-button-wrapper ${this.state.radio==item.value?'ant-radio-button-wrapper-checked':''}`} onClick={()=>this.toggleForm(item.value)}>{item.name}</li>
-                })}
-            </ul>
+            <Radio.Group value={this.state.radio} buttonStyle="solid" onChange={(e)=>this.toggleRadio(e)}>
+              <Radio.Button value="0">水</Radio.Button>
+              <Radio.Button value="1">电</Radio.Button>
+              <Radio.Button value="2">汽</Radio.Button>
+            </Radio.Group>
+            <div className="ant-radio-button-wrapper" onClick={()=>this.toggleForm()}>
+              {this.state.show?<UpOutlined />:<DownOutlined />}
+            </div>
             {this.state.show && <ItemSelect></ItemSelect>}
+          </div>
+          <div className="legend">
+            <div className="gradientLegend"></div>
+            <p className="max">{Math.ceil(maxMin[this.state.radio].max)}</p>
+            <p className="min">{Math.ceil(maxMin[this.state.radio].min)}</p>
           </div>
         </div>
       </PageHeaderWrapper>)
     }
 }
 
-export default Display
+export default connect(({ display, loading }) => ({
+  display,
+  loading: loading.models.display,
+}))(display);

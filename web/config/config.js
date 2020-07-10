@@ -43,7 +43,7 @@ export default defineConfig({
         {
           path: '/',
           component: '../layouts/BasicLayout',
-          authority: ['admin', 'user'],
+          authority: ['ADMIN', 'USER'],
           routes: [
             {
               path: '/',
@@ -65,7 +65,7 @@ export default defineConfig({
               path: '/log',
               name: 'log',
               icon: 'profile',
-              authority: ['user'],
+              authority: ['USER'],
               component: './log',
             },
             {
@@ -73,7 +73,7 @@ export default defineConfig({
               name: 'admin',
               icon: 'user',
               component: './userManage',
-              authority: ['admin'],
+              authority: ['ADMIN'],
               routes: [
                 // {
                 //   path: '/admin/sub-page',
@@ -84,12 +84,12 @@ export default defineConfig({
                 // },
               ],
             },
-            // {
-            //   name: 'list.table-list',
-            //   icon: 'table',
-            //   path: '/list',
-            //   component: './ListTableList',
-            // },
+            {
+              name: 'list.table-list',
+              icon: 'table',
+              path: '/list',
+              component: './ListTableList',
+            },
             {
               component: './404',
             },
@@ -117,7 +117,16 @@ export default defineConfig({
   // @ts-ignore
   title: false,
   ignoreMomentLocale: true,
-  proxy: proxy[REACT_APP_ENV || 'dev'],
+  // proxy: proxy[REACT_APP_ENV || 'dev'],
+  proxy: {
+    '/api/': {
+      target: 'http://121.40.87.226:9000/',
+      changeOrigin: true,
+      pathRewrite: {
+        '^/api': '',
+      },
+    },
+  },
   manifest: {
     basePath: '/',
   },

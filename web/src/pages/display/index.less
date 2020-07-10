@@ -1,4 +1,7 @@
-
+@import '~antd/es/style/themes/default.less';
+.display{
+  position: relative;
+}
 .info {
     padding: .75rem 1.25rem;
     margin-bottom: 1rem;
@@ -26,6 +29,9 @@
       background-image: url(../../assets/close.svg);
       background-repeat: no-repeat;
       background-size: contain;
+    }
+    .btnFix{
+      margin:10px 0 0 30%;
     }
   }
   
@@ -85,7 +91,7 @@
     .ant-picker-input > input:placeholder-shown{
       text-align: center !important;
     }
-    .ant-checkbox-wrapper,.ant-form-item-label > label{
+    .ant-checkbox-wrapper,.ant-form-item-label > label,.ant-radio-wrapper{
       color: #fff;
     }
     .site-input-right {
@@ -100,5 +106,43 @@
       top: 40px;
       color: #fff;
       z-index: 999;
+    }
+  }
+  .legend{
+    position: absolute;
+    bottom: 10px;
+    z-index: 99;
+    right: 10px;
+    background-color: #f2f2f2;
+    padding: 10px 5px;
+    width: 60px;
+    .gradientLegend{
+      background-image: linear-gradient(#ff0000, #0000ff);
+      height: 150px;
+      width: 20px;
+    }
+    .max{
+      position: absolute;
+      left: 27px;
+      top: 0;margin: 0;
+      color: #555555;
+    }
+    .min{
+      position: absolute;
+      left: 27px;
+      bottom: 0;
+      margin: 0;
+      color: #555555;
+    }
+  }
+
+  @media screen and (max-width: @screen-xxl) {
+    .type{
+      max-width: 48%;
+    }
+    .itemSelect {
+      .ant-form-item-label > label,.ant-form label{
+        font-size: 12px !important;
+      }
     }
   }
