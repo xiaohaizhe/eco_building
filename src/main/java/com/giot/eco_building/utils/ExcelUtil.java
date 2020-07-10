@@ -5,7 +5,6 @@ import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.ProjectData;
 import com.giot.eco_building.repository.ProjectRepository;
 import com.giot.eco_building.service.UploadService;
-import com.microsoft.schemas.office.visio.x2012.main.ShapeSheetType;
 import jdk.nashorn.internal.objects.annotations.Setter;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ooxml.POIXMLDocumentPart;
@@ -16,11 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -391,12 +390,22 @@ public class ExcelUtil {
         if (index6 != null) project.setArchitecturalType((String) index6);
         else project.setArchitecturalType("无");
 
+        //建成时间
         Object index7 = map.get(7);
-//        CellType.FORMULA未完成
-//        if (index7 != null) project.setBuiltTime();
-        /*
-         */
-        //项目概况图，另作处理
+        if (index7 != null) {
+            SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("yyyy");
+            Date builtTime = null;
+            String btString = (String) index7;
+            if (btString.length() > 4) {
+                builtTime = simpleDateFormat1.parse(btString);
+            }
+            if (btString.length() == 4) {
+                builtTime = simpleDateFormat2.parse(btString);
+            }
+            project.setBuiltTime(builtTime);
+        }
+        //项目概况图
         Object index8 = map.get(8);
         if (index8 != null) {
             logger.info("项目图片：" + index8);
@@ -505,6 +514,48 @@ public class ExcelUtil {
         return key.length() == 4;
     }
 
+    private String getDateByCell(Cell cell) {
+        if (cell == null || cell.toString().trim().equals("")) {
+            return null;
+        }
+        String cellValue = "";
+        CellType celltype = cell.getCellType();
+        if (celltype.equals(CellType.NUMERIC)) {//数字
+            short format = cell.getCellStyle().getDataFormat();
+            if (DateUtil.isCellDateFormatted(cell)) {
+                SimpleDateFormat sdf = null;
+                //System.out.println("cell.getCellStyle().getDataFormat()="+cell.getCellStyle().getDataFormat());
+                if (format == 20 || format == 32) {
+                    sdf = new SimpleDateFormat("HH:mm");
+                } else if (format == 14 || format == 31 || format == 57 || format == 58) {
+                    // 处理自定义日期格式：m月d日(通过判断单元格的格式id解决，id的值是58)
+                    sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    double value = cell.getNumericCellValue();
+                    Date date = org.apache.poi.ss.usermodel.DateUtil
+                            .getJavaDate(value);
+                    cellValue = sdf.format(date);
+                } else {// 日期
+                    sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                }
+                try {
+                    cellValue = sdf.format(cell.getDateCellValue());// 日期
+                } catch (Exception e) {
+                    try {
+                        throw new Exception("exception on get date data !".concat(e.toString()));
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
+                } finally {
+                    sdf = null;
+                }
+            } else {
+                BigDecimal bd = new BigDecimal(cell.getNumericCellValue());
+                cellValue = bd.toPlainString();// 数值 这种用BigDecimal包装再获取plainString，可以防止获取到科学计数值
+            }
+        }
+        return cellValue;
+    }
+
     /**
      * 处理excel一页数据
      *
@@ -556,6 +607,12 @@ public class ExcelUtil {
                                 projectBaseData.put(k, cellData);
                             }
                         }
+                        //处理建成时间数据
+                        int btIndex = columNamesIndex[7];
+                        Cell btCell = row.getCell(btIndex);
+                        String btString = getDateByCell(btCell);
+                        logger.info("建成时间：" + btString);
+                        projectBaseData.put(7, btString);
                         //处理基础数据中的图片数据
                         PictureData projectPic = picMap.get(j);
                         if (projectPic != null) {
