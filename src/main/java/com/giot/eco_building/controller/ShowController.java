@@ -1,11 +1,14 @@
 package com.giot.eco_building.controller;
 
 import com.giot.eco_building.bean.WebResponse;
+import com.giot.eco_building.service.ProjectDataService;
 import com.giot.eco_building.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.text.ParseException;
 
 /**
  * @Author: pyt
@@ -17,12 +20,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class ShowController {
     private ProjectService projectService;
 
+    private ProjectDataService projectDataService;
+
 
     @Autowired
     public void setProjectService(ProjectService projectService) {
         this.projectService = projectService;
     }
 
+    @Autowired
+    public void setProjectDataService(ProjectDataService projectDataService) {
+        this.projectDataService = projectDataService;
+    }
     /**
      * 地图筛选框地址获取方式一：
      * 省-0
@@ -68,4 +77,11 @@ public class ShowController {
     public WebResponse showProejctDetail(Long projectId) {
         return projectService.projectDetail(projectId);
     }
+
+    @GetMapping("/projectData")
+    public WebResponse showProjectElecDataByTime(Long projectId, String start, String end) throws ParseException {
+        return projectDataService.getElecDataByProjectIdAndMonth(projectId, start, end);
+    }
+
+
 }

@@ -12,7 +12,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import javax.xml.bind.annotation.XmlSchemaType;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -256,7 +255,7 @@ public class Project implements Serializable {
      * 浅层地热能
      * 未知
      */
-    @Column(name = "whether_to_use_renewabler_esources")
+    @Column(name = "whether_to_use_renewable_resources")
     private Integer WhetherToUseRenewableResources;
 
     public void setWhetherToUseRenewableResources(String whetherToUseRenewableResources) {
@@ -275,7 +274,7 @@ public class Project implements Serializable {
                 code = 3;
                 break;
         }
-        this.CoolingMode = code;
+        this.WhetherToUseRenewableResources = code;
     }
 
     /**
@@ -303,7 +302,7 @@ public class Project implements Serializable {
      * 创建时间
      */
     @JsonIgnore
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private Date created;
@@ -311,7 +310,7 @@ public class Project implements Serializable {
      * 最新修改时间
      */
     @JsonIgnore
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
     @Column(nullable = false, name = "last_modified")
     private Date lastModified;

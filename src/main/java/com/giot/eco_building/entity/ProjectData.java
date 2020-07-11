@@ -1,6 +1,8 @@
 package com.giot.eco_building.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
@@ -8,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -19,7 +22,8 @@ import java.util.Date;
 @Data
 @Table(name = "project_data")
 @EntityListeners(AuditingEntityListener.class)
-public class ProjectData {
+public class ProjectData implements Serializable {
+    private static final long serialVersionUID = 6351140047131544583L;
     @Id
     @GeneratedValue(generator = "SnowflakeId")
     @GenericGenerator(name = "SnowflakeId", strategy = "com.giot.eco_building.utils.SnowflakeId")
@@ -34,12 +38,13 @@ public class ProjectData {
      * 0-年数据
      * 1-月数据
      */
+    @JSONField(serialize = false)
     @Column(nullable = false, columnDefinition = "bit default 0", name = "is_month")
     private Boolean isMonth;
     /**
      * 实际时间
      */
-    @JsonFormat(pattern = "yyyy-MM", timezone = "GMT+8")
+//    @JsonFormat(pattern = "yyyy-MM", timezone = "GMT+8")
     @Column(name = "actual_date")
     private Date actualDate;
     /**
@@ -76,20 +81,23 @@ public class ProjectData {
     /**
      * 创建时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JSONField(serialize = false)
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private Date created;
     /**
      * 最新修改时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JSONField(serialize = false)
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
     @Column(nullable = false, name = "last_modified")
     private Date lastModified;
     /**
      * 删除标记位：0-有效，1-无效
      */
+    @JSONField(serialize = false)
     @Column(nullable = false, columnDefinition = "bit default 0", name = "del_status")
     private Boolean delStatus;
 

@@ -1,5 +1,6 @@
 package com.giot.eco_building.service.impl;
 
+import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.ProjectData;
@@ -11,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -96,5 +99,14 @@ public class BaseProjectDataService implements ProjectDataService {
         return projectData;
     }
 
-
+    @Override
+    public WebResponse getElecDataByProjectIdAndMonth(Long projectId, String start, String end) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
+        Date sdate = new Date();
+        Date edate = new Date();
+        sdate = sdf.parse(start);
+        edate = sdf.parse(end);
+        List<com.giot.eco_building.entity.ProjectData> projectDataList = projectDataRepository.findByProjectIdAndIsMonthAndTypeAndActualDateBetween(projectId, Constants.DataType.ELECTRICITY.getCode(), true, sdate, edate);
+        return WebResponse.success(projectDataList);
+    }
 }

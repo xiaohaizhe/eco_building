@@ -534,12 +534,13 @@ public class BaseProjectService implements ProjectService {
                     if (flag) list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("builtTime"), sdate));
                 }
             }
-            if (powerConsumptionPerUnitArea != null && powerConsumptionPerUnitArea.length == 2) {
+            if (powerConsumptionPerUnitArea != null) {
                 if (powerConsumptionPerUnitArea.length == 2) {
                     list.add(criteriaBuilder.between(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0], powerConsumptionPerUnitArea[1]));
                 } else if (powerConsumptionPerUnitArea.length == 1) {
                     list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0]));
                 }
+                list.add(criteriaBuilder.notEqual(root.get("powerConsumptionPerUnitArea"), null));
             }
             if (gasConsumptionPerUnitArea != null) {
                 if (gasConsumptionPerUnitArea.length == 2) {
@@ -547,6 +548,7 @@ public class BaseProjectService implements ProjectService {
                 } else if (gasConsumptionPerUnitArea.length == 1) {
                     list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0]));
                 }
+                list.add(criteriaBuilder.notEqual(root.get("gasConsumptionPerUnitArea"), null));
             }
             if (waterConsumptionPerUnitArea != null) {
                 if (waterConsumptionPerUnitArea.length == 2) {
@@ -554,6 +556,7 @@ public class BaseProjectService implements ProjectService {
                 } else if (waterConsumptionPerUnitArea.length == 1) {
                     list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0]));
                 }
+                list.add(criteriaBuilder.notEqual(root.get("waterConsumptionPerUnitArea"), null));
             }
             return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
         };
