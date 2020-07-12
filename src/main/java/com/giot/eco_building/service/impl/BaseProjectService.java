@@ -6,12 +6,15 @@ import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import com.giot.eco_building.entity.Project;
+import com.giot.eco_building.model.CityCount;
 import com.giot.eco_building.model.ProjectData;
 import com.giot.eco_building.repository.ProjectRepository;
 import com.giot.eco_building.service.ProjectDataService;
 import com.giot.eco_building.service.ProjectService;
+import com.giot.eco_building.service.UploadService;
 import com.giot.eco_building.utils.ExcelUtil;
 import com.giot.eco_building.utils.HttpUtil;
+import com.giot.eco_building.utils.ImageCheck;
 import com.giot.eco_building.utils.UpdateUtil;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -19,17 +22,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
+import java.io.*;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -50,6 +54,12 @@ public class BaseProjectService implements ProjectService {
 
     private ProjectRepository projectRepository;
 
+    private UploadService uploadService;
+
+    @Autowired
+    public void setUploadService(UploadService uploadService) {
+        this.uploadService = uploadService;
+    }
 
     private ExcelUtil excelUtil;
 
@@ -157,6 +167,8 @@ public class BaseProjectService implements ProjectService {
             JSONObject result = (JSONObject) object.get("result");
             return (JSONObject) result.get("addressComponent");
         }
+        logger.info(object.toString());
+        logger.error("经纬度转地址失败");
         return null;
     }
 
@@ -338,7 +350,6 @@ public class BaseProjectService implements ProjectService {
      *
      * @return
      */
-    @Override
     public WebResponse getAddress(Integer level, String superiorDirectory) {
         List<String> result = new ArrayList<>();
         switch (level) {
@@ -405,16 +416,15 @@ public class BaseProjectService implements ProjectService {
         return WebResponse.success(provinceArray);
     }
 
-    @Override
-    public WebResponse screen(String province, String city, String district, String street,
-                              //多选
-                              String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
-                              Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode,
-                              Integer[] WhetherToUseRenewableResources,
-                              //范围
-                              Double[] area, Integer[] floor, String[] date,
-                              Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea,
-                              Double[] waterConsumptionPerUnitArea) {
+    private List<Project> specialQuery(String province, String city, String district, String street,
+                                       //多选
+                                       String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
+                                       Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode,
+                                       Integer[] WhetherToUseRenewableResources,
+                                       //范围
+                                       Double[] area, Integer[] floor, String[] date,
+                                       Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea,
+                                       Double[] waterConsumptionPerUnitArea) {
         Specification<Project> projectSpecification = (Specification<Project>) (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> list = new ArrayList<>();//查询条件集
             //1. province,  city,  district,  street
@@ -561,6 +571,24 @@ public class BaseProjectService implements ProjectService {
             return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
         };
         List<Project> projectList = projectRepository.findAll(projectSpecification);
+        return projectList;
+
+    }
+
+    @Override
+    public WebResponse screen(String province, String city, String district, String street,
+                              //多选
+                              String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
+                              Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode,
+                              Integer[] WhetherToUseRenewableResources,
+                              //范围
+                              Double[] area, Integer[] floor, String[] date,
+                              Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea,
+                              Double[] waterConsumptionPerUnitArea) {
+        List<Project> projectList = specialQuery(province, city, district, street,
+                architecturalType, gbes, energySavingStandard,
+                energySavingTransformationOrNot, HeatingMode, CoolingMode, WhetherToUseRenewableResources,
+                area, floor, date, powerConsumptionPerUnitArea, gasConsumptionPerUnitArea, waterConsumptionPerUnitArea);
         Double waterMin = null;
         Double waterMax = (double) 0;
         Double gasMin = null;
@@ -611,5 +639,77 @@ public class BaseProjectService implements ProjectService {
         } else {
             return WebResponse.failure(HttpResponseStatusEnum.PROJECT_NOT_EXISTED);
         }
+    }
+
+    private void inputStreamToFile(InputStream ins, File file) {
+        try {
+            OutputStream os = new FileOutputStream(file);
+            int bytesRead = 0;
+            byte[] buffer = new byte[8192];
+            while ((bytesRead = ins.read(buffer, 0, 8192)) != -1) {
+                os.write(buffer, 0, bytesRead);
+            }
+            os.close();
+            ins.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public WebResponse JiangSuTop5() {
+        List<Object[]> list = projectRepository.findCityCountByProvinceAndDelStatus("江苏省", Constants.DelStatus.NORMAL.isValue());
+        List<CityCount> cityCounts = new ArrayList<>();
+        for (Object[] objects :
+                list) {
+            CityCount cityCount = new CityCount();
+            for (Object object : objects) {
+                if (object instanceof String) {
+                    String city = (String) object;
+                    cityCount.setCity(city);
+                }
+                if (object instanceof BigInteger) {
+                    Long count = ((BigInteger) object).longValue();
+                    cityCount.setCount(count);
+                }
+            }
+            cityCounts.add(cityCount);
+        }
+        return WebResponse.success(list);
+    }
+
+    @Override
+    public WebResponse JiangSuElecTop10() {
+        List<Project> list = projectRepository.findByProvinceAndDelStatusAndOrderByPowerConsumptionPerUnitAreaDescAndLimit10("江苏省", Constants.DelStatus.NORMAL.isValue());
+        return WebResponse.success(list);
+    }
+
+    @Override
+    public WebResponse uploadPic(MultipartFile file, HttpServletRequest request) throws IOException {
+        if (null == file || file.isEmpty()) {
+            return WebResponse.exception(new FileNotFoundException("提交图片未获取到"));
+        }
+        String fileName = file.getOriginalFilename();
+        logger.info("上传的文件名为：" + fileName);
+        // 获取文件的后缀名
+        if (StringUtils.isEmpty(fileName)) {
+            return WebResponse.exception(new Exception("fileName为空值，上传过程异常。"));
+        }
+        File toFile = null;
+        if (file.equals("") || file.getSize() <= 0) {
+            file = null;
+        } else {
+            InputStream ins = null;
+            ins = file.getInputStream();
+            toFile = new File(file.getOriginalFilename());
+            inputStreamToFile(ins, toFile);
+            ins.close();
+        }
+        ImageCheck ic = new ImageCheck();
+        boolean flag = ic.isImage(toFile);
+        if (flag) {
+            String imgUrl = uploadService.uploadProjectImg(file.getBytes());
+            return WebResponse.success(imgUrl);
+        } else return WebResponse.failure(HttpResponseStatusEnum.FILE_FORMAT_ERROR);
     }
 }

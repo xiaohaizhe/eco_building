@@ -2,6 +2,7 @@ package com.giot.eco_building.service;
 
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.entity.Project;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,9 +26,14 @@ public interface ProjectService {
 
     boolean update(Project project);
 
-    WebResponse getAddress(Integer level, String superiorDirectory);
+    WebResponse JiangSuElecTop10();
+
+    WebResponse JiangSuTop5();
+
 
     WebResponse getAddress();
+
+    WebResponse uploadPic(MultipartFile file, HttpServletRequest request) throws IOException;
 
     WebResponse importExcel(MultipartFile file, HttpServletRequest request) throws IOException, ParseException;
 

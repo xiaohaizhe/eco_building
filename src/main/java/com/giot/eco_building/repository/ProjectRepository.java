@@ -1,6 +1,7 @@
 package com.giot.eco_building.repository;
 
 import com.giot.eco_building.entity.Project;
+import com.giot.eco_building.model.CityCount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +17,14 @@ import java.util.List;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpecificationExecutor<Project> {
     Project findByName(String name);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM project " +
+            "WHERE province = :province and del_status = :delStatus ORDER BY power_consumption_per_unit_area DESC LIMIT 10;")
+    List<Project> findByProvinceAndDelStatusAndOrderByPowerConsumptionPerUnitAreaDescAndLimit10(String province, Boolean delStatus);
+
+    @Query(nativeQuery = true,
+            value = "SELECT city,COUNT(city) as count FROM `project` where province = :province and del_status = :delStatus GROUP BY city ORDER BY count desc LIMIT 5")
+    List<Object[]> findCityCountByProvinceAndDelStatus(String province, Boolean delStatus);
 
     @Query(value = "SELECT DISTINCT province FROM Project where province != \"\"", nativeQuery = true)
     List<String> findDistinctProvince();

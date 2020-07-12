@@ -30,16 +30,6 @@ public class ProjectController {
         this.projectService = projectService;
     }
 
-    /*@PostMapping("insert")
-    public WebResponse insert(@RequestBody Project project) throws IOException {
-        Boolean result = projectService.insert(project);
-        if (result){
-            return WebResponse.success();
-        }else {
-            return WebResponse.failure();
-        }
-    }*/
-
     @PostMapping("importExcel")
     @SystemControllerLog(description = "上传")
     public WebResponse importExcel(MultipartFile file, HttpServletRequest request) {
@@ -51,15 +41,13 @@ public class ProjectController {
         }
     }
 
-    //用于测试，更正数据
-    @PostMapping("address")
-    public void reDealWithProjectAddress() {
-        projectService.reDealWithProjectAddress();
-    }
-
-    //用于测试，更正数据
-    @PostMapping("data")
-    public void latestYearData() {
-        projectService.latestYearData();
+    @PostMapping("uploadPic")
+    public WebResponse uploadPic(MultipartFile file, HttpServletRequest request) {
+        try {
+            return projectService.uploadPic(file, request);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return WebResponse.exception(e);
+        }
     }
 }

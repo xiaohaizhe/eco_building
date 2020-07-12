@@ -1,7 +1,6 @@
 package com.giot.eco_building.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.giot.eco_building.utils.validation.LocationValidation;
 import lombok.Data;
@@ -301,7 +300,7 @@ public class Project implements Serializable {
     /**
      * 创建时间
      */
-    @JsonIgnore
+    @JSONField(serialize = false)
 //    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false)
@@ -309,7 +308,7 @@ public class Project implements Serializable {
     /**
      * 最新修改时间
      */
-    @JsonIgnore
+    @JSONField(serialize = false)
 //    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
     @Column(nullable = false, name = "last_modified")
@@ -317,7 +316,7 @@ public class Project implements Serializable {
     /**
      * 删除标记位：0-有效，1-无效
      */
-    @JsonIgnore
+    @JSONField(serialize = false)
     @Column(nullable = false, columnDefinition = "bit default 0", name = "del_status")
     private Boolean delStatus;
 }
