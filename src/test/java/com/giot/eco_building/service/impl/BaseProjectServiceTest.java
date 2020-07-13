@@ -38,14 +38,6 @@ class BaseProjectServiceTest {
         projectService.insert(project);
     }
 
-    @Test
-    void update() {
-        Project project = new Project();
-        project.setId(645131296309248l);
-        project.setName("test1");
-        project.setAddress("南京市玄武区苏宁青创园");
-        projectService.update(project);
-    }
 
 
     @Test

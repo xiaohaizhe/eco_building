@@ -4,6 +4,7 @@ import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.model.ProjectData;
 
 import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -17,4 +18,6 @@ public interface ProjectDataService {
     void insertAll(List<ProjectData> projectDataList);
 
     com.giot.eco_building.entity.ProjectData getLatestYearData(Long projectId, Integer type);
+
+    List<com.giot.eco_building.entity.ProjectData> getDataByTime(Integer type, Boolean isMonth, Long projectId, Date start, Date end);
 }

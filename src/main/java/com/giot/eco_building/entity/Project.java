@@ -73,10 +73,12 @@ public class Project implements Serializable {
 
     public void setArchitecturalType(String architecturalType) {
         String[] types = {"办公", "商场", "文化教育", "餐饮", "医院", "酒店", "其他"};
-        for (int i = 0; i < types.length; i++) {
-            if (architecturalType.equals(types[i])) {
-                this.architecturalType = architecturalType;
-                break;
+        if (architecturalType != null && !"".equals(architecturalType)) {
+            for (int i = 0; i < types.length; i++) {
+                if (architecturalType.equals(types[i])) {
+                    this.architecturalType = architecturalType;
+                    break;
+                }
             }
         }
     }
@@ -131,6 +133,11 @@ public class Project implements Serializable {
         this.gbes = code;
     }
 
+    public void setGbes(Integer gbes) {
+        this.gbes = gbes;
+    }
+
+
     /**
      * 节能标准：
      * 不执行节能标准-0
@@ -164,6 +171,10 @@ public class Project implements Serializable {
         this.energySavingStandard = code;
     }
 
+    public void setEnergySavingStandard(Integer energySavingStandard) {
+        this.energySavingStandard = energySavingStandard;
+    }
+
     /**
      * 是否经过节能改造：
      * 是
@@ -172,6 +183,10 @@ public class Project implements Serializable {
      */
     @Column(name = "energy_saving_transformation_or_not")
     private Integer energySavingTransformationOrNot;
+
+    public void setEnergySavingTransformationOrNot(Integer energySavingTransformationOrNot) {
+        this.energySavingTransformationOrNot = energySavingTransformationOrNot;
+    }
 
     public void setEnergySavingTransformationOrNot(String energySavingTransformationOrNot) {
         int code;
@@ -197,7 +212,11 @@ public class Project implements Serializable {
      * 未知
      */
     @Column(name = "heating_mode")
-    private Integer HeatingMode;
+    private Integer heatingMode;
+
+    public void setHeatingMode(Integer heatingMode) {
+        this.heatingMode = heatingMode;
+    }
 
     public void setHeatingMode(String heatingMode) {
         int code;
@@ -215,7 +234,7 @@ public class Project implements Serializable {
                 code = 3;
                 break;
         }
-        this.HeatingMode = code;
+        this.heatingMode = code;
     }
 
     /**
@@ -226,7 +245,11 @@ public class Project implements Serializable {
      * 未知
      */
     @Column(name = "cooling_mode")
-    private Integer CoolingMode;
+    private Integer coolingMode;
+
+    public void setCoolingMode(Integer coolingMode) {
+        this.coolingMode = coolingMode;
+    }
 
     public void setCoolingMode(String coolingMode) {
         int code;
@@ -244,7 +267,7 @@ public class Project implements Serializable {
                 code = 3;
                 break;
         }
-        this.CoolingMode = code;
+        this.coolingMode = code;
     }
 
     /**
@@ -255,7 +278,11 @@ public class Project implements Serializable {
      * 未知
      */
     @Column(name = "whether_to_use_renewable_resources")
-    private Integer WhetherToUseRenewableResources;
+    private Integer whetherToUseRenewableResources;
+
+    public void setWhetherToUseRenewableResources(Integer whetherToUseRenewableResources) {
+        this.whetherToUseRenewableResources = whetherToUseRenewableResources;
+    }
 
     public void setWhetherToUseRenewableResources(String whetherToUseRenewableResources) {
         int code;
@@ -273,7 +300,7 @@ public class Project implements Serializable {
                 code = 3;
                 break;
         }
-        this.WhetherToUseRenewableResources = code;
+        this.whetherToUseRenewableResources = code;
     }
 
     /**

@@ -2,6 +2,8 @@ package com.giot.eco_building.service;
 
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.entity.Project;
+import com.giot.eco_building.model.DataModel;
+import com.giot.eco_building.model.ProjectModel;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +26,13 @@ public interface ProjectService {
 
     void latestYearData();
 
-    boolean update(Project project);
+    WebResponse updateData(List<DataModel> dataModel);
+
+    WebResponse update(ProjectModel project);
+
+    WebResponse getDataByTime(String dataType, String timeType, Long projectId, String start, String end);
+
+    WebResponse deleteById(Long id);
 
     WebResponse page(String name,
                      String province, String city, String district, String street,

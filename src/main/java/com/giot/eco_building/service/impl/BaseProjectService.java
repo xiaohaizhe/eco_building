@@ -7,7 +7,10 @@ import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.CityCount;
+import com.giot.eco_building.model.DataModel;
 import com.giot.eco_building.model.ProjectData;
+import com.giot.eco_building.model.ProjectModel;
+import com.giot.eco_building.repository.ProjectDataRepository;
 import com.giot.eco_building.repository.ProjectRepository;
 import com.giot.eco_building.service.ProjectDataService;
 import com.giot.eco_building.service.ProjectService;
@@ -15,7 +18,6 @@ import com.giot.eco_building.service.UploadService;
 import com.giot.eco_building.utils.ExcelUtil;
 import com.giot.eco_building.utils.HttpUtil;
 import com.giot.eco_building.utils.ImageCheck;
-import com.giot.eco_building.utils.UpdateUtil;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
@@ -60,14 +62,17 @@ public class BaseProjectService implements ProjectService {
 
     private UploadService uploadService;
 
-    @Autowired
-    public void setUploadService(UploadService uploadService) {
-        this.uploadService = uploadService;
-    }
 
     private ExcelUtil excelUtil;
 
     private ProjectDataService projectDataService;
+
+    private ProjectDataRepository projectDataRepository;
+
+    @Autowired
+    public void setProjectDataRepository(ProjectDataRepository projectDataRepository) {
+        this.projectDataRepository = projectDataRepository;
+    }
 
     @Autowired
     public void setProjectDataService(ProjectDataService projectDataService) {
@@ -84,6 +89,11 @@ public class BaseProjectService implements ProjectService {
         this.projectRepository = projectRepository;
     }
 
+    @Autowired
+    public void setUploadService(UploadService uploadService) {
+        this.uploadService = uploadService;
+    }
+
     /**
      * 检查项目名是否已存在
      * true-存在
@@ -93,7 +103,7 @@ public class BaseProjectService implements ProjectService {
      * @return
      */
     private boolean projectNameExist(String name) {
-        Project project = projectRepository.findByName(name);
+        Project project = projectRepository.findByNameAndDelStatus(name, Constants.DelStatus.NORMAL.isValue());
         return (project != null);
     }
 
@@ -196,6 +206,63 @@ public class BaseProjectService implements ProjectService {
         return false;
     }
 
+    @Override
+    public WebResponse updateData(List<DataModel> dataModelList) {
+        List<com.giot.eco_building.entity.ProjectData> projectDataList = new ArrayList<>();
+        for (DataModel dataModel :
+                dataModelList) {
+            Integer type = null;
+            Boolean isMonth = null;
+            switch (dataModel.getType()) {
+                case "水":
+                    type = Constants.DataType.WATER.getCode();
+                    break;
+                case "电":
+                    type = Constants.DataType.ELECTRICITY.getCode();
+                    break;
+                case "气":
+                    type = Constants.DataType.GAS.getCode();
+                    break;
+            }
+            switch (dataModel.getTimeType()) {
+                case "年":
+                    isMonth = false;
+                    break;
+                case "月":
+                    isMonth = true;
+                    break;
+            }
+            if (type != null && isMonth != null && dataModel.getProjectId() != null) {
+                SimpleDateFormat sdf = null;
+                if (isMonth) sdf = new SimpleDateFormat("yyyy-MM");
+                else sdf = new SimpleDateFormat("yyyy");
+                for (Map<String, Double> map : dataModel.getDataMap()) {
+                    for (String key :
+                            map.keySet()) {
+                        String time = key;
+                        Double value = map.get(key);
+                        try {
+                            Date actualDate = sdf.parse(key);
+                            com.giot.eco_building.entity.ProjectData projectData = new com.giot.eco_building.entity.ProjectData();
+                            projectData.setProjectId(dataModel.getProjectId());
+                            projectData.setIsMonth(isMonth);
+                            projectData.setActualDate(actualDate);
+                            projectData.setType(type);
+                            projectData.setValue(value);
+                            projectData.setDelStatus(Constants.DelStatus.NORMAL.isValue());
+                            projectDataList.add(projectData);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                            logger.error("{}数据在{}时出错", dataModel.getType(), key);
+                        }
+                    }
+                }
+            }
+        }
+        List<com.giot.eco_building.entity.ProjectData> result = projectDataRepository.saveAll(projectDataList);
+        return WebResponse.success(result);
+    }
+
     /**
      * 更新项目
      * 根据项目id
@@ -205,19 +272,78 @@ public class BaseProjectService implements ProjectService {
      * @return
      */
     @Override
-    @Transactional
-    public boolean update(Project project) {
+    public WebResponse update(ProjectModel project) {
+        logger.info(project.toString());
         if (project != null &&
                 project.getId() != null &&
                 !"".equals(project.getId())) {
+            Project projectNew = project.getProject();
             Project projectOld = projectRepository.findById(project.getId()).orElse(null);
             if (projectOld != null) {
-                UpdateUtil.copyNullProperties(projectOld, project);
-                projectRepository.saveAndFlush(project);
-                return true;
+                if (projectNew.getName() != null && !"".equals(projectNew.getName())) {
+                    projectOld.setName(projectNew.getName());
+                }
+                if (projectNew.getProvince() != null && !"".equals(projectNew.getProvince())) {
+                    projectOld.setProvince(projectNew.getProvince());
+                }
+                if (projectNew.getCity() != null && !"".equals(projectNew.getCity())) {
+                    projectOld.setCity(projectNew.getCity());
+                }
+                if (projectNew.getDistrict() != null && !"".equals(projectNew.getDistrict())) {
+                    projectOld.setDistrict(projectNew.getDistrict());
+                }
+                if (projectNew.getStreet() != null && !"".equals(projectNew.getStreet())) {
+                    projectOld.setStreet(projectNew.getStreet());
+                }
+                if (projectNew.getAddress() != null && !"".equals(projectNew.getAddress())) {
+                    projectOld.setAddress(projectNew.getAddress());
+                }
+                if (projectNew.getLongitude() != null) {
+                    projectOld.setLongitude(projectNew.getLongitude());
+                }
+                if (projectNew.getLatitude() != null) {
+                    projectOld.setLatitude(projectNew.getLatitude());
+                }
+
+                if (projectNew.getArchitecturalType() != null && !"".equals(projectNew.getArchitecturalType())) {
+                    projectOld.setArchitecturalType(projectNew.getArchitecturalType());
+                }
+                if (projectNew.getArea() != null && projectNew.getArea() > 0) {
+                    projectOld.setArea(projectNew.getArea());
+                }
+                if (projectNew.getBuiltTime() != null) {
+                    projectOld.setBuiltTime(projectNew.getBuiltTime());
+                }
+                if (projectNew.getFloor() != null) {
+                    projectOld.setFloor(projectNew.getFloor());
+                }
+                if (projectNew.getImgUrl() != null && !"".equals(projectNew.getImgUrl())) {
+                    projectOld.setImgUrl(projectNew.getImgUrl());
+                }
+
+                if (projectNew.getGbes() != null) {
+                    projectOld.setGbes(projectNew.getGbes());
+                }
+                if (projectNew.getEnergySavingStandard() != null) {
+                    projectOld.setEnergySavingStandard(projectNew.getEnergySavingStandard());
+                }
+                if (projectNew.getEnergySavingTransformationOrNot() != null) {
+                    projectOld.setEnergySavingTransformationOrNot(projectNew.getEnergySavingTransformationOrNot());
+                }
+                if (projectNew.getHeatingMode() != null) {
+                    projectOld.setHeatingMode(projectNew.getHeatingMode());
+                }
+                if (projectNew.getCoolingMode() != null) {
+                    projectOld.setCoolingMode(projectNew.getCoolingMode());
+                }
+                if (projectNew.getWhetherToUseRenewableResources() != null) {
+                    projectOld.setWhetherToUseRenewableResources(projectNew.getWhetherToUseRenewableResources());
+                }
+                projectRepository.saveAndFlush(projectOld);
+                return WebResponse.success(projectOld);
             }
         }
-        return false;
+        return WebResponse.failure(HttpResponseStatusEnum.PROJECT_NOT_EXISTED);
     }
 
     @Override
@@ -572,6 +698,7 @@ public class BaseProjectService implements ProjectService {
                 }
                 list.add(criteriaBuilder.notEqual(root.get("waterConsumptionPerUnitArea"), null));
             }
+            list.add(criteriaBuilder.equal(root.get("delStatus"), Constants.DelStatus.NORMAL.isValue()));
             return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
         };
         List<Project> projectList = projectRepository.findAll(projectSpecification);
@@ -738,10 +865,78 @@ public class BaseProjectService implements ProjectService {
             if (architecturalType != null && !"".equals(architecturalType)) {
                 list.add(criteriaBuilder.equal(root.get("architecturalType").as(String.class), architecturalType));
             }
+            list.add(criteriaBuilder.equal(root.get("delStatus").as(Boolean.class), Constants.DelStatus.NORMAL.isValue()));
             return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
         };
         Page<Project> projectPage = projectRepository.findAll(projectSpecification, pageable);
         return WebResponse.success(projectPage.getContent(), projectPage.getTotalPages(), projectPage.getTotalElements());
+    }
 
+    @Override
+    public WebResponse deleteById(Long id) {
+        Optional<Project> optionalProject = projectRepository.findById(id);
+        if (optionalProject.isPresent()) {
+            Project project = optionalProject.get();
+            if (!project.getDelStatus()) {
+                project.setDelStatus(Constants.DelStatus.DELETE.isValue());
+                projectRepository.saveAndFlush(project);
+                return WebResponse.success();
+            }
+        }
+        return WebResponse.failure(HttpResponseStatusEnum.PROJECT_NOT_EXISTED);
+    }
+
+    /**
+     * @param dataType:水/电/气
+     * @param timeType：年/月
+     * @param start
+     * @param end
+     * @return
+     */
+    @Override
+    public WebResponse getDataByTime(String dataType, String timeType, Long projectId, String start, String end) {
+        Integer type = null;
+        switch (dataType) {
+            case "水":
+                type = Constants.DataType.WATER.getCode();
+                break;
+            case "电":
+                type = Constants.DataType.ELECTRICITY.getCode();
+                break;
+            case "气":
+                type = Constants.DataType.GAS.getCode();
+                break;
+        }
+        Boolean isMonth = null;
+        switch (timeType) {
+            case "年":
+                isMonth = false;
+                break;
+            case "月":
+                isMonth = true;
+                break;
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date sdate = new Date();
+        Date edate = new Date();
+        boolean flag = false;
+        if (start != null && end != null) {
+            flag = true;
+            try {
+                sdate = sdf.parse(start);
+                edate = sdf.parse(end);
+                Calendar c = Calendar.getInstance();
+                c.setTime(edate);
+                c.add(Calendar.DAY_OF_MONTH, 1);
+                edate = c.getTime();
+            } catch (ParseException e) {
+                flag = false;
+            }
+        }
+        if (type != null && isMonth != null && flag) {
+            List<com.giot.eco_building.entity.ProjectData> projectData = projectDataService.getDataByTime(type, isMonth, projectId, sdate, edate);
+            return WebResponse.success(projectData);
+        }
+        return WebResponse.failure(HttpResponseStatusEnum.PARAM_ERROR);
     }
 }

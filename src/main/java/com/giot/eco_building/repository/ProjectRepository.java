@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpecificationExecutor<Project> {
-    Project findByName(String name);
+    Project findByNameAndDelStatus(String name, Boolean delStatus);
 
     @Query(nativeQuery = true, value = "SELECT * FROM project " +
             "WHERE province = :province and del_status = :delStatus ORDER BY power_consumption_per_unit_area DESC LIMIT 10;")
