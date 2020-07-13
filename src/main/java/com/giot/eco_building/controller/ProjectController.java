@@ -5,10 +5,8 @@ import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,5 +47,13 @@ public class ProjectController {
             e.printStackTrace();
             return WebResponse.exception(e);
         }
+    }
+
+    @GetMapping("page")
+    public WebResponse projectPage(String name,
+                                   String province, String city, String district, String street,
+                                   String architecturalType,
+                                   Integer number, Integer size) {
+        return projectService.page(name, province, city, district, street, architecturalType, number, size);
     }
 }

@@ -22,6 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -711,5 +715,33 @@ public class BaseProjectService implements ProjectService {
             String imgUrl = uploadService.uploadProjectImg(file.getBytes());
             return WebResponse.success(imgUrl);
         } else return WebResponse.failure(HttpResponseStatusEnum.FILE_FORMAT_ERROR);
+    }
+
+    @Override
+    public WebResponse page(String name, String province, String city, String district, String street, String architecturalType, Integer number, Integer size) {
+        Sort sort = Sort.by(Sort.Direction.DESC,
+                "lastModified"); //创建时间降序排序
+        Pageable pageable = PageRequest.of(number - 1, size, sort);
+        Specification<Project> projectSpecification = (Specification<Project>) (root, criteriaQuery, criteriaBuilder) -> {
+            List<Predicate> list = new ArrayList<>();//查询条件集
+            if (name != null && !"".equals(name)) {
+                list.add(criteriaBuilder.like(root.get("name").as(String.class), "%" + name + "%"));
+            }
+            if (province != null && !"".equals(province))
+                list.add(criteriaBuilder.equal(root.get("province").as(String.class), province));
+            if (city != null && !"".equals(city))
+                list.add(criteriaBuilder.equal(root.get("city").as(String.class), city));
+            if (district != null && !"".equals(district))
+                list.add(criteriaBuilder.equal(root.get("district").as(String.class), district));
+            if (street != null && !"".equals(street))
+                list.add(criteriaBuilder.equal(root.get("street").as(String.class), street));
+            if (architecturalType != null && !"".equals(architecturalType)) {
+                list.add(criteriaBuilder.equal(root.get("architecturalType").as(String.class), architecturalType));
+            }
+            return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
+        };
+        Page<Project> projectPage = projectRepository.findAll(projectSpecification, pageable);
+        return WebResponse.success(projectPage.getContent(), projectPage.getTotalPages(), projectPage.getTotalElements());
+
     }
 }

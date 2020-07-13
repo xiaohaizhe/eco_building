@@ -26,6 +26,11 @@ public interface ProjectService {
 
     boolean update(Project project);
 
+    WebResponse page(String name,
+                     String province, String city, String district, String street,
+                     String architecturalType,
+                     Integer number, Integer size);
+
     WebResponse JiangSuElecTop10();
 
     WebResponse JiangSuTop5();
