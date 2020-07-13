@@ -135,11 +135,22 @@ public class BaseActionService implements ActionService {
      */
     @Override
     public WebResponse getActionType() {
-        Map<String, Integer> actionType = new HashMap<>();
-        actionType.put("登入/登出", 0);
-        actionType.put("删除", 2);
-        actionType.put("上传", 3);
-        actionType.put("全部", -1);
-        return WebResponse.success(actionType);
+        Object[] list = {
+                "登入/登出", 0,
+                "删除", 2,
+                "上传", 3,
+                "全部", -1};
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int i = 0; i < list.length / 2; i++) {
+            int s = i * 2;
+            int e = i * 2 + 1;
+            String lable = (String) list[s];
+            Integer value = (Integer) list[e];
+            Map<String, Object> map = new HashMap<>();
+            map.put("label", lable);
+            map.put("value", value);
+            result.add(map);
+        }
+        return WebResponse.success(result);
     }
 }
