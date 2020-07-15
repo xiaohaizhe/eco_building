@@ -20,6 +20,7 @@ import com.giot.eco_building.utils.HttpUtil;
 import com.giot.eco_building.utils.ImageCheck;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.math.BigInteger;
 import java.text.ParseException;
@@ -938,5 +941,57 @@ public class BaseProjectService implements ProjectService {
             return WebResponse.success(projectData);
         }
         return WebResponse.failure(HttpResponseStatusEnum.PARAM_ERROR);
+    }
+
+    @Override
+    public void downloadExample(HttpServletRequest request, HttpServletResponse response) {
+
+        response.setCharacterEncoding("UTF-8");
+        //设置ContentType字段值
+        response.setContentType("text/html;charset=utf-8");
+        //通知浏览器以下载的方式打开
+        response.addHeader("Content-type", "appllication/octet-stream");
+        response.addHeader("Content-Disposition", "attachment;filename=" + "example.xlsx");
+        String filePath = "D:\\eco_building\\示例表.xlsx";
+        File file = new File(filePath);
+        try {
+            ServletOutputStream outputStream = response.getOutputStream();
+            FileInputStream fis = new FileInputStream(file);
+            byte[] buf = new byte[1024];
+            int len = 0;
+            while ((len = fis.read(buf)) != -1) {
+                outputStream.write(buf, 0, len);
+            }
+            fis.close();
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static byte[] getBytesByFile(String filePath) {
+        try {
+            File file = new File(filePath);
+            //获取输入流
+            FileInputStream fis = new FileInputStream(file);
+
+            //新的 byte 数组输出流，缓冲区容量1024byte
+            ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
+            //缓存
+            byte[] b = new byte[1024];
+            int n;
+            while ((n = fis.read(b)) != -1) {
+                bos.write(b, 0, n);
+            }
+            fis.close();
+            //改变为byte[]
+            byte[] data = bos.toByteArray();
+            //
+            bos.close();
+            return data;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

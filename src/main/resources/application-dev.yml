@@ -18,3 +18,5 @@ upload:
   picture:
     path: D:/eco_building/project_img/
     url: http://localhost/img/
+file:
+  path: D:/eco_building

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
@@ -49,6 +50,11 @@ public class ProjectController {
             e.printStackTrace();
             return WebResponse.exception(e);
         }
+    }
+
+    @GetMapping("downloadExample")
+    public void downloadExample(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        projectService.downloadExample(request, response);
     }
 
     @PostMapping("uploadPic")

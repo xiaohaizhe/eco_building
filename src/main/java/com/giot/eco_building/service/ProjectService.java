@@ -8,6 +8,7 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
@@ -38,6 +39,8 @@ public interface ProjectService {
                      String province, String city, String district, String street,
                      String architecturalType,
                      Integer number, Integer size);
+
+    void downloadExample(HttpServletRequest request, HttpServletResponse response) throws IOException;
 
     WebResponse JiangSuElecTop10();
 
