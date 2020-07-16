@@ -4,32 +4,42 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
-import com.giot.eco_building.entity.Action;
+import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import com.giot.eco_building.entity.Project;
+import com.giot.eco_building.model.CityCount;
+import com.giot.eco_building.model.DataModel;
 import com.giot.eco_building.model.ProjectData;
+import com.giot.eco_building.model.ProjectModel;
+import com.giot.eco_building.repository.ProjectDataRepository;
 import com.giot.eco_building.repository.ProjectRepository;
 import com.giot.eco_building.service.ProjectDataService;
 import com.giot.eco_building.service.ProjectService;
+import com.giot.eco_building.service.UploadService;
 import com.giot.eco_building.utils.ExcelUtil;
 import com.giot.eco_building.utils.HttpUtil;
-import com.giot.eco_building.utils.UpdateUtil;
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import com.giot.eco_building.utils.ImageCheck;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
+import java.io.*;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -50,9 +60,19 @@ public class BaseProjectService implements ProjectService {
 
     private ProjectRepository projectRepository;
 
+    private UploadService uploadService;
+
+
     private ExcelUtil excelUtil;
 
     private ProjectDataService projectDataService;
+
+    private ProjectDataRepository projectDataRepository;
+
+    @Autowired
+    public void setProjectDataRepository(ProjectDataRepository projectDataRepository) {
+        this.projectDataRepository = projectDataRepository;
+    }
 
     @Autowired
     public void setProjectDataService(ProjectDataService projectDataService) {
@@ -69,6 +89,11 @@ public class BaseProjectService implements ProjectService {
         this.projectRepository = projectRepository;
     }
 
+    @Autowired
+    public void setUploadService(UploadService uploadService) {
+        this.uploadService = uploadService;
+    }
+
     /**
      * 检查项目名是否已存在
      * true-存在
@@ -78,7 +103,7 @@ public class BaseProjectService implements ProjectService {
      * @return
      */
     private boolean projectNameExist(String name) {
-        Project project = projectRepository.findByName(name);
+        Project project = projectRepository.findByNameAndDelStatus(name, Constants.DelStatus.NORMAL.isValue());
         return (project != null);
     }
 
@@ -156,6 +181,8 @@ public class BaseProjectService implements ProjectService {
             JSONObject result = (JSONObject) object.get("result");
             return (JSONObject) result.get("addressComponent");
         }
+        logger.info(object.toString());
+        logger.error("经纬度转地址失败");
         return null;
     }
 
@@ -179,6 +206,63 @@ public class BaseProjectService implements ProjectService {
         return false;
     }
 
+    @Override
+    public WebResponse updateData(List<DataModel> dataModelList) {
+        List<com.giot.eco_building.entity.ProjectData> projectDataList = new ArrayList<>();
+        for (DataModel dataModel :
+                dataModelList) {
+            Integer type = null;
+            Boolean isMonth = null;
+            switch (dataModel.getType()) {
+                case "水":
+                    type = Constants.DataType.WATER.getCode();
+                    break;
+                case "电":
+                    type = Constants.DataType.ELECTRICITY.getCode();
+                    break;
+                case "气":
+                    type = Constants.DataType.GAS.getCode();
+                    break;
+            }
+            switch (dataModel.getTimeType()) {
+                case "年":
+                    isMonth = false;
+                    break;
+                case "月":
+                    isMonth = true;
+                    break;
+            }
+            if (type != null && isMonth != null && dataModel.getProjectId() != null) {
+                SimpleDateFormat sdf = null;
+                if (isMonth) sdf = new SimpleDateFormat("yyyy-MM");
+                else sdf = new SimpleDateFormat("yyyy");
+                for (Map<String, Double> map : dataModel.getDataMap()) {
+                    for (String key :
+                            map.keySet()) {
+                        String time = key;
+                        Double value = map.get(key);
+                        try {
+                            Date actualDate = sdf.parse(key);
+                            com.giot.eco_building.entity.ProjectData projectData = new com.giot.eco_building.entity.ProjectData();
+                            projectData.setProjectId(dataModel.getProjectId());
+                            projectData.setIsMonth(isMonth);
+                            projectData.setActualDate(actualDate);
+                            projectData.setType(type);
+                            projectData.setValue(value);
+                            projectData.setDelStatus(Constants.DelStatus.NORMAL.isValue());
+                            projectDataList.add(projectData);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                            logger.error("{}数据在{}时出错", dataModel.getType(), key);
+                        }
+                    }
+                }
+            }
+        }
+        List<com.giot.eco_building.entity.ProjectData> result = projectDataRepository.saveAll(projectDataList);
+        return WebResponse.success(result);
+    }
+
     /**
      * 更新项目
      * 根据项目id
@@ -188,19 +272,78 @@ public class BaseProjectService implements ProjectService {
      * @return
      */
     @Override
-    @Transactional
-    public boolean update(Project project) {
+    public WebResponse update(ProjectModel project) {
+        logger.info(project.toString());
         if (project != null &&
                 project.getId() != null &&
                 !"".equals(project.getId())) {
+            Project projectNew = project.getProject();
             Project projectOld = projectRepository.findById(project.getId()).orElse(null);
             if (projectOld != null) {
-                UpdateUtil.copyNullProperties(projectOld, project);
-                projectRepository.saveAndFlush(project);
-                return true;
+                if (projectNew.getName() != null && !"".equals(projectNew.getName())) {
+                    projectOld.setName(projectNew.getName());
+                }
+                if (projectNew.getProvince() != null && !"".equals(projectNew.getProvince())) {
+                    projectOld.setProvince(projectNew.getProvince());
+                }
+                if (projectNew.getCity() != null && !"".equals(projectNew.getCity())) {
+                    projectOld.setCity(projectNew.getCity());
+                }
+                if (projectNew.getDistrict() != null && !"".equals(projectNew.getDistrict())) {
+                    projectOld.setDistrict(projectNew.getDistrict());
+                }
+                if (projectNew.getStreet() != null && !"".equals(projectNew.getStreet())) {
+                    projectOld.setStreet(projectNew.getStreet());
+                }
+                if (projectNew.getAddress() != null && !"".equals(projectNew.getAddress())) {
+                    projectOld.setAddress(projectNew.getAddress());
+                }
+                if (projectNew.getLongitude() != null) {
+                    projectOld.setLongitude(projectNew.getLongitude());
+                }
+                if (projectNew.getLatitude() != null) {
+                    projectOld.setLatitude(projectNew.getLatitude());
+                }
+
+                if (projectNew.getArchitecturalType() != null && !"".equals(projectNew.getArchitecturalType())) {
+                    projectOld.setArchitecturalType(projectNew.getArchitecturalType());
+                }
+                if (projectNew.getArea() != null && projectNew.getArea() > 0) {
+                    projectOld.setArea(projectNew.getArea());
+                }
+                if (projectNew.getBuiltTime() != null) {
+                    projectOld.setBuiltTime(projectNew.getBuiltTime());
+                }
+                if (projectNew.getFloor() != null) {
+                    projectOld.setFloor(projectNew.getFloor());
+                }
+                if (projectNew.getImgUrl() != null && !"".equals(projectNew.getImgUrl())) {
+                    projectOld.setImgUrl(projectNew.getImgUrl());
+                }
+
+                if (projectNew.getGbes() != null) {
+                    projectOld.setGbes(projectNew.getGbes());
+                }
+                if (projectNew.getEnergySavingStandard() != null) {
+                    projectOld.setEnergySavingStandard(projectNew.getEnergySavingStandard());
+                }
+                if (projectNew.getEnergySavingTransformationOrNot() != null) {
+                    projectOld.setEnergySavingTransformationOrNot(projectNew.getEnergySavingTransformationOrNot());
+                }
+                if (projectNew.getHeatingMode() != null) {
+                    projectOld.setHeatingMode(projectNew.getHeatingMode());
+                }
+                if (projectNew.getCoolingMode() != null) {
+                    projectOld.setCoolingMode(projectNew.getCoolingMode());
+                }
+                if (projectNew.getWhetherToUseRenewableResources() != null) {
+                    projectOld.setWhetherToUseRenewableResources(projectNew.getWhetherToUseRenewableResources());
+                }
+                projectRepository.saveAndFlush(projectOld);
+                return WebResponse.success(projectOld);
             }
         }
-        return false;
+        return WebResponse.failure(HttpResponseStatusEnum.PROJECT_NOT_EXISTED);
     }
 
     @Override
@@ -236,61 +379,96 @@ public class BaseProjectService implements ProjectService {
             }
         }
         logger.info("end up dealing witn excel.....");
+        logger.info("start updating project info");
+        List<Project> projectList = projectRepository.findAll();
+        for (Project project :
+                projectList) {
+            updateProjectAddress(project);
+            updateLatestYearData(project);
+        }
+        logger.info("end up updating project info");
         return WebResponse.success();
     }
 
+    /**
+     * 项目省市区街道全为空
+     * 但经纬度不为空的情况下
+     * 更新项目的省市区街道信息
+     */
+    private void updateProjectAddress(Project project) {
+        if (project.getProvince() == null && project.getCity() == null
+                && project.getDistrict() == null && project.getStreet() == null
+                && project.getLongitude() != null && project.getLatitude() != null) {
+            double longitude = project.getLongitude();
+            double latitude = project.getLatitude();
+            try {
+                JSONObject addressComponent = getAddress(longitude, latitude);
+                if (addressComponent != null) {
+                    String city = addressComponent.getString("city");
+                    String province = addressComponent.getString("province");
+                    String street = addressComponent.getString("street");
+                    String district = addressComponent.getString("district");
+                    project.setProvince(province);
+                    project.setCity(city);
+                    project.setDistrict(district);
+                    project.setStreet(street);
+                    projectRepository.saveAndFlush(project);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.info(e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 项目省市区街道全为空
+     * 但经纬度不为空的情况下
+     * 更新项目的省市区街道信息
+     */
     @Override
     public void reDealWithProjectAddress() {
         List<Project> projects = projectRepository.findAll();
         for (Project project :
                 projects) {
-            if (project.getProvince() == null && project.getCity() == null
-                    && project.getDistrict() == null && project.getStreet() == null
-                    && project.getLongitude() != null && project.getLatitude() != null) {
-                double longitude = project.getLongitude();
-                double latitude = project.getLatitude();
-                try {
-                    JSONObject addressComponent = getAddress(longitude, latitude);
-                    if (addressComponent != null) {
-                        String city = addressComponent.getString("city");
-                        String province = addressComponent.getString("province");
-                        String street = addressComponent.getString("street");
-                        String district = addressComponent.getString("district");
-                        project.setProvince(province);
-                        project.setCity(city);
-                        project.setDistrict(district);
-                        project.setStreet(street);
-                        projectRepository.saveAndFlush(project);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
+            updateProjectAddress(project);
         }
     }
 
+    /**
+     * 更新项目的最近一年的水电气单位面积消耗数据
+     *
+     * @param project
+     */
+    private void updateLatestYearData(Project project) {
+        if (project != null && project.getId() != null && project.getArea() != null && project.getArea() > 0) {
+            double area = project.getArea();
+            com.giot.eco_building.entity.ProjectData waterData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.WATER.getCode());
+            if (waterData != null) {
+                project.setWaterConsumptionPerUnitArea(waterData.getValue() / area);
+            }
+            com.giot.eco_building.entity.ProjectData elecData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.ELECTRICITY.getCode());
+            if (elecData != null) {
+                project.setPowerConsumptionPerUnitArea(elecData.getValue() / area);
+            }
+            com.giot.eco_building.entity.ProjectData gasData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.GAS.getCode());
+            if (gasData != null) {
+                project.setGasConsumptionPerUnitArea(gasData.getValue() / area);
+            }
+            projectRepository.saveAndFlush(project);
+        }
+    }
+
+    /**
+     * 在使用表导入项目数据之后
+     * 更新项目的最近一年的水电气单位面积消耗数据
+     */
     @Override
     public void latestYearData() {
         List<Project> projects = projectRepository.findAll();
         for (Project project :
                 projects) {
-            if (project.getArea() != null && project.getArea() > 0) {
-                double area = project.getArea();
-                com.giot.eco_building.entity.ProjectData waterData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.WATER.getCode());
-                if (waterData != null) {
-                    project.setWaterConsumptionPerUnitArea(waterData.getValue() / area);
-                }
-                com.giot.eco_building.entity.ProjectData elecData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.ELECTRICITY.getCode());
-                if (elecData != null) {
-                    project.setPowerConsumptionPerUnitArea(elecData.getValue() / area);
-                }
-                com.giot.eco_building.entity.ProjectData gasData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.GAS.getCode());
-                if (gasData != null) {
-                    project.setGasConsumptionPerUnitArea(gasData.getValue() / area);
-                }
-                projectRepository.saveAndFlush(project);
-            }
+            updateLatestYearData(project);
         }
     }
 
@@ -302,7 +480,6 @@ public class BaseProjectService implements ProjectService {
      *
      * @return
      */
-    @Override
     public WebResponse getAddress(Integer level, String superiorDirectory) {
         List<String> result = new ArrayList<>();
         switch (level) {
@@ -369,14 +546,15 @@ public class BaseProjectService implements ProjectService {
         return WebResponse.success(provinceArray);
     }
 
-    @Override
-    public WebResponse screen(String province, String city, String district, String street,
-                              //多选
-                              String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard, Integer[] energySavingTransformationOrNot,
-                              Integer[] HeatingMode, Integer[] CoolingMode, Integer[] WhetherToUseRenewableResources,
-                              //范围
-                              Double[] area, Integer[] floor, String[] date,
-                              Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea) {
+    private List<Project> specialQuery(String province, String city, String district, String street,
+                                       //多选
+                                       String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
+                                       Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode,
+                                       Integer[] WhetherToUseRenewableResources,
+                                       //范围
+                                       Double[] area, Integer[] floor, String[] date,
+                                       Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea,
+                                       Double[] waterConsumptionPerUnitArea) {
         Specification<Project> projectSpecification = (Specification<Project>) (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> list = new ArrayList<>();//查询条件集
             //1. province,  city,  district,  street
@@ -455,41 +633,93 @@ public class BaseProjectService implements ProjectService {
             }
             //3.Double[] area, Integer[] floor, String[] date,
             //Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea
-            if (area != null && area.length == 2) {
-                list.add(criteriaBuilder.between(root.get("area"), area[0], area[1]));
+            if (area != null) {
+                if (area.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("area"), area[0], area[1]));
+                } else if (area.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("area"), area[0]));
+                }
+
             }
-            if (floor != null && floor.length == 2) {
-                list.add(criteriaBuilder.between(root.get("floor"), floor[0], floor[1]));
+            if (floor != null) {
+                if (floor.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("floor"), floor[0], floor[1]));
+                } else if (floor.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("floor"), floor[0]));
+                }
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
             Date sdate = new Date();
             Date edate = new Date();
-            if (date != null && date.length == 2) {
+            if (date != null) {
                 Boolean flag = true;
-                try {
-                    sdate = sdf.parse(date[0]);
-                    edate = sdf.parse(date[1]);
-                    Calendar c = Calendar.getInstance();
-                    c.setTime(edate);
-                    c.add(Calendar.YEAR, 1);
-                    edate = c.getTime();
-                } catch (ParseException e) {
-                    flag = false;
+                if (date.length == 2) {
+                    try {
+                        sdate = sdf.parse(date[0]);
+                        edate = sdf.parse(date[1]);
+                        Calendar c = Calendar.getInstance();
+                        c.setTime(edate);
+                        c.add(Calendar.YEAR, 1);
+                        edate = c.getTime();
+                    } catch (ParseException e) {
+                        flag = false;
+                    }
+                    if (flag) list.add(criteriaBuilder.between(root.get("builtTime"), sdate, edate));
+                } else if (date.length == 1) {
+                    try {
+                        sdate = sdf.parse(date[0]);
+                    } catch (ParseException e) {
+                        flag = false;
+                    }
+                    if (flag) list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("builtTime"), sdate));
                 }
-                if (flag) list.add(criteriaBuilder.between(root.get("builtTime"), sdate, edate));
             }
-            if (powerConsumptionPerUnitArea != null && powerConsumptionPerUnitArea.length == 2) {
-                list.add(criteriaBuilder.between(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0], powerConsumptionPerUnitArea[1]));
+            if (powerConsumptionPerUnitArea != null) {
+                if (powerConsumptionPerUnitArea.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0], powerConsumptionPerUnitArea[1]));
+                } else if (powerConsumptionPerUnitArea.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0]));
+                }
+                list.add(criteriaBuilder.notEqual(root.get("powerConsumptionPerUnitArea"), null));
             }
-            if (gasConsumptionPerUnitArea != null && gasConsumptionPerUnitArea.length == 2) {
-                list.add(criteriaBuilder.between(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0], gasConsumptionPerUnitArea[1]));
+            if (gasConsumptionPerUnitArea != null) {
+                if (gasConsumptionPerUnitArea.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0], gasConsumptionPerUnitArea[1]));
+                } else if (gasConsumptionPerUnitArea.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0]));
+                }
+                list.add(criteriaBuilder.notEqual(root.get("gasConsumptionPerUnitArea"), null));
             }
-            if (waterConsumptionPerUnitArea != null && waterConsumptionPerUnitArea.length == 2) {
-                list.add(criteriaBuilder.between(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0], waterConsumptionPerUnitArea[1]));
+            if (waterConsumptionPerUnitArea != null) {
+                if (waterConsumptionPerUnitArea.length == 2) {
+                    list.add(criteriaBuilder.between(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0], waterConsumptionPerUnitArea[1]));
+                } else if (waterConsumptionPerUnitArea.length == 1) {
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0]));
+                }
+                list.add(criteriaBuilder.notEqual(root.get("waterConsumptionPerUnitArea"), null));
             }
+            list.add(criteriaBuilder.equal(root.get("delStatus"), Constants.DelStatus.NORMAL.isValue()));
             return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
         };
         List<Project> projectList = projectRepository.findAll(projectSpecification);
+        return projectList;
+
+    }
+
+    @Override
+    public WebResponse screen(String province, String city, String district, String street,
+                              //多选
+                              String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
+                              Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode,
+                              Integer[] WhetherToUseRenewableResources,
+                              //范围
+                              Double[] area, Integer[] floor, String[] date,
+                              Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea,
+                              Double[] waterConsumptionPerUnitArea) {
+        List<Project> projectList = specialQuery(province, city, district, street,
+                architecturalType, gbes, energySavingStandard,
+                energySavingTransformationOrNot, HeatingMode, CoolingMode, WhetherToUseRenewableResources,
+                area, floor, date, powerConsumptionPerUnitArea, gasConsumptionPerUnitArea, waterConsumptionPerUnitArea);
         Double waterMin = null;
         Double waterMax = (double) 0;
         Double gasMin = null;
@@ -530,5 +760,183 @@ public class BaseProjectService implements ProjectService {
         result.put("gas", "" + gasMin + "-" + gasMax);
         result.put("elec", "" + elecMin + "-" + elecMax);
         return WebResponse.success(result);
+    }
+
+    @Override
+    public WebResponse projectDetail(Long projectId) {
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        if (projectOptional.isPresent()) {
+            return WebResponse.success(projectOptional.get());
+        } else {
+            return WebResponse.failure(HttpResponseStatusEnum.PROJECT_NOT_EXISTED);
+        }
+    }
+
+    private void inputStreamToFile(InputStream ins, File file) {
+        try {
+            OutputStream os = new FileOutputStream(file);
+            int bytesRead = 0;
+            byte[] buffer = new byte[8192];
+            while ((bytesRead = ins.read(buffer, 0, 8192)) != -1) {
+                os.write(buffer, 0, bytesRead);
+            }
+            os.close();
+            ins.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public WebResponse JiangSuTop5() {
+        List<Object[]> list = projectRepository.findCityCountByProvinceAndDelStatus("江苏省", Constants.DelStatus.NORMAL.isValue());
+        List<CityCount> cityCounts = new ArrayList<>();
+        for (Object[] objects :
+                list) {
+            CityCount cityCount = new CityCount();
+            for (Object object : objects) {
+                if (object instanceof String) {
+                    String city = (String) object;
+                    cityCount.setCity(city);
+                }
+                if (object instanceof BigInteger) {
+                    Long count = ((BigInteger) object).longValue();
+                    cityCount.setCount(count);
+                }
+            }
+            cityCounts.add(cityCount);
+        }
+        return WebResponse.success(list);
+    }
+
+    @Override
+    public WebResponse JiangSuElecTop10() {
+        List<Project> list = projectRepository.findByProvinceAndDelStatusAndOrderByPowerConsumptionPerUnitAreaDescAndLimit10("江苏省", Constants.DelStatus.NORMAL.isValue());
+        return WebResponse.success(list);
+    }
+
+    @Override
+    public WebResponse uploadPic(MultipartFile file, HttpServletRequest request) throws IOException {
+        if (null == file || file.isEmpty()) {
+            return WebResponse.exception(new FileNotFoundException("提交图片未获取到"));
+        }
+        String fileName = file.getOriginalFilename();
+        logger.info("上传的文件名为：" + fileName);
+        // 获取文件的后缀名
+        if (StringUtils.isEmpty(fileName)) {
+            return WebResponse.exception(new Exception("fileName为空值，上传过程异常。"));
+        }
+        File toFile = null;
+        if (file.equals("") || file.getSize() <= 0) {
+            file = null;
+        } else {
+            InputStream ins = null;
+            ins = file.getInputStream();
+            toFile = new File(file.getOriginalFilename());
+            inputStreamToFile(ins, toFile);
+            ins.close();
+        }
+        ImageCheck ic = new ImageCheck();
+        boolean flag = ic.isImage(toFile);
+        if (flag) {
+            String imgUrl = uploadService.uploadProjectImg(file.getBytes());
+            return WebResponse.success(imgUrl);
+        } else return WebResponse.failure(HttpResponseStatusEnum.FILE_FORMAT_ERROR);
+    }
+
+    @Override
+    public WebResponse page(String name, String province, String city, String district, String street, String architecturalType, Integer number, Integer size) {
+        Sort sort = Sort.by(Sort.Direction.DESC,
+                "lastModified"); //创建时间降序排序
+        Pageable pageable = PageRequest.of(number - 1, size, sort);
+        Specification<Project> projectSpecification = (Specification<Project>) (root, criteriaQuery, criteriaBuilder) -> {
+            List<Predicate> list = new ArrayList<>();//查询条件集
+            if (name != null && !"".equals(name)) {
+                list.add(criteriaBuilder.like(root.get("name").as(String.class), "%" + name + "%"));
+            }
+            if (province != null && !"".equals(province))
+                list.add(criteriaBuilder.equal(root.get("province").as(String.class), province));
+            if (city != null && !"".equals(city))
+                list.add(criteriaBuilder.equal(root.get("city").as(String.class), city));
+            if (district != null && !"".equals(district))
+                list.add(criteriaBuilder.equal(root.get("district").as(String.class), district));
+            if (street != null && !"".equals(street))
+                list.add(criteriaBuilder.equal(root.get("street").as(String.class), street));
+            if (architecturalType != null && !"".equals(architecturalType)) {
+                list.add(criteriaBuilder.equal(root.get("architecturalType").as(String.class), architecturalType));
+            }
+            list.add(criteriaBuilder.equal(root.get("delStatus").as(Boolean.class), Constants.DelStatus.NORMAL.isValue()));
+            return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
+        };
+        Page<Project> projectPage = projectRepository.findAll(projectSpecification, pageable);
+        return WebResponse.success(projectPage.getContent(), projectPage.getTotalPages(), projectPage.getTotalElements());
+    }
+
+    @Override
+    public WebResponse deleteById(Long id) {
+        Optional<Project> optionalProject = projectRepository.findById(id);
+        if (optionalProject.isPresent()) {
+            Project project = optionalProject.get();
+            if (!project.getDelStatus()) {
+                project.setDelStatus(Constants.DelStatus.DELETE.isValue());
+                projectRepository.saveAndFlush(project);
+                return WebResponse.success();
+            }
+        }
+        return WebResponse.failure(HttpResponseStatusEnum.PROJECT_NOT_EXISTED);
+    }
+
+    /**
+     * @param dataType:水/电/气
+     * @param timeType：年/月
+     * @param start
+     * @param end
+     * @return
+     */
+    @Override
+    public WebResponse getDataByTime(String dataType, String timeType, Long projectId, String start, String end) {
+        Integer type = null;
+        switch (dataType) {
+            case "水":
+                type = Constants.DataType.WATER.getCode();
+                break;
+            case "电":
+                type = Constants.DataType.ELECTRICITY.getCode();
+                break;
+            case "气":
+                type = Constants.DataType.GAS.getCode();
+                break;
+        }
+        Boolean isMonth = null;
+        switch (timeType) {
+            case "年":
+                isMonth = false;
+                break;
+            case "月":
+                isMonth = true;
+                break;
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date sdate = new Date();
+        Date edate = new Date();
+        boolean flag = false;
+        if (start != null && end != null) {
+            flag = true;
+            try {
+                sdate = sdf.parse(start);
+                edate = sdf.parse(end);
+                Calendar c = Calendar.getInstance();
+                c.setTime(edate);
+                c.add(Calendar.DAY_OF_MONTH, 1);
+                edate = c.getTime();
+            } catch (ParseException e) {
+                flag = false;
+            }
+        }
+        if (type != null && isMonth != null && flag) {
+            List<com.giot.eco_building.entity.ProjectData> projectData = projectDataService.getDataByTime(type, isMonth, projectId, sdate, edate);
+            return WebResponse.success(projectData);
+        }
+        return WebResponse.failure(HttpResponseStatusEnum.PARAM_ERROR);
     }
 }

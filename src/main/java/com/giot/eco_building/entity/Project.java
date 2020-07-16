@@ -1,9 +1,7 @@
 package com.giot.eco_building.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.utils.validation.LocationValidation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +11,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import javax.xml.bind.annotation.XmlSchemaType;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -76,10 +73,12 @@ public class Project implements Serializable {
 
     public void setArchitecturalType(String architecturalType) {
         String[] types = {"办公", "商场", "文化教育", "餐饮", "医院", "酒店", "其他"};
-        for (int i = 0; i < types.length; i++) {
-            if (architecturalType.equals(types[i])) {
-                this.architecturalType = architecturalType;
-                break;
+        if (architecturalType != null && !"".equals(architecturalType)) {
+            for (int i = 0; i < types.length; i++) {
+                if (architecturalType.equals(types[i])) {
+                    this.architecturalType = architecturalType;
+                    break;
+                }
             }
         }
     }
@@ -98,13 +97,10 @@ public class Project implements Serializable {
      */
     private Integer floor;
     /**
-     * 项目图片
+     * 项目图片地址
      */
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    @JsonIgnore
-    @XmlSchemaType(name = "base64Binary")
-    private Byte[] photo;
+    @Column(name = "img_url")
+    private String imgUrl;
     /**
      * 绿建等级：
      * 0星-0
@@ -136,6 +132,11 @@ public class Project implements Serializable {
         }
         this.gbes = code;
     }
+
+    public void setGbes(Integer gbes) {
+        this.gbes = gbes;
+    }
+
 
     /**
      * 节能标准：
@@ -170,6 +171,10 @@ public class Project implements Serializable {
         this.energySavingStandard = code;
     }
 
+    public void setEnergySavingStandard(Integer energySavingStandard) {
+        this.energySavingStandard = energySavingStandard;
+    }
+
     /**
      * 是否经过节能改造：
      * 是
@@ -178,6 +183,10 @@ public class Project implements Serializable {
      */
     @Column(name = "energy_saving_transformation_or_not")
     private Integer energySavingTransformationOrNot;
+
+    public void setEnergySavingTransformationOrNot(Integer energySavingTransformationOrNot) {
+        this.energySavingTransformationOrNot = energySavingTransformationOrNot;
+    }
 
     public void setEnergySavingTransformationOrNot(String energySavingTransformationOrNot) {
         int code;
@@ -203,7 +212,31 @@ public class Project implements Serializable {
      * 未知
      */
     @Column(name = "heating_mode")
-    private Integer HeatingMode;
+    private Integer heatingMode;
+
+    public void setHeatingMode(Integer heatingMode) {
+        this.heatingMode = heatingMode;
+    }
+
+    public void setHeatingMode(String heatingMode) {
+        int code;
+        switch (heatingMode) {
+            case "集中供暖":
+                code = 0;
+                break;
+            case "分户供暖":
+                code = 1;
+                break;
+            case "无供暖":
+                code = 2;
+                break;
+            default:
+                code = 3;
+                break;
+        }
+        this.heatingMode = code;
+    }
+
     /**
      * 供冷方式：
      * 集中供冷
@@ -212,7 +245,11 @@ public class Project implements Serializable {
      * 未知
      */
     @Column(name = "cooling_mode")
-    private Integer CoolingMode;
+    private Integer coolingMode;
+
+    public void setCoolingMode(Integer coolingMode) {
+        this.coolingMode = coolingMode;
+    }
 
     public void setCoolingMode(String coolingMode) {
         int code;
@@ -230,7 +267,7 @@ public class Project implements Serializable {
                 code = 3;
                 break;
         }
-        this.CoolingMode = code;
+        this.coolingMode = code;
     }
 
     /**
@@ -240,8 +277,31 @@ public class Project implements Serializable {
      * 浅层地热能
      * 未知
      */
-    @Column(name = "whether_to_use_renewabler_esources")
-    private Integer WhetherToUseRenewableResources;
+    @Column(name = "whether_to_use_renewable_resources")
+    private Integer whetherToUseRenewableResources;
+
+    public void setWhetherToUseRenewableResources(Integer whetherToUseRenewableResources) {
+        this.whetherToUseRenewableResources = whetherToUseRenewableResources;
+    }
+
+    public void setWhetherToUseRenewableResources(String whetherToUseRenewableResources) {
+        int code;
+        switch (whetherToUseRenewableResources) {
+            case "否":
+                code = 0;
+                break;
+            case "太阳能":
+                code = 1;
+                break;
+            case "浅层地热能":
+                code = 2;
+                break;
+            default:
+                code = 3;
+                break;
+        }
+        this.whetherToUseRenewableResources = code;
+    }
 
     /**
      * 单位面积电耗
@@ -267,23 +327,23 @@ public class Project implements Serializable {
     /**
      * 创建时间
      */
-    @JsonIgnore
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JSONField(serialize = false)
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private Date created;
     /**
      * 最新修改时间
      */
-    @JsonIgnore
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JSONField(serialize = false)
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
     @Column(nullable = false, name = "last_modified")
     private Date lastModified;
     /**
      * 删除标记位：0-有效，1-无效
      */
-    @JsonIgnore
+    @JSONField(serialize = false)
     @Column(nullable = false, columnDefinition = "bit default 0", name = "del_status")
     private Boolean delStatus;
 }

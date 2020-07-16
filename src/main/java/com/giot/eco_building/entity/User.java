@@ -1,9 +1,12 @@
 package com.giot.eco_building.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -23,7 +26,6 @@ import java.util.Date;
 @EntityListeners(AuditingEntityListener.class)
 public class User implements Serializable {
     private static final long serialVersionUID = 1705613187469042461L;
-    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,7 +36,6 @@ public class User implements Serializable {
     /**
      * 密码
      */
-    @JsonIgnore
     private String password;
     /**
      * 权限
@@ -43,7 +44,7 @@ public class User implements Serializable {
     /**
      * 创建时间
      */
-    @JsonIgnore
+    @JSONField(serialize = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
     @Column(updatable = false, nullable = false)
@@ -51,7 +52,7 @@ public class User implements Serializable {
     /**
      * 最新修改时间
      */
-    @JsonIgnore
+    @JSONField(serialize = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
     @Column(nullable = false, name = "last_modified")
@@ -59,7 +60,7 @@ public class User implements Serializable {
     /**
      * 删除标记位：0-有效，1-无效
      */
-    @JsonIgnore
+    @JSONField(serialize = false)
     @Column(nullable = false, columnDefinition = "bit default 0", name = "del_status")
     private Boolean delStatus;
 }

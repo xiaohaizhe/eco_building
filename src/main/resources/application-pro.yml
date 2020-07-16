@@ -11,3 +11,7 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     open-in-view: false
     database-platform: org.hibernate.dialect.MySQL5Dialect
+upload:
+  picture:
+    path: D:/eco_building/project_img/
+    url: http://121.40.87.226:8200/img/

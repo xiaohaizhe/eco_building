@@ -1,16 +1,18 @@
 package com.giot.eco_building.service.impl;
 
+import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.ProjectData;
 import com.giot.eco_building.repository.ProjectDataRepository;
 import com.giot.eco_building.repository.ProjectRepository;
 import com.giot.eco_building.service.ProjectDataService;
-import com.giot.eco_building.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -36,7 +38,7 @@ public class BaseProjectDataService implements ProjectDataService {
     }
 
     private Long getProejctIdByProjectName(String projectName) {
-        Project project = projectRepository.findByName(projectName);
+        Project project = projectRepository.findByNameAndDelStatus(projectName, Constants.DelStatus.NORMAL.isValue());
         if (project == null) return null;
         return project.getId();
     }
@@ -96,5 +98,19 @@ public class BaseProjectDataService implements ProjectDataService {
         return projectData;
     }
 
+    @Override
+    public WebResponse getElecDataByProjectIdAndMonth(Long projectId, String start, String end) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
+        Date sdate = sdf.parse(start);
+        Date edate = sdf.parse(end);
+        List<com.giot.eco_building.entity.ProjectData> projectDataList = projectDataRepository.findByProjectIdAndIsMonthAndTypeAndActualDateBetween(projectId, Constants.DataType.ELECTRICITY.getCode(), true, sdate, edate);
+        return WebResponse.success(projectDataList);
+    }
 
+    @Override
+    public List<com.giot.eco_building.entity.ProjectData> getDataByTime(Integer type, Boolean isMonth, Long projectId, Date start, Date end) {
+        List<com.giot.eco_building.entity.ProjectData> projectDataList
+                = projectDataRepository.findByProjectIdAndIsMonthAndTypeAndActualDateBetween(projectId, type, isMonth, start, end);
+        return projectDataList;
+    }
 }
