@@ -8,6 +8,7 @@ import { Button, Divider, Dropdown, Menu, message, Input,Modal } from 'antd';
 import ProTable from '@ant-design/pro-table';
 
 const fetchData =async (params, sort, filter) =>{
+  
   const res =await getUserPage({number:params.current,size:params.pageSize});
   return {
     data:res.result,
@@ -95,6 +96,7 @@ const userManage = props => {
       {
         title: '操作',
         dataIndex: 'option',
+        width: 150,
         valueType: 'option',
         render: (_, record) => (
           <>
@@ -121,7 +123,12 @@ const userManage = props => {
         ),
       },
     ];
+    const paginationProps = {
+      current: 1,
+      pageSize: 10
+    }
     return (
+      
       <PageHeaderWrapper>
         <ProTable
           headerTitle="用户表格"
@@ -129,6 +136,7 @@ const userManage = props => {
           rowKey="key"
           options={false} 
           search={false}
+          pagination={paginationProps}
           toolBarRender={(action, { selectedRows }) => [
             <Button type="primary" onClick={showModal}>
               <PlusOutlined /> 新建
@@ -166,6 +174,7 @@ const userManage = props => {
           onDone={handleDone}
           onCancel={handleCancel}
           onSubmit={handleSubmit}
+          
         />
       </PageHeaderWrapper>
     );

@@ -15,7 +15,8 @@ const DisplayModel = {
       min:0
     }],
     address:[],
-    itemParams:{}
+    itemParams:{},
+    height:window.innerHeight-210
   },
   effects: {
     *getMap(_,{ call, put, select }) {
@@ -35,7 +36,6 @@ const DisplayModel = {
       });
     },
     *getParams({payload},{ call, put }){
-      debugger
       yield put({
         type: 'saveParams',
         payload: payload,
@@ -43,7 +43,9 @@ const DisplayModel = {
       yield put({
         type: 'getMap'
       });
-    }
+    },
+    
+
   },
   reducers: {
     save(state, { payload }){
@@ -58,7 +60,8 @@ const DisplayModel = {
     },
     saveParams(state, { payload }){
       return { ...state, itemParams: payload};
-    }
+    },
+    
 
   },
 };

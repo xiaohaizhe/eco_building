@@ -4,32 +4,32 @@ import { Cascader,Form, Input, Button, Checkbox,DatePicker  } from 'antd';
 const { RangePicker } = DatePicker;
 
 const architecturalType = [
-  { label: '商场', value: '1' },
-  { label: '酒店', value: '5' },
-  { label: '办公', value: '0' },
-  { label: '医院', value: '4' },
-  { label: '餐饮', value: '3' },
-  { label: '文化教育', value: '2' },
-  { label: '其他', value: '6' }
+  { label: '商场', value: '商场' },
+  { label: '酒店', value: '酒店' },
+  { label: '办公', value: '办公' },
+  { label: '医院', value: '医院' },
+  { label: '餐饮', value: '餐饮' },
+  { label: '文化教育', value: '文化教育' },
+  { label: '其他', value: '其他' }
 ];
 const floor = [
-  { label: '1~3层（低层）', value: '1,2,3' },
-  { label: '4~6层（多层）', value: '4,5,6' },
+  { label: '1-3层（低层）', value: '1,2,3' },
+  { label: '4-6层（多层）', value: '4,5,6' },
   { label: '7层以上（高层）', value: '7,8,9' },
   { label: '其他', value: '0' }
 ];
 const gbes = [
-  { label: '0', value: '0' },
-  { label: '1', value: '1' },
-  { label: '2', value: '2' },
-  { label: '3', value: '3' },
+  { label: '0星', value: '0' },
+  { label: '1星', value: '1' },
+  { label: '2星', value: '2' },
+  { label: '3星', value: '3' },
   { label: '未知', value: '4' }
 ];
 const energySavingStandard = [
-  { label: '不执行节能标准', value: '0' },
   { label: '50%', value: '1' },
   { label: '65%', value: '2' },
   { label: '75%以上', value: '3' },
+  { label: '不执行', value: '0' },
   { label: '未知', value: '4' }
 ];
 const energySavingTransformationOrNot = [
@@ -50,9 +50,9 @@ const heatingMode = [
   { label: '未知', value: '3' }
 ];
 const whetherToUseRenewableResources =[
-  { label: '否', value: '0' },
-  { label: '浅层地热能', value: '2' },
   { label: '太阳能', value: '1' },
+  { label: '浅层地热', value: '2' },
+  { label: '否', value: '0' },
   { label: '未知', value: '3' }
 ];
 const layout = {
@@ -63,21 +63,6 @@ const tailLayout = {
   wrapperCol: { offset: 8, span: 16 },
 };
 
-// const onFinish = values => {
-//   console.log('Success:', values);
-//   let formData = new FormData();
-//   for(let item in values){
-//     formData.append(item,values[item])
-//   }
-//   const { dispatch} = this.props;
-//   if (dispatch) {
-//     dispatch({
-//       type: 'display/getMap',
-//       payload: formData
-//     });
-//   }
-// }
-
 const onFinishFailed = errorInfo => {
   console.log('Failed:', errorInfo);
 };
@@ -85,12 +70,6 @@ const onFinishFailed = errorInfo => {
 function onChange(value) {
   console.log(value);
 }
-//层数变化
-// const floorChange = value =>{
-//   if(value.indexOf('3')){
-//     this.setState({'other':true})
-//   }
-// }
 class ItemSelect extends React.Component {
   constructor(props) {
     super(props);
@@ -115,6 +94,7 @@ class ItemSelect extends React.Component {
       this.setState({'other':false})
     }
   }
+
   onFinish (values) {
     console.log('Success:', values);
     
@@ -126,12 +106,25 @@ class ItemSelect extends React.Component {
       coolingMode:values.coolingMode?values.coolingMode.toLocaleString():'',
       heatingMode:values.heatingMode?values.heatingMode.toLocaleString():'',
       whetherToUseRenewableResources:values.whetherToUseRenewableResources?values.whetherToUseRenewableResources.toLocaleString():'',
-      area:values.areaMin?values.areaMin:''+','+values.areaMax?values.areaMax:'',
-      date:values.date?values.date[0].format('YYYY')+','+values.date[1].format('YYYY'):'',
-      electric:values.electricMin?values.electricMin:''+','+values.electricMax?values.electricMax:'',
-      gas:values.gasMin?values.gasMin:''+','+values.gasMax?values.gasMax:'',
-      water:values.waterMin?values.waterMin:''+','+values.waterMax?values.waterMax:'',
+      area:(values.areaMin?values.areaMin:0)+(values.areaMax?','+values.areaMax:''),
+      date:values.date?(values.date[0].format('YYYY')+','+values.date[1].format('YYYY')):'',
+      electric:(values.electricMin?values.electricMin:0)+(values.electricMax?','+values.electricMax:''),
+      gas:(values.gasMin?values.gasMin:0)+(values.gasMax?','+values.gasMax:''),
+      water:(values.waterMin?values.waterMin:0)+(values.waterMax?','+values.waterMax:''),
     };
+    if(this.state.other){
+      let arr = [];
+      for(let i = values.floorMin;i<=values.floorMax;i++){
+        arr.push(i);
+      }
+      if(values.floor){
+        let temp = values.floor.toLocaleString();
+        temp = temp.substr(0,temp.length-2).split(",");
+        result.floor=  Array.from(new Set(arr.concat(temp))).toLocaleString();
+      }
+    }else{
+      result.floor = values.floor?values.floor.toLocaleString():''
+    }
     if(values.address){
       if(values.address.length==4){
         result.province = values.address[0];
@@ -159,9 +152,9 @@ class ItemSelect extends React.Component {
     }
   }
   render(){
-    const { address } = this.props.display
+    const { address,height } = this.props.display
     return (
-      <div className="itemSelect">
+      <div className="itemSelect" style={{maxHeight:`${height-40}px`}}>
         <Form
           {...layout}
           name="basic"
@@ -179,7 +172,88 @@ class ItemSelect extends React.Component {
             label="建筑类型"
             name="architecturalType"
           >
-            <Checkbox.Group options={architecturalType} defaultValue={['Apple']} onChange={onChange} />
+            <Checkbox.Group options={architecturalType} onChange={onChange} />
+          </Form.Item>
+          
+          
+          
+          <Form.Item
+            label="绿建等级"
+            name="gbes"
+          >
+            <Checkbox.Group options={gbes} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="节能标准"
+            name="energySavingStandard"
+          >
+            <Checkbox.Group options={energySavingStandard} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="经过节能改造"
+            name="energySavingTransformationOrNot"
+          >
+            <Checkbox.Group options={energySavingTransformationOrNot} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="供冷方式"
+            name="coolingMode"
+          >
+            <Checkbox.Group options={coolingMode} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="供暖方式"
+            name="heatingMode"
+          >
+            <Checkbox.Group options={heatingMode} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="可再生能源利用"
+            name="whetherToUseRenewableResources"
+          >
+            <Checkbox.Group options={whetherToUseRenewableResources} defaultValue={['1']} onChange={onChange} />
+          </Form.Item>
+          <Form.Item
+            label="层数"
+            className="floor"
+          >
+            <Form.Item name="floor">
+              <Checkbox.Group options={floor} onChange={(v)=>this.floorChange(v)} />
+            </Form.Item>
+            {this.state.other &&  <Input.Group compact >
+              <Form.Item name="floorMin">
+                <Input style={{ width: 100, textAlign: 'center' }}/> 
+              </Form.Item>
+              
+              <Input
+                className="site-input-split"
+                style={{
+                  width: 30,
+                  borderLeft: 0,
+                  borderRight: 0,
+                  pointerEvents: 'none',
+                }}
+                placeholder="~"
+                disabled
+              />
+              <Form.Item name="floorMax">
+                <Input
+                  className="site-input-right"
+                  suffix="层"
+                  style={{
+                    width: 150,
+                    textAlign: 'center',
+                  }}
+                />
+              </Form.Item>
+              
+            </Input.Group>}
+          </Form.Item>
+          <Form.Item
+            label="建成时间"
+            name="date"
+          >
+            <RangePicker picker="year" format="YYYY"/>
           </Form.Item>
           <Form.Item
             label="建筑面积"
@@ -213,78 +287,9 @@ class ItemSelect extends React.Component {
               
             </Input.Group>
           </Form.Item>
-          <Form.Item
-            label="建成时间"
-            name="date"
-          >
-            <RangePicker picker="year" format="YYYY"/>
-          </Form.Item>
-          <Form.Item
-            label="层数"
-            name="floor"
-          >
-            <Checkbox.Group options={floor} defaultValue={['其他']} onChange={(v)=>this.floorChange(v)} />
-            {this.state.other &&  <Input.Group compact >
-              <Input style={{ width: 50, textAlign: 'center' }}/>
-              <Input
-                className="site-input-split"
-                style={{
-                  width: 30,
-                  borderLeft: 0,
-                  borderRight: 0,
-                  pointerEvents: 'none',
-                }}
-                placeholder="~"
-                disabled
-              />
-              <Input
-                className="site-input-right"
-                style={{
-                  width: 50,
-                  textAlign: 'center',
-                }}
-              />
-            </Input.Group>}
-          </Form.Item>
-          <Form.Item
-            label="绿建等级"
-            name="gbes"
-          >
-            <Checkbox.Group options={gbes} defaultValue={['1']} onChange={onChange} />
-          </Form.Item>
-          <Form.Item
-            label="节能标准"
-            name="energySavingStandard"
-          >
-            <Checkbox.Group options={energySavingStandard} defaultValue={['1']} onChange={onChange} />
-          </Form.Item>
-          <Form.Item
-            label="是否经过节能改造"
-            name="energySavingTransformationOrNot"
-          >
-            <Checkbox.Group options={energySavingTransformationOrNot} defaultValue={['1']} onChange={onChange} />
-          </Form.Item>
-          <Form.Item
-            label="供冷方式"
-            name="coolingMode"
-          >
-            <Checkbox.Group options={coolingMode} defaultValue={['1']} onChange={onChange} />
-          </Form.Item>
-          <Form.Item
-            label="供暖方式"
-            name="heatingMode"
-          >
-            <Checkbox.Group options={heatingMode} defaultValue={['1']} onChange={onChange} />
-          </Form.Item>
-          <Form.Item
-            label="可再生能源利用"
-            name="whetherToUseRenewableResources"
-          >
-            <Checkbox.Group options={whetherToUseRenewableResources} defaultValue={['1']} onChange={onChange} />
-          </Form.Item>
+          
           <Form.Item
             label="单位面积电耗"
-            
           >
             <Input.Group compact>
               <Form.Item name="electricMin">
@@ -381,7 +386,7 @@ class ItemSelect extends React.Component {
               
             </Input.Group>
           </Form.Item>
-          <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
+          <Form.Item wrapperCol={{ span: 12, offset: 6 }} style={{textAlign:'center'}}>
             <Button type="primary" htmlType="submit">
               筛选
             </Button>

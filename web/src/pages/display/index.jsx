@@ -8,12 +8,19 @@ import { connect } from 'umi';
 import ItemSelect from './components/ItemSelect';
 import  './index.less';
 var infoWin;
+const energySavingStandard = ['不执行节能标准','50%','65%','75%以上','未知'];
+const energySavingTransformationOrNot = ['是','否','未知'];
+const gbes = ['0星','1星','2星','3星','未知'];
+const coolingMode = ['集中供冷','分户供冷','无供冷','未知'];
+const heatingMode = ['集中供暖', '分户采暖',  '无采暖', '未知'];
+const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '未知'];
 class display extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       show:false,
-      radio:'1'
+      radio:'1',
+      
     };
 
   }
@@ -117,16 +124,16 @@ class display extends React.Component {
         var originalEvent = ev.originalEvent;
         
         that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
-            '建筑类型：': rawData.name,
-            '最近一年单位面积电耗：': rawData.powerConsumptionPerUnitArea || 0,
-            '最近一年单位面积水耗：': rawData.waterConsumptionPerUnitArea || 0,
-            '最近一年单位面积气耗：': rawData.gasConsumptionPerUnitArea || 0,
-            '节能标准：': rawData.energySavingStandard,
-            '是否经过节能改造：': rawData.energySavingTransformationOrNot,
-            '绿建等级：': rawData.gbes,
-            '供冷方式：': rawData.coolingMode,
-            '供暖方式：': rawData.heatingMode,
-            '可再生能源利用：': rawData.whetherToUseRenewableResources
+            '建筑类型：': rawData.architecturalType || '无',
+            '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 )+' kWh/㎡',
+            '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0)+' m³/㎡',
+            '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0)+' m³/㎡',
+            '节能标准：': rawData.energySavingStandard?energySavingStandard[rawData.energySavingStandard]:'无',
+            '是否经过节能改造：': rawData.energySavingTransformationOrNot?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
+            '绿建等级：': rawData.gbes?gbes[rawData.gbes]:'无',
+            '供冷方式：': rawData.coolingMode?coolingMode[rawData.coolingMode]:'无',
+            '供暖方式：': rawData.heatingMode?heatingMode[rawData.heatingMode]:'无',
+            '可再生能源利用：': rawData.whetherToUseRenewableResources?whetherToUseRenewableResources[rawData.whetherToUseRenewableResources]:'无',
           });
       });
 
@@ -146,7 +153,8 @@ class display extends React.Component {
       layer.setData(mapData, {
         lnglat:function (obj) {
           var value = obj.value;
-          return [value['longitude'], value['latitude']];
+          console.log(isNaN(value['longitude'])+':'+value['name'])
+          return [value['longitude']?value['longitude']:0, value['latitude']?value['latitude']:0];
         },
         type:'json'// 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。
       });
@@ -215,11 +223,11 @@ class display extends React.Component {
   };
   render(){
     const { display } = this.props;
-    const { maxMin } = display;
+    const { maxMin,height } = display;
     return (
       <PageHeaderWrapper>
         <div className="display">
-          <div id='container' style={{height:'700px',width:'100%'}}></div>
+          <div id='container' style={{height:`${height}px`,width:'100%'}}></div>
           <div className="type" >
             <Radio.Group value={this.state.radio} buttonStyle="solid" onChange={(e)=>this.toggleRadio(e)}>
               <Radio.Button value="0">水</Radio.Button>
