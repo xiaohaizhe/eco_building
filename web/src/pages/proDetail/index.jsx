@@ -28,12 +28,9 @@ const proDetail = props => {
     const description = (
                   <Descriptions
                   title={detail.name}
-                  style={{
-                    marginBottom: 32,
-                  }}
                 >
                   {/* <Descriptions.Item label="项目名称">{detail.name}</Descriptions.Item> */}
-                  <Descriptions.Item label="地址">{detail.province||''}{detail.city||''}{detail.district||''}{detail.street||''}{detail.address||''}</Descriptions.Item>
+                  <Descriptions.Item label="地址" span={3}>{detail.province||''}{detail.city||''}{detail.district||''}{detail.street||''}{detail.address||''}</Descriptions.Item>
                   <Descriptions.Item label="建筑类型">{detail.architecturalType}</Descriptions.Item>
                   <Descriptions.Item label="建成时间">{detail.builtTime}</Descriptions.Item>
                   <Descriptions.Item label="绿建星级">{gbes[detail.gbes]}</Descriptions.Item>

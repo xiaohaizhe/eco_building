@@ -1,6 +1,6 @@
 import React ,{useEffect}from 'react';
 // import { Card, Typography, Alert } from 'antd';
-import { useParams  } from 'umi';
+import { useParams,history  } from 'umi';
 import { getProjectPage } from '@/services/projectManage';
 import { connect } from 'umi';
 import ProTable from '@ant-design/pro-table';
@@ -26,7 +26,16 @@ const more = props => {
     const columns = [
         {
           title: '项目名称',
-          dataIndex: 'name'
+          dataIndex: 'name',
+          render: (_,record) => <span
+            onClick={e => {
+              history.push({
+                pathname: '/proDetail/'+record.id
+              })
+            }}
+          >
+          {_}
+        </span>
         }
       ];
     return (

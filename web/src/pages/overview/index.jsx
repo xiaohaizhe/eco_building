@@ -44,12 +44,19 @@ class overview extends React.Component {
     })
   };
   handleChange = value => {
-    debugger
+    if(value && value!='more'){
+      //跳转详情或者更多
+      history.push({
+        pathname: '/proDetail/'+value
+      })
+    }else{
+      //跳转更多
+      history.push({
+        pathname: '/more/'+this.state.searchName
+      })
+    }
     
-    //跳转详情或者更多
-    history.push({
-      pathname: '/more/'+this.state.searchName
-    });
+    
   };
 
   render(){
