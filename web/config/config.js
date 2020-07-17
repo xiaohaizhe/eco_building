@@ -38,6 +38,36 @@ export default defineConfig({
     },
     {
       path: '/',
+      component: '../layouts/BasicLayout',
+      routes: [
+        {
+          path: '/',
+          redirect: '/overview',
+        },
+        {
+          path: '/overview',
+          name: 'overview',
+          icon: 'home',
+          component: './overview',
+        },
+        {
+          path: '/display',
+          name: 'display',
+          icon: 'dashboard',
+          component: './display',
+        },
+        {
+          path: '/more/:name',
+          component: './overview/more',
+        },{
+          path: '/proDetail/:id',
+          component: './proDetail',
+        },{
+          component: './404',
+        },]
+      },
+    {
+      path: '/',
       component: '../layouts/SecurityLayout',
       routes: [
         {
@@ -45,22 +75,22 @@ export default defineConfig({
           component: '../layouts/BasicLayout',
           authority: ['ADMIN', 'USER'],
           routes: [
-            {
-              path: '/',
-              redirect: '/overview',
-            },
-            {
-              path: '/overview',
-              name: 'overview',
-              icon: 'home',
-              component: './overview',
-            },
-            {
-              path: '/display',
-              name: 'display',
-              icon: 'dashboard',
-              component: './display',
-            },
+            // {
+            //   path: '/',
+            //   redirect: '/overview',
+            // },
+            // {
+            //   path: '/overview',
+            //   name: 'overview',
+            //   icon: 'home',
+            //   component: './overview',
+            // },
+            // {
+            //   path: '/display',
+            //   name: 'display',
+            //   icon: 'dashboard',
+            //   component: './display',
+            // },
             {
               path: '/log',
               name: 'log',

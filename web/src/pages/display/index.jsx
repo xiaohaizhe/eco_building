@@ -225,7 +225,7 @@ class display extends React.Component {
     const { display } = this.props;
     const { maxMin,height } = display;
     return (
-      <PageHeaderWrapper>
+      <div>
         <div className="display">
           <div id='container' style={{height:`${height}px`,width:'100%'}}></div>
           <div className="type" >
@@ -245,7 +245,7 @@ class display extends React.Component {
             <p className="min">{Math.ceil(maxMin[this.state.radio].min)}</p>
           </div>
         </div>
-      </PageHeaderWrapper>)
+      </div>)
     }
 }
 

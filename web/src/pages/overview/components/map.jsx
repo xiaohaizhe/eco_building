@@ -22,7 +22,7 @@ class Map extends React.Component {
                 type: 'projectManage/filterData'
             });
         }
-        // this.loadMap()
+        this.loadMap()
     }
     componentDidUpdate(preProps) {
         const { projectManage } = this.props;

@@ -22,6 +22,7 @@ class Treemap extends React.Component {
                 type: 'overview/getTop5',
             });
         }
+        this.loadChart()
     }
     componentDidUpdate(preProps) {
         const { overview } = this.props;
@@ -29,9 +30,8 @@ class Treemap extends React.Component {
             this.loadChart()
         }
       }
-    loadChart = values => {
+    loadChart = () => {
         const { top5 } =this.props.overview;
-        debugger
         var myChart = echarts.init(document.getElementById('myChart'));
         let option = {
             series: [{
