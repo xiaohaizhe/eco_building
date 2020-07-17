@@ -793,23 +793,23 @@ public class BaseProjectService implements ProjectService {
     @Override
     public WebResponse JiangSuTop5() {
         List<Object[]> list = projectRepository.findCityCountByProvinceAndDelStatus("江苏省", Constants.DelStatus.NORMAL.isValue());
-        List<CityCount> cityCounts = new ArrayList<>();
+        List<Map<String, Object>> cityCounts = new ArrayList<>();
         for (Object[] objects :
                 list) {
-            CityCount cityCount = new CityCount();
+            Map<String, Object> cityCount = new HashMap<>();
             for (Object object : objects) {
                 if (object instanceof String) {
                     String city = (String) object;
-                    cityCount.setCity(city);
+                    cityCount.put("name", city);
                 }
                 if (object instanceof BigInteger) {
                     Long count = ((BigInteger) object).longValue();
-                    cityCount.setCount(count);
+                    cityCount.put("value", count);
                 }
             }
             cityCounts.add(cityCount);
         }
-        return WebResponse.success(list);
+        return WebResponse.success(cityCounts);
     }
 
     @Override
