@@ -36,12 +36,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/project/**").hasAnyAuthority("USER", "ADMIN")
+                .antMatchers("/project/update", "/project/updateData", "/project/importExcel",
+                        "/project/downloadExample", "/project/uploadPic", "/project/delete", "/project/getDataByTime")
+                .hasAnyAuthority("USER", "ADMIN")
                 .antMatchers("/admin/**", "/actuator/**", "/actions/actionPage").hasAuthority("ADMIN")
                 .antMatchers("/actions/actionPageByUserId").hasAnyAuthority("USER", "ADMIN")
                 .and()
                 .logout().logoutUrl("/logout")
-                .logoutSuccessHandler(new CustomLogoutSuccessHandler(actionService))
                 .clearAuthentication(true).permitAll()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationEntryPoint())

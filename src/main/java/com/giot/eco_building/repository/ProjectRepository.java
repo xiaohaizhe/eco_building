@@ -23,7 +23,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
     List<Project> findByProvinceAndDelStatusAndOrderByPowerConsumptionPerUnitAreaDescAndLimit10(String province, Boolean delStatus);
 
     @Query(nativeQuery = true,
-            value = "SELECT city,COUNT(city) as count FROM `project` where province = :province and del_status = :delStatus GROUP BY city ORDER BY count desc LIMIT 5")
+            value = "SELECT city,COUNT(city) as count FROM `project` where province = :province and city != '' and del_status = :delStatus GROUP BY city ORDER BY count desc LIMIT 5")
     List<Object[]> findCityCountByProvinceAndDelStatus(String province, Boolean delStatus);
 
     @Query(value = "SELECT DISTINCT province FROM Project where province != \"\"", nativeQuery = true)
