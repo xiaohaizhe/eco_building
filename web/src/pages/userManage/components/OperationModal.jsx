@@ -80,16 +80,11 @@ const OperationModal = props => {
     }
   };
 
-  const modalFooter = done
-    ? {
-        footer: null,
-        onCancel: onDone,
-      }
-    : {
-        okText: '保存',
-        onOk: handleSubmit,
-        onCancel,
-      };
+  const modalFooter = {
+      okText: '保存',
+      onOk: handleSubmit,
+      onCancel,
+    };
 
   const getModalContent = () => {
     // if (done) {

@@ -47,13 +47,13 @@ export default defineConfig({
           routes: [
             {
               path: '/',
-              redirect: '/welcome',
+              redirect: '/overview',
             },
             {
-              path: '/welcome',
-              name: 'welcome',
+              path: '/overview',
+              name: 'overview',
               icon: 'home',
-              component: './Welcome',
+              component: './overview',
             },
             {
               path: '/display',
@@ -65,8 +65,15 @@ export default defineConfig({
               path: '/log',
               name: 'log',
               icon: 'profile',
-              authority: ['USER'],
+              authority: ['USER','ADMIN'],
               component: './log',
+            },
+            {
+              path: '/projectManage',
+              name: 'projectManage',
+              icon: 'profile',
+              authority: ['USER','ADMIN'],
+              component: './projectManage',
             },
             {
               path: '/admin',
@@ -138,7 +145,7 @@ export default defineConfig({
   scripts: [
     // 'http://api.map.baidu.com/api?ak=OWB4sxHnYQfCyiwxxdNvM9CDzsyDBX40',
     // 'http://api.map.baidu.com/library/Heatmap/2.0/src/Heatmap_min.js'
-    'https://webapi.amap.com/maps?v=1.4.15&key=7e23601269dc69a706d1c8c1a7783247',
+    'https://webapi.amap.com/maps?v=1.4.15&key=7e23601269dc69a706d1c8c1a7783247&plugin=AMap.DistrictSearch',
     'https://webapi.amap.com/loca?v=1.3.2&key=7e23601269dc69a706d1c8c1a7783247'
   ]
 });
