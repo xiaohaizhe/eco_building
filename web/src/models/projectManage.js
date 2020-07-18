@@ -1,4 +1,4 @@
-import { getProjectPage,update,importExcel,deleteProject,getProjectDetail } from '@/services/projectManage';
+import { getProjectPage,update,importExcel,deleteProject,getProjectDetail,getDataByTime  } from '@/services/projectManage';
 import { getMap,getAddressOnMap } from '@/services/display';
 
 const ProjectManageModel = {
@@ -52,7 +52,12 @@ const ProjectManageModel = {
         type: 'saveCitydata',
         payload: response,
       });
-    }
+    },
+    //获取图表信息
+    *getDataByTime({ payload,callback }, { call }) {
+      const response = yield call(getDataByTime,payload);
+      if (callback) callback(response);
+    },
   },
   reducers: {
     save(state, { payload }){

@@ -53,9 +53,22 @@ const projectManage = props => {
       setVisible(true);
       setCurrent(undefined);
     };
-    const showEditModal = item => {
-      setVisible(true);
-      setCurrent(item);
+    const toEdit = id => {
+      history.push({
+        pathname: `/projectManage/edit`,
+        query: {
+          id : id
+        },
+      });
+    };
+
+    const toDetail = id => {
+      history.push({
+        pathname: `/projectManage/detail`,
+        query: {
+          id : id
+        },
+      });
     };
     const deleteProject = (id) => {
         let temp = new FormData();
@@ -113,7 +126,19 @@ const projectManage = props => {
     const columns = [
       {
         title: '项目名称',
-        dataIndex: 'name'
+        dataIndex: 'name',
+        render: (_, record) => (
+          <span
+            key="detail"
+            onClick={e => {
+              e.preventDefault();
+              toDetail(record.id);
+            }}
+            style={{cursor: "pointer"}}
+          >
+            {record.name}
+          </span>
+        )
       },
       {
         title: '建筑类型',
@@ -160,7 +185,7 @@ const projectManage = props => {
               key="edit"
               onClick={e => {
                 e.preventDefault();
-                showEditModal(record);
+                toEdit(record);
               }}
             >
               编辑

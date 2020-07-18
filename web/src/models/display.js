@@ -16,7 +16,7 @@ const DisplayModel = {
     }],
     address:[],
     itemParams:{},
-    height:window.innerHeight-170
+    height:window.innerHeight-210
   },
   effects: {
     *getMap(_,{ call, put, select }) {

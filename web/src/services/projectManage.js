@@ -36,3 +36,11 @@ export async function getProjectDetail(params) {
     params: params
   });
 }
+
+//折线图
+export async function getDataByTime(params) {
+  return request('/api/project/getDataByTime', {
+    method: 'GET',
+    params: params
+  });
+}

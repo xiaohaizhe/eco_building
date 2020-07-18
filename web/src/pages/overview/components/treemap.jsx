@@ -57,7 +57,7 @@ class Treemap extends React.Component {
             }}>
             <Row>
                 <Col span={14}>
-                    <div id="myChart" style={{width: '100%', height: `${window.innerHeight-250}px`}}></div>
+                    <div id="myChart" style={{width: '100%', height: `${window.innerHeight-310}px`}}></div>
                 </Col>
                 <Col span={10} style={{padding:'10px 20px'}}>
                     <h4 className={styles.rankingTitle}>电耗排名</h4>

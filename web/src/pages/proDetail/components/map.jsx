@@ -1,12 +1,9 @@
 import React from 'react';
-import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import {DownOutlined,UpOutlined } from '@ant-design/icons';
 import AMap from 'AMap';
 import Loca from 'Loca'
-import { Radio } from 'antd';
 import { connect } from 'umi';
-import ItemSelect from './components/ItemSelect';
-import  './index.less';
+import { Card } from 'antd';
+
 var infoWin;
 const energySavingStandard = ['不执行节能标准','50%','65%','75%以上','未知'];
 const energySavingTransformationOrNot = ['是','否','未知'];
@@ -14,33 +11,30 @@ const gbes = ['0星','1星','2星','3星','未知'];
 const coolingMode = ['集中供冷','分户供冷','无供冷','未知'];
 const heatingMode = ['集中供暖', '分户采暖',  '无采暖', '未知'];
 const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '未知'];
-class display extends React.Component {
+class Map extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      show:false,
       radio:'1',
-      
     };
-
   }
 
   componentDidMount() {
     const { dispatch,display} = this.props;
-    const { mapData,maxMin } = display;
+    const { mapData } = display;
     if (dispatch) {
       dispatch({
         type: 'display/getMap',
       });
     }
-    this.loadMap(mapData,maxMin[this.state.radio]);
+    this.loadMap(mapData);
   }
   
   componentDidUpdate(preProps) {
     const { display } = this.props;
-    const { mapData,maxMin } = display;
+    const { mapData } = display;
     if (preProps && JSON.stringify(preProps.display) !== JSON.stringify(display)) {
-        this.loadMap(mapData,maxMin[this.state.radio]);
+        this.loadMap(mapData);
     }
   }
   //打开详情浮窗
@@ -99,13 +93,14 @@ class display extends React.Component {
     }
   }
   //生成地图
-  loadMap(mapData,typeData){
+  loadMap = (mapData) => {
+    const {id,latitude,longitude} = this.props.detail;
     let that = this;
     var map = new AMap.Map('container', {
-          center: [108.5525, 34.3227],
+          center: [longitude?longitude:108.5525, latitude?latitude:34.3227],
           mapStyle:'amap://styles/macaron',
           rotation: 0,
-          zoom: 4.5,
+          zoom:14,
           pitch: 0,
           skyColor: '#33216a'
       });
@@ -137,18 +132,6 @@ class display extends React.Component {
           });
       });
 
-      // layer.on('mouseleave', function (ev) {
-      //     that.closeInfoWin();
-      // });
-      
-      // var data = [
-      // {
-      //   "lnglat":[116.258446,37.686622],
-      //   "title":'xxx项目',
-      //   "name":"景县",
-      //   "style":2,
-      //   'value':500
-      // }]
       //设置数据源
       layer.setData(mapData, {
         lnglat:function (obj) {
@@ -166,43 +149,11 @@ class display extends React.Component {
             height: 0,
             // 根据车辆类型设定不同填充颜色
             color: function (obj) {
-                if(typeData.max-typeData.min===0){
-                  return '#0000ff';
+                if(obj.value.id == id){
+                  return 'red'
                 }else{
-                  var value = 0;
-                  if(that.state.radio=='0'){
-                    value = obj.value.waterConsumptionPerUnitArea || 0;
-                  }else if (that.state.radio=='1'){
-                    value = obj.value.powerConsumptionPerUnitArea || 0;
-                  }else if(that.state.radio=='2'){
-                    value = obj.value.gasConsumptionPerUnitArea || 0;
-                  }
-                  var max = typeData.max;
-                  var min = typeData.min;
-                  
-                  return gradientColor(value,max,min);
+                  return 'blue'
                 }
-                
-
-                function gradientColor(data,max,min){
-                  //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
-                    let startR = 255;
-                    let startG = 0;
-                    let startB = 0;
-                   
-                  //   let endRGB = this.colorRgb('#0000ff'); 
-                    let endR = 0;
-                    let endG = 0;
-                    let endB = 255;
-                   
-                    let step = (max-data)/(max-min);
-                    let sR = (endR-startR)*step;//总差值
-                    let sG = (endG-startG)*step;
-                    let sB = (endB-startB)*step;
-                   
-                    var color = 'rgb('+parseInt((sR+startR))+','+parseInt((sG+startG))+','+parseInt((sB+startB))+')';
-                    return color;
-                   }
             },
             opacity: 1
         }
@@ -210,46 +161,23 @@ class display extends React.Component {
 
     layer.render();
   }
-  toggleForm(){
-      this.setState({"show":!this.state.show})
-  }
-  toggleRadio(e){
-    const { display } = this.props;
-    const { mapData,maxMin } = display;
-    this.setState({
-      radio: e.target.value,
-    });
-    this.loadMap(mapData,maxMin[e.target.value]);
-  };
   render(){
-    const { display } = this.props;
-    const { maxMin,height } = display;
     return (
-      <PageHeaderWrapper>
-        <div className="display">
-          <div id='container' style={{height:`${height}px`,width:'100%'}}></div>
-          <div className="type" >
-            <Radio.Group value={this.state.radio} buttonStyle="solid" onChange={(e)=>this.toggleRadio(e)}>
-              <Radio.Button value="0">水</Radio.Button>
-              <Radio.Button value="1">电</Radio.Button>
-              <Radio.Button value="2">汽</Radio.Button>
-            </Radio.Group>
-            <div className="ant-radio-button-wrapper" onClick={()=>this.toggleForm()}>
-              {this.state.show?<UpOutlined />:<DownOutlined />}
-            </div>
-            {this.state.show && <ItemSelect></ItemSelect>}
-          </div>
-          <div className="legend">
-            <div className="gradientLegend"></div>
-            <p className="max">{Math.ceil(maxMin[this.state.radio].max)}</p>
-            <p className="min">{Math.ceil(maxMin[this.state.radio].min)}</p>
-          </div>
-        </div>
-      </PageHeaderWrapper>)
+      <div>
+        <Card
+            // loading={loading}
+            bordered={false}
+            bodyStyle={{
+            padding: 0,
+            }}>
+          <div id='container' style={{height: `${window.innerHeight-400}px`,width:'100%'}}></div>
+        </Card>
+      </div>)
     }
 }
 
-export default connect(({ display, loading }) => ({
+export default connect(({ display, loading ,projectManage}) => ({
   display,
+  detail:projectManage.detail,
   loading: loading.models.display,
-}))(display);
+}))(Map);

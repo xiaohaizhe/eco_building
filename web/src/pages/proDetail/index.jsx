@@ -1,7 +1,9 @@
 import React ,{useEffect }from 'react';
-import { Row, Descriptions,Avatar } from 'antd';
+import { Row, Col ,Descriptions,Avatar } from 'antd';
 import { connect,useParams } from 'umi';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
+import EchartItem from '../../components/EchartItem/echartItem';
+import Map from './components/map'
 const energySavingStandard = ['不执行节能标准','50%','65%','75%以上','未知'];
 const energySavingTransformationOrNot = ['是','否','未知'];
 const gbes = ['0星','1星','2星','3星','未知'];
@@ -45,9 +47,19 @@ const proDetail = props => {
       <PageHeaderWrapper
         title="项目详情"
         content={description}
-        extraContent={extra}>
-          <Row>
-            
+        extraContent={extra}
+        >
+          <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}>
+            <Col span={12}>
+              <Map></Map>
+            </Col>
+            <Col span={12}>
+              <div> 
+                <EchartItem name = "电耗趋势/按月" format = 'YYYY/MM' echartId = "powerConsumptionPerUnitArea1" dataType="电" timeType="月"/>
+                {/* <EchartItem name = "气耗趋势/按月" format = 'YYYY/MM' echartId = "gasConsumptionPerUnitArea1" dataType="气" timeType="月"/>
+                <EchartItem name = "水耗趋势/按月" format = 'YYYY/MM' echartId = "waterConsumptionPerUnitArea1" dataType="水" timeType="月"/> */}
+              </div>
+            </Col>
           </Row>
         </PageHeaderWrapper>
       )
