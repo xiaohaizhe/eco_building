@@ -37,9 +37,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers("/project/update", "/project/updateData", "/project/importExcel",
-                        "/project/downloadExample", "/project/uploadPic", "/project/delete", "/project/getDataByTime")
+                        "/project/downloadExample", "/project/uploadPic")
                 .hasAnyAuthority("USER", "ADMIN")
-                .antMatchers("/admin/**", "/actuator/**", "/actions/actionPage").hasAuthority("ADMIN")
+                .antMatchers("/admin/**", "/project/delete", "/actuator/**", "/actions/actionPage").hasAuthority("ADMIN")
                 .antMatchers("/actions/actionPageByUserId").hasAnyAuthority("USER", "ADMIN")
                 .and()
                 .logout().logoutUrl("/logout")
