@@ -6,7 +6,6 @@ import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import com.giot.eco_building.entity.Project;
-import com.giot.eco_building.model.CityCount;
 import com.giot.eco_building.model.DataModel;
 import com.giot.eco_building.model.ProjectData;
 import com.giot.eco_building.model.ProjectModel;
@@ -20,7 +19,6 @@ import com.giot.eco_building.utils.HttpUtil;
 import com.giot.eco_building.utils.ImageCheck;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,13 +114,20 @@ public class BaseProjectService implements ProjectService {
      * -已存在项目--基础数据丢弃
      *
      * @param projectList
+     * @return
      */
     @Transactional
-    public void insertAll(List<Project> projectList) {
+    public Map<String, String> insertAll(List<Project> projectList) {
         Set<String> projectNames = new HashSet<>();
         List<Project> projectListResult = new ArrayList<>();
+        Map<String, String> result = new HashMap<>();
         for (Project project : projectList) {
-            if (project != null && project.getName() != null) {
+            if (project != null
+                    && project.getName() != null
+                    && project.getProvince() != null && project.getCity() != null && project.getDistrict() != null
+                    && project.getStreet() != null && project.getAddress() != null && project.getArchitecturalType() != null
+                    && project.getLongitude() != null && project.getLatitude() != null && project.getArea() != null
+                    && project.getBuiltTime() != null) {
                 String projectName = project.getName();
                 if (!"".equals(projectName) &&
                         !projectNames.contains(projectName) &&
@@ -133,9 +138,12 @@ public class BaseProjectService implements ProjectService {
                     projectListResult.add(project);
                 } else {
                     logger.error("项目：{}，已存在", projectName);
+                    result.put(projectName, "项目已存在");
                 }
-            } else {
-                logger.error("项目参数不完整（项目名不存在）");
+            } else if (project.getName() != null) {
+                String projectName = project.getName();
+                logger.error("项目{}参数不完整（项目名不存在）", projectName);
+                result.put(projectName, "参数不完整");
             }
         }
         if (projectListResult.size() > 0) {
@@ -143,36 +151,9 @@ public class BaseProjectService implements ProjectService {
             projectRepository.saveAll(projectListResult);
             logger.info("<<<<<<<<<<<<<<<<<<<保存结束");
         }
+        return result;
     }
 
-    /**
-     * 根据项目地址
-     * 获取项目所在经纬度
-     *
-     * @param
-     * @return
-     */
-    /*@Deprecated
-    private void setLocation(Project project) throws IOException {
-        String address = project.getAddress();
-        if ((project.getLongitude() == null || project.getLatitude() == null)
-                && !"".equals(address)) {
-            Map<String, Object> params = new HashMap<>();
-            params.put("address", address);
-            params.put("output", "json");
-            params.put("ak", AK);
-            JSONObject object = HttpUtil.get(MAP_URL, params);
-            int status = object.getInteger("status");
-            if (status == 0) {
-                JSONObject result = object.getJSONObject("result");
-                JSONObject location = result.getJSONObject("location");
-                float lng = location.getFloat("lng");
-                float lat = location.getFloat("lat");
-                project.setLongitude(lng);
-                project.setLatitude(lat);
-            }
-        }
-    }*/
     private JSONObject getAddress(double lon, double lat) throws IOException {
         Map<String, Object> params = new HashMap<>();
         String location = "" + lat + ',' + lon;
@@ -560,6 +541,7 @@ public class BaseProjectService implements ProjectService {
                                        Double[] waterConsumptionPerUnitArea) {
         Specification<Project> projectSpecification = (Specification<Project>) (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> list = new ArrayList<>();//查询条件集
+            list.add(criteriaBuilder.equal(root.get("delStatus").as(Boolean.class), Constants.DelStatus.NORMAL.isValue()));
             //1. province,  city,  district,  street
             if (province != null && !"".equals(province))
                 list.add(criteriaBuilder.equal(root.get("province").as(String.class), province));
@@ -638,17 +620,17 @@ public class BaseProjectService implements ProjectService {
             //Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea
             if (area != null) {
                 if (area.length == 2) {
-                    list.add(criteriaBuilder.between(root.get("area"), area[0], area[1]));
+                    list.add(criteriaBuilder.between(root.get("area").as(Double.class), area[0], area[1]));
                 } else if (area.length == 1) {
-                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("area"), area[0]));
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("area").as(Double.class), area[0]));
                 }
 
             }
             if (floor != null) {
                 if (floor.length == 2) {
-                    list.add(criteriaBuilder.between(root.get("floor"), floor[0], floor[1]));
+                    list.add(criteriaBuilder.between(root.get("floor").as(Integer.class), floor[0], floor[1]));
                 } else if (floor.length == 1) {
-                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("floor"), floor[0]));
+                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("floor").as(Integer.class), floor[0]));
                 }
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
@@ -667,14 +649,15 @@ public class BaseProjectService implements ProjectService {
                     } catch (ParseException e) {
                         flag = false;
                     }
-                    if (flag) list.add(criteriaBuilder.between(root.get("builtTime"), sdate, edate));
+                    if (flag) list.add(criteriaBuilder.between(root.get("builtTime").as(Date.class), sdate, edate));
                 } else if (date.length == 1) {
                     try {
                         sdate = sdf.parse(date[0]);
                     } catch (ParseException e) {
                         flag = false;
                     }
-                    if (flag) list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("builtTime"), sdate));
+                    if (flag)
+                        list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("builtTime").as(Date.class), sdate));
                 }
             }
             if (powerConsumptionPerUnitArea != null) {
@@ -683,7 +666,6 @@ public class BaseProjectService implements ProjectService {
                 } else if (powerConsumptionPerUnitArea.length == 1) {
                     list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0]));
                 }
-                list.add(criteriaBuilder.notEqual(root.get("powerConsumptionPerUnitArea"), null));
             }
             if (gasConsumptionPerUnitArea != null) {
                 if (gasConsumptionPerUnitArea.length == 2) {
@@ -691,7 +673,6 @@ public class BaseProjectService implements ProjectService {
                 } else if (gasConsumptionPerUnitArea.length == 1) {
                     list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0]));
                 }
-                list.add(criteriaBuilder.notEqual(root.get("gasConsumptionPerUnitArea"), null));
             }
             if (waterConsumptionPerUnitArea != null) {
                 if (waterConsumptionPerUnitArea.length == 2) {
@@ -699,12 +680,13 @@ public class BaseProjectService implements ProjectService {
                 } else if (waterConsumptionPerUnitArea.length == 1) {
                     list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0]));
                 }
-                list.add(criteriaBuilder.notEqual(root.get("waterConsumptionPerUnitArea"), null));
             }
-            list.add(criteriaBuilder.equal(root.get("delStatus"), Constants.DelStatus.NORMAL.isValue()));
+
             return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
         };
-        List<Project> projectList = projectRepository.findAll(projectSpecification);
+        Sort sort = Sort.by(Sort.Direction.DESC,
+                "created"); //创建时间降序排序
+        List<Project> projectList = projectRepository.findAll(projectSpecification, sort);
         return projectList;
 
     }

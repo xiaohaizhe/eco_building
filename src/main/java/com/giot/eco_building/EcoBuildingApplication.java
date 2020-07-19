@@ -1,6 +1,8 @@
 package com.giot.eco_building;
 
+import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 import org.springframework.boot.SpringApplication;
@@ -11,6 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,11 +30,11 @@ public class EcoBuildingApplication {
         FastJsonHttpMessageConverter converter = new FastJsonHttpMessageConverter();
         FastJsonConfig config = new FastJsonConfig();
 
-//        SerializeConfig serializeConfig = SerializeConfig.globalInstance;
-//        serializeConfig.put(BigInteger.class, ToStringSerializer.instance);
-//        serializeConfig.put(Long.class, ToStringSerializer.instance);
-//        serializeConfig.put(Long.TYPE, ToStringSerializer.instance);
-//        config.setSerializeConfig(serializeConfig);
+        SerializeConfig serializeConfig = SerializeConfig.globalInstance;
+        serializeConfig.put(BigInteger.class, ToStringSerializer.instance);
+        serializeConfig.put(Long.class, ToStringSerializer.instance);
+        serializeConfig.put(Long.TYPE, ToStringSerializer.instance);
+        config.setSerializeConfig(serializeConfig);
         config.setDateFormat("yyyy-MM-dd HH:mm:ss");
         List<MediaType> supportedMediaTypes = new ArrayList<>();
         supportedMediaTypes.add(MediaType.APPLICATION_JSON);
