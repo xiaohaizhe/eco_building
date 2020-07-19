@@ -217,7 +217,7 @@ public class BaseProjectService implements ProjectService {
                     break;
             }
             if (type != null && isMonth != null && dataModel.getProjectId() != null) {
-                SimpleDateFormat sdf = null;
+                SimpleDateFormat sdf;
                 if (isMonth) sdf = new SimpleDateFormat("yyyy-MM");
                 else sdf = new SimpleDateFormat("yyyy");
                 for (Map<String, Double> map : dataModel.getDataMap()) {
@@ -227,14 +227,23 @@ public class BaseProjectService implements ProjectService {
                         Double value = map.get(key);
                         try {
                             Date actualDate = sdf.parse(key);
-                            com.giot.eco_building.entity.ProjectData projectData = new com.giot.eco_building.entity.ProjectData();
-                            projectData.setProjectId(dataModel.getProjectId());
-                            projectData.setIsMonth(isMonth);
-                            projectData.setActualDate(actualDate);
-                            projectData.setType(type);
-                            projectData.setValue(value);
-                            projectData.setDelStatus(Constants.DelStatus.NORMAL.isValue());
-                            projectDataList.add(projectData);
+                            Long projectId = dataModel.getProjectId();
+                            Optional<com.giot.eco_building.entity.ProjectData> optional
+                                    = projectDataRepository.findByProjectIdAndActualDateAndTypeAndIsMonth(projectId, actualDate, type, isMonth);
+                            if (!optional.isPresent()) {
+                                com.giot.eco_building.entity.ProjectData projectData = new com.giot.eco_building.entity.ProjectData();
+                                projectData.setProjectId(projectId);
+                                projectData.setIsMonth(isMonth);
+                                projectData.setActualDate(actualDate);
+                                projectData.setType(type);
+                                projectData.setValue(value);
+                                projectData.setDelStatus(Constants.DelStatus.NORMAL.isValue());
+                                projectDataList.add(projectData);
+                            } else {
+                                com.giot.eco_building.entity.ProjectData projectData = optional.get();
+                                projectData.setValue(value);
+                                projectDataRepository.saveAndFlush(projectData);
+                            }
                         } catch (ParseException e) {
                             e.printStackTrace();
                             logger.error("{}数据在{}时出错", dataModel.getType(), key);
@@ -244,7 +253,7 @@ public class BaseProjectService implements ProjectService {
             }
         }
         List<com.giot.eco_building.entity.ProjectData> result = projectDataRepository.saveAll(projectDataList);
-        return WebResponse.success(result);
+        return WebResponse.success();
     }
 
     /**
