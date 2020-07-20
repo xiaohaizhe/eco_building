@@ -47,12 +47,12 @@ class overview extends React.Component {
     if(value && value!='more'){
       //跳转详情或者更多
       history.push({
-        pathname: '/proDetail/'+value
+        pathname: '/overview/proDetail/'+value
       })
     }else{
       //跳转更多
       history.push({
-        pathname: '/more/'+this.state.searchName
+        pathname: '/overview/more/'+this.state.searchName
       })
     }
     

@@ -4,7 +4,7 @@ import {DownOutlined,UpOutlined } from '@ant-design/icons';
 import AMap from 'AMap';
 import Loca from 'Loca'
 import { Radio } from 'antd';
-import { connect } from 'umi';
+import { connect ,history} from 'umi';
 import ItemSelect from './components/ItemSelect';
 import  './index.less';
 var infoWin;
@@ -44,7 +44,7 @@ class display extends React.Component {
     }
   }
   //打开详情浮窗
-  openInfoWin(map, event,title,address, content) {
+  openInfoWin(map, event,title,address, content,id) {
     var tableDom;
     if (!infoWin) {
         infoWin = new AMap.InfoWindow({
@@ -69,6 +69,11 @@ class display extends React.Component {
         let bottonDom = document.createElement('button');
         bottonDom.className = 'ant-btn ant-btn-primary btnFix';
         bottonDom.innerHTML = '详细数据';
+        bottonDom.onclick =function(){
+          history.push({
+            pathname: '/overview/proDetail/'+id
+          })
+        }
         tableDom = document.createElement('table');
         infoDom.appendChild(closeDom);
         infoDom.appendChild(tableDom);
@@ -134,7 +139,7 @@ class display extends React.Component {
             '供冷方式：': rawData.coolingMode?coolingMode[rawData.coolingMode]:'无',
             '供暖方式：': rawData.heatingMode?heatingMode[rawData.heatingMode]:'无',
             '可再生能源利用：': rawData.whetherToUseRenewableResources?whetherToUseRenewableResources[rawData.whetherToUseRenewableResources]:'无',
-          });
+          },rawData.id);
       });
 
       // layer.on('mouseleave', function (ev) {

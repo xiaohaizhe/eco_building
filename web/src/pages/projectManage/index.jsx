@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect} from 'react';
 import { getProjectPage } from '@/services/projectManage';
 import ImportModal from './components/import';
-import { Link, connect } from 'umi';
+import { Link, connect, history } from 'umi';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Divider, Cascader, Menu, message, Input,Modal, Spin } from 'antd';
@@ -53,23 +53,19 @@ const projectManage = props => {
       setVisible(true);
       setCurrent(undefined);
     };
+
     const toEdit = id => {
       history.push({
-        pathname: `/projectManage/edit`,
-        query: {
-          id : id
-        },
+        pathname: `/projectManage/edit/${id}`,
       });
     };
 
     const toDetail = id => {
       history.push({
-        pathname: `/projectManage/detail`,
-        query: {
-          id : id
-        },
+        pathname: `/projectManage/detail/${id}`,
       });
     };
+
     const deleteProject = (id) => {
         let temp = new FormData();
         temp.append('id',id)
@@ -94,17 +90,21 @@ const projectManage = props => {
           })
         });
     };
+
     const handleDone = () => {
       setDone(false);
       setVisible(false);
     };
+
     const handleCancel = () => {
       setVisible(false);
     };
     
     const handleSubmit = values => {
-      setDone(true);
-      
+      // setDone(true);
+      if (actionRef.current) {
+          actionRef.current.reload();
+        }
       // dispatch({
       //   type: 'projectManage/submit',
       //   payload: values,
@@ -123,6 +123,7 @@ const projectManage = props => {
       //   }
       // });
     };
+
     const columns = [
       {
         title: '项目名称',
@@ -185,7 +186,7 @@ const projectManage = props => {
               key="edit"
               onClick={e => {
                 e.preventDefault();
-                toEdit(record);
+                toEdit(record.id);
               }}
             >
               编辑
@@ -208,8 +209,8 @@ const projectManage = props => {
       current: 1,
       pageSize: 10
     }
-    return (
-      
+
+    return (      
       <PageHeaderWrapper>
         <ProTable
           headerTitle="项目管理"

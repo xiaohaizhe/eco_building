@@ -198,7 +198,7 @@ class Map extends React.Component {
         return (
             <Card
                 // loading={loading}
-                title="江苏项目图上速览"
+                title="项目图上速览"
                 bordered={false}
                 bodyStyle={{
                 padding: 0,

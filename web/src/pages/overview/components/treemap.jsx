@@ -34,9 +34,33 @@ class Treemap extends React.Component {
         const { top5 } =this.props.overview;
         var myChart = echarts.init(document.getElementById('myChart'));
         let option = {
+            
             series: [{
                 name: 'ALL',
                 type: 'treemap',
+                label: {
+                    normal: {
+                        formatter: function (params) {
+                            var arr = [
+                                '{name|' + params.name + '}',
+                                '{value|' + params.value + '}',
+                            ];
+                            return arr.join('\n');
+                        },
+                        rich: {
+                            value: {
+                                fontSize: 14,
+                                lineHeight: 30,
+                                color: '#fff',
+                                align:'center'
+                            },
+                            name: {
+                                fontSize: 16,
+                                color: '#fff'
+                            },
+                        }
+                    }
+                },
                 data:top5
             }]
         };
@@ -50,7 +74,7 @@ class Treemap extends React.Component {
         return (
             <Card
             // loading={loading}
-            title="江苏项目统计"
+            title="项目统计"
             bordered={false}
             bodyStyle={{
             padding: 0,

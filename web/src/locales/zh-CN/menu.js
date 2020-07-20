@@ -2,6 +2,8 @@ export default {
   'menu.overview': '总览',
   'menu.display': '图上展示',
   'menu.log': '日志管理',
+  'menu.more': '更多',
+  'menu.proDetail': '项目详情',
   'menu.projectManage': '项目管理',
   'menu.more-blocks': '更多区块',
   'menu.home': '首页',

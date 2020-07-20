@@ -1,4 +1,4 @@
-import { getProjectPage,update,importExcel,deleteProject,getProjectDetail,getDataByTime  } from '@/services/projectManage';
+import { getProjectPage,importExcel,deleteProject,getProjectDetail,getDataByTime,update,updateData} from '@/services/projectManage';
 import { getMap,getAddressOnMap } from '@/services/display';
 
 const ProjectManageModel = {
@@ -56,15 +56,57 @@ const ProjectManageModel = {
     //获取图表信息
     *getDataByTime({ payload,callback }, { call }) {
       const response = yield call(getDataByTime,payload);
-      if (callback) callback(response);
+      if (callback && response.code == 0) callback(response);
     },
+    //更新数据
+    *update({ payload,callback }, { call }) {
+      const response = yield call(update,payload);
+    },
+    //更新表格数据
+    *updateData({ payload,callback }, { call }) {
+      const response = yield call(updateData,payload);
+    },
+    *changeLongLat({ payload }, { put ,select}){
+      const {detail} = yield select(state => state.projectManage);
+      let temp = {...detail,...payload}
+      yield put({
+        type: 'change',
+        payload: temp,
+      });
+    },
+    // *changeLat({ payload }, { put ,select}){
+    //   const {detail} = yield select(state => state.projectManage);
+    //   let temp = {...detail,latitude:payload}
+    //   yield put({
+    //     type: 'change',
+    //     payload: temp,
+    //   });
+    // }
   },
   reducers: {
     save(state, { payload }){
       return { ...state, projects: payload.result};
     },
     saveDetail(state, { payload }){
-      return { ...state, detail: payload.result};
+      let result = payload.result;
+      if(result.province){
+        if(result.city){
+          if(result.district){
+            if(result.street){
+              result.division= [result.province,result.city,result.district,result.street];
+            }else{
+              result.division= [result.province,result.city,result.district];
+            }
+          }else{
+            result.division= [result.province,result.city];
+          }
+        }else{
+          result.division= [result.province];
+        }
+      }else{
+        result.division= [];
+      }
+      return { ...state, detail:result };
     },
     saveCitydata(state, { payload }){
       let mapData = payload.result.project;
@@ -84,6 +126,9 @@ const ProjectManageModel = {
       
       return { ...state, mapData:mapData};//cityData: data,
     },
+    change(state, { payload }){
+      return {...state, detail:payload}
+    }
 
   },
 };

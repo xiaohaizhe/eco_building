@@ -29,15 +29,21 @@ const noMatch = (
 /**
  * use Authorized check all menu item
  */
-const menuDataRender = menuList =>
-
-  menuList.map(item => {
-    const localItem = {
-      ...item,
-      children: item.children ? menuDataRender(item.children) : undefined,
-    };
-    return Authorized.check(item.authority, localItem, null);
+const menuDataRender = (menuList,currentUser) =>{
+  return menuList.map(item => {
+    if((item.path.indexOf("overview") != -1 || item.path.indexOf("display") != -1) || currentUser.name){
+      const localItem = {
+        ...item,
+        children: item.children ? menuDataRender(item.children) : undefined,
+      };
+      localItem.name = localItem.name + "1";
+      return Authorized.check(item.authority, localItem, null);
+    } 
   });
+}
+
+
+  
 
 // const defaultFooterDom = (
 //   <DefaultFooter
@@ -102,6 +108,7 @@ const BasicLayout = props => {
     authority: undefined,
   };
   const { formatMessage } = useIntl();
+  const { currentUser } = props.user;
   return (
     <ProLayout
       // logo={logo}
@@ -138,7 +145,7 @@ const BasicLayout = props => {
         );
       }}
       // footerRender={() => defaultFooterDom}
-      menuDataRender={menuDataRender}
+      menuDataRender={(e)=>menuDataRender(e,currentUser)}
       rightContentRender={() => <RightContent />}
       {...props}
       {...settings}
@@ -150,7 +157,8 @@ const BasicLayout = props => {
   );
 };
 
-export default connect(({ global, settings }) => ({
+export default connect(({ global, settings, user }) => ({
   collapsed: global.collapsed,
   settings,
+  user
 }))(BasicLayout);

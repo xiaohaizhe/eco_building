@@ -1,7 +1,7 @@
 import React from 'react';
 import AMap from 'AMap';
 import Loca from 'Loca'
-import { connect } from 'umi';
+import { connect ,history} from 'umi';
 import { Card } from 'antd';
 
 var infoWin;
@@ -38,7 +38,7 @@ class Map extends React.Component {
     }
   }
   //打开详情浮窗
-  openInfoWin(map, event,title,address, content) {
+  openInfoWin(map, event,title,address, content,id) {
     var tableDom;
     if (!infoWin) {
         infoWin = new AMap.InfoWindow({
@@ -63,6 +63,11 @@ class Map extends React.Component {
         let bottonDom = document.createElement('button');
         bottonDom.className = 'ant-btn ant-btn-primary btnFix';
         bottonDom.innerHTML = '详细数据';
+        bottonDom.onclick =function(){
+          history.push({
+            pathname: '/overview/proDetail/'+id
+          })
+        }
         tableDom = document.createElement('table');
         infoDom.appendChild(closeDom);
         infoDom.appendChild(tableDom);
@@ -129,14 +134,14 @@ class Map extends React.Component {
             '供冷方式：': rawData.coolingMode?coolingMode[rawData.coolingMode]:'无',
             '供暖方式：': rawData.heatingMode?heatingMode[rawData.heatingMode]:'无',
             '可再生能源利用：': rawData.whetherToUseRenewableResources?whetherToUseRenewableResources[rawData.whetherToUseRenewableResources]:'无',
-          });
+          },rawData.id);
       });
 
       //设置数据源
       layer.setData(mapData, {
         lnglat:function (obj) {
           var value = obj.value;
-          console.log(isNaN(value['longitude'])+':'+value['name'])
+          // console.log(isNaN(value['longitude'])+':'+value['name'])
           return [value['longitude']?value['longitude']:0, value['latitude']?value['latitude']:0];
         },
         type:'json'// 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。

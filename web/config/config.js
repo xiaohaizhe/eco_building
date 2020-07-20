@@ -36,61 +36,42 @@ export default defineConfig({
         },
       ],
     },
-    {
-      path: '/',
-      component: '../layouts/BasicLayout',
-      routes: [
-        {
-          path: '/',
-          redirect: '/overview',
-        },
-        {
-          path: '/overview',
-          name: 'overview',
-          icon: 'home',
-          component: './overview',
-        },
-        {
-          path: '/display',
-          name: 'display',
-          icon: 'dashboard',
-          component: './display',
-        },
-        {
-          path: '/more/:name',
-          component: './overview/more',
-        },{
-          path: '/proDetail/:id',
-          component: './proDetail',
-        },{
-          component: './404',
-        },]
-      },
-    {
-      path: '/',
-      component: '../layouts/SecurityLayout',
-      routes: [
+    // {
+    //   path: '/',
+    //   component: '../layouts/SecurityLayout',
+    //   routes: [
         {
           path: '/',
           component: '../layouts/BasicLayout',
           authority: ['ADMIN', 'USER'],
           routes: [
-            // {
-            //   path: '/',
-            //   redirect: '/overview',
-            // },
-            // {
-            //   path: '/overview',
-            //   name: 'overview',
-            //   icon: 'home',
-            //   component: './overview',
-            // },
-            // {
-            //   path: '/display',
-            //   name: 'display',
-            //   icon: 'dashboard',
-            //   component: './display',
-            // },
+            {
+              path: '/',
+              redirect: '/overview',
+            },
+            {
+              path: '/overview',
+              name: 'overview',
+              icon: 'home',
+              component: './overview',
+            },
+            {
+              path: '/display',
+              name: 'display',
+              icon: 'dashboard',
+              component: './display',
+            },
+            {
+              path: '/overview/more/:name',
+              name:'more',
+              component: './overview/more',
+              // exact: false,
+            },{
+              path: '/overview/proDetail/:id',
+              name: 'proDetail',
+              component: './proDetail',
+              // exact: false,
+            },
             {
               path: '/log',
               name: 'log',
@@ -103,7 +84,23 @@ export default defineConfig({
               name: 'projectManage',
               icon: 'profile',
               authority: ['USER','ADMIN'],
-              component: './projectManage',
+              routes: [
+                {
+                  path: '/projectManage',
+                  authority: ['USER','ADMIN'],
+                  component: './projectManage',
+                },
+                {
+                  path: '/projectManage/edit/:id',
+                  authority: ['USER','ADMIN'],
+                  component: './projectManage/components/edit',
+                },
+                {
+                  path: '/projectManage/detail/:id',
+                  authority: ['USER','ADMIN'],
+                  component: './projectManage/components/projectDetail',
+                }
+              ]
             },
             {
               path: '/admin',
@@ -121,22 +118,22 @@ export default defineConfig({
                 // },
               ],
             },
-            {
-              name: 'list.table-list',
-              icon: 'table',
-              path: '/list',
-              component: './ListTableList',
-            },
+            // {
+            //   name: 'list.table-list',
+            //   icon: 'table',
+            //   path: '/list',
+            //   component: './ListTableList',
+            // },
             {
               component: './404',
             },
           ],
         },
-        {
-          component: './404',
-        },
-      ],
-    },
+    //     {
+    //       component: './404',
+    //     },
+    //   ],
+    // },
     {
       component: './404',
     },

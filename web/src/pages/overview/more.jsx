@@ -1,5 +1,5 @@
 import React ,{useEffect}from 'react';
-// import { Card, Typography, Alert } from 'antd';
+import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { useParams,history  } from 'umi';
 import { getProjectPage } from '@/services/projectManage';
 import { connect } from 'umi';
@@ -30,7 +30,7 @@ const more = props => {
           render: (_,record) => <span
             onClick={e => {
               history.push({
-                pathname: '/proDetail/'+record.id
+                pathname: '/overview/proDetail/'+record.id
               })
             }}
           >
@@ -39,7 +39,7 @@ const more = props => {
         }
       ];
     return (
-        <div>
+        <PageHeaderWrapper title={false}>
             <h4>搜索名称：{name}</h4>
             <ProTable
                 headerTitle="项目管理"
@@ -53,7 +53,7 @@ const more = props => {
                 columns={columns}
                 rowSelection={false}
                 />
-        </div>
+        </PageHeaderWrapper>
 )}
   
 export default connect(({ loading }) => ({

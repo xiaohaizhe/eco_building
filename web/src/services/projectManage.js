@@ -44,3 +44,19 @@ export async function getDataByTime(params) {
     params: params
   });
 }
+
+//更新数据
+export async function update(params) {
+  return request('/api/project/update', {
+    method: 'POST',
+    data: params
+  });
+}
+
+//更新表格
+export async function updateData(params) {
+  return request('/api/project/updateData', {
+    method: 'POST',
+    data: params
+  });
+}

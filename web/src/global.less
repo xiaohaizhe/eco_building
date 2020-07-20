@@ -94,3 +94,46 @@ ol {
     margin:10px 0 0 30%;
   }
 }
+
+.chartItem{
+  width: 100%;
+  display: inline-block;
+  .title{
+    font-size: 18px;
+    font-weight: bold;
+    margin: 10px 0px;
+  }
+  .title,.date{
+    padding-left: 4%;
+  }
+}
+
+.tableItem{
+  width: 100%;
+  margin-bottom: 16px !important;
+  display: inline-block;
+  .title{
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+}
+
+.editable-cell {
+  position: relative;
+}
+
+.editable-cell-value-wrap {
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.editable-row:hover .editable-cell-value-wrap {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 4px 11px;
+}
+
+[data-theme='dark'] .editable-row:hover .editable-cell-value-wrap {
+  border: 1px solid #434343;
+}

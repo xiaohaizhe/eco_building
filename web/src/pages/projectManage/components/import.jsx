@@ -29,7 +29,7 @@ const ImportModal = props => {
   };
 
   const handleFinish = values => {
-    
+    debugger
       let temp = new FormData();
       temp.append("file",values.file.file)
        dispatch({
@@ -64,40 +64,85 @@ const ImportModal = props => {
       return false;
     }
 
-  const getModalContent = () => {
-    // if (done) {
-    //   return (
-    //     <Spin></Spin>
-    //   );
-    // }
-    return (
-      <Form {...formLayout} form={form} onFinish={handleFinish}>
-        <Form.Item
-          name="file"
-          label="上传文件"
-          rules={[
-            {
-              required: true,
-              message: '请选择文件',
-            },
-          ]}
-        >
-          <Upload
-              fileList={fileList}
-              name="file"
-              // onChange={onUploading}
-              // onRemove={onRemove}
-              beforeUpload={beforeUpload}
-            >
-              <Button>
-                <UploadOutlined />点击上传
-              </Button>
-            </Upload>
-        </Form.Item>
-        
-      </Form>
-    );
-  };
+    const downloadExcel=()=>{
+        //loading
+          // const loading = this.$loading({
+          //     lock: true,
+          //     text: 'Loading',
+          //     spinner: 'el-icon-loading',
+          //     background: 'rgba(0, 0, 0, 0.7)'
+          // });
+          window.URL = window.URL || window.webkitURL;  // Take care of vendor prefixes.
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', '/api/project/downloadExample', true);
+          xhr.responseType = 'blob';
+
+          xhr.onload = function(e) {
+              // loading.close();
+              if (this.status == 200) {
+                  var blob = this.response;
+                  var URL = window.URL || window.webkitURL;  //兼容处理
+                  // for ie 10 and later
+                  if (window.navigator.msSaveBlob) {
+                      try { 
+                          window.navigator.msSaveBlob(blob, 'example.xls');
+                      }
+                      catch (e) {
+                          console.log(e);
+                      }
+                  }else{
+                        let blobUrl = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.download = 'example.xls';
+                        a.href = blobUrl;
+                        a.click();
+                        // document.body.removeChild(a);
+                  }
+              }
+              
+          };
+
+          xhr.send();
+      }
+    const getModalContent = () => {
+      // if (done) {
+      //   return (
+      //     <Spin></Spin>
+      //   );
+      // }
+      return (
+        <Form {...formLayout} form={form} onFinish={handleFinish}>
+          <Form.Item
+            name="file"
+            label="上传文件"
+            rules={[
+              {
+                required: true,
+                message: '请选择文件',
+              },
+            ]}
+          >
+            <Upload
+                fileList={fileList}
+                name="file"
+                // onChange={onUploading}
+                // onRemove={onRemove}
+                beforeUpload={beforeUpload}
+              >
+                <Button>
+                  <UploadOutlined />点击上传
+                </Button>
+              </Upload>
+          </Form.Item>
+          <Form.Item
+            label="下载模板"
+          >
+            <a onClick={downloadExcel}>点击下载excel模板</a>
+          </Form.Item>
+        </Form>
+      );
+    };
 
   return (
     <Modal
