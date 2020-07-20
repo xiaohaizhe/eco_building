@@ -4,7 +4,6 @@ import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.DataModel;
 import com.giot.eco_building.model.ProjectModel;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,6 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
+
 
 /**
  * @Author: pyt
@@ -21,7 +22,7 @@ import java.util.List;
 public interface ProjectService {
     boolean insert(Project project) throws IOException;
 
-    void insertAll(List<Project> projectList);
+    Map<String, String> insertAll(List<Project> projectList);
 
     void reDealWithProjectAddress();
 
