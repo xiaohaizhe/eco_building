@@ -6,6 +6,7 @@ import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Divider, Cascader, Menu, message, Input,Modal, Spin } from 'antd';
 import ProTable from '@ant-design/pro-table';
+import { isUser,getAuthority } from '@/utils/authority';
 
 const fetchData =async (params, sort, filter) =>{
   if(params.address){
@@ -37,11 +38,13 @@ const fetchData =async (params, sort, filter) =>{
 const projectManage = props => {
     const actionRef = useRef();
     const { dispatch,loading } = props;
+    const anthority = getAuthority();
     const [done, setDone] = useState(false);
     const [visible, setVisible] = useState(false);
     const [current, setCurrent] = useState(undefined);
     const address = props.address;
     useEffect(() => {
+      isUser();
       if (dispatch) {
         dispatch({
           type: 'display/getAddressOnMap',
@@ -90,38 +93,15 @@ const projectManage = props => {
           })
         });
     };
-
-    const handleDone = () => {
-      setDone(false);
-      setVisible(false);
-    };
-
     const handleCancel = () => {
       setVisible(false);
     };
     
     const handleSubmit = values => {
-      // setDone(true);
+      setVisible(false);
       if (actionRef.current) {
           actionRef.current.reload();
         }
-      // dispatch({
-      //   type: 'projectManage/submit',
-      //   payload: values,
-      //   callback: (res) => {
-      //     if (res.code==0) {
-      //       setVisible(false);
-      //       message.success('操作成功');
-      //       if (actionRef.current) {
-      //         actionRef.current.reload();
-      //       }
-      //     }else{
-      //       setDone(false);
-      //       message.success('操作失败');
-      //     }
-      //     setDone(false);
-      //   }
-      // });
     };
 
     const columns = [
@@ -191,6 +171,7 @@ const projectManage = props => {
             >
               编辑
             </a>
+            {anthority[0] == 'ADMIN' && <span>
             <Divider type="vertical" />
             <a
               key="delete"
@@ -200,7 +181,8 @@ const projectManage = props => {
               }}
             >
               删除
-            </a>
+            </a></span>}
+            
           </>
         ),
       },
@@ -211,7 +193,7 @@ const projectManage = props => {
     }
 
     return (      
-      <PageHeaderWrapper>
+      <PageHeaderWrapper title={false}>
         <ProTable
           headerTitle="项目管理"
           actionRef={actionRef}
@@ -255,7 +237,6 @@ const projectManage = props => {
             done={done}
             current={current}
             visible={visible}
-            onDone={handleDone}
             onCancel={handleCancel}
             onSubmit={handleSubmit}
           />

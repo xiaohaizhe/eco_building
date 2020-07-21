@@ -5,13 +5,13 @@ import { connect } from 'umi';
 import { Radio } from 'antd';
 import ProTable from '@ant-design/pro-table';
 import { getActionPage,getActionPageByUserId } from '@/services/log';
-import { getAuthority } from '@/utils/authority';
-const log = [
-  { label: '全部', value: '-1' },
-  { label: '登入/登出', value: '0' },
-  { label: '删除', value: '1' },
-  { label: '上传', value: '3' }
-];
+import { getAuthority,isUser } from '@/utils/authority';
+// const log = [
+//   { label: '全部', value: '-1' },
+//   { label: '登入/登出', value: '0' },
+//   { label: '删除', value: '1' },
+//   { label: '上传', value: '3' }
+// ];
 
 const paginationProps = {
   current: 1,
@@ -19,18 +19,20 @@ const paginationProps = {
 }
 
   const Log = (props) => {
-    const {dispatch,currentUser} = props;
+    const {dispatch,currentUser,log} = props;
+    const {actionTypes} =log;
     /**
      * constructor
      */
 
-    // useEffect(() => {
-    //   if (dispatch) {
-    //     dispatch({
-    //       type: 'log/fetchCurrent',
-    //     });
-    //   }
-    // }, []);
+    useEffect(() => {
+      isUser();
+      if(dispatch){
+        dispatch({
+          type: 'log/getActionType'
+        });
+      }
+    }, []);
     
     const actionRef = useRef();
     const fetchData =async (params, sort, filter) =>{
@@ -60,7 +62,7 @@ const paginationProps = {
           }
           const status = form.getFieldValue('state');
           if (status !== 'open') {
-            return  <Radio.Group options={log} {...rest} defaultValue="-1" buttonStyle="solid" onChange={onChange}></Radio.Group>
+            return  <Radio.Group options={actionTypes} {...rest} defaultValue="-1" buttonStyle="solid" onChange={onChange}></Radio.Group>
           }
           return defaultRender(_);
         }
@@ -77,9 +79,9 @@ const paginationProps = {
       },
     ];
     return (
-      <PageHeaderWrapper>
+      <PageHeaderWrapper title={false}> 
         <ProTable
-          headerTitle="查询表格"
+          headerTitle="日志管理"
           actionRef={actionRef}
           rowKey="actionDesc"
           options={false}

@@ -3,7 +3,7 @@ import { getActionType } from '@/services/log';
 const LogModel = {
   namespace: 'log',
   state: {
-    actionTypes: {}
+    actionTypes: []
   },
   effects: {
     *getActionType({}, { call, put }) {
@@ -16,7 +16,7 @@ const LogModel = {
   },
   reducers: {
     save(state, { payload }){
-      return { ...state, actionTypes: payload};
+      return { ...state, actionTypes: payload.result};
     },
 
 

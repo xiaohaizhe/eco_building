@@ -8,11 +8,7 @@ export async function login(params) {
 }
 
 export async function logout() {
-  return request('/api/logout', {
-    method: 'GET',
-    // data: params,
-  });
+  return request('/api/logout',{
+    method: 'GET'
+  })
 }
-// export async function getFakeCaptcha(mobile) {
-//   return request(`/api/login/captcha?mobile=${mobile}`);
-// }

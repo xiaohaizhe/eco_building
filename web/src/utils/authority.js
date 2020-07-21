@@ -1,4 +1,7 @@
 import { reloadAuthorized } from './Authorized'; // use localStorage to store the authority info, which might be sent from server in actual project.
+import { stringify } from 'querystring';
+import { history } from 'umi';
+import { message } from 'antd';
 
 export function getAuthority(str) {
   const authorityString =
@@ -31,4 +34,14 @@ export function setAuthority(authority) {
   localStorage.setItem('id', authority.id); // auto reload
   localStorage.setItem('antd-pro-authority', JSON.stringify([authority.authority])); // auto reload
   reloadAuthorized();
+}
+
+export function isUser() {
+  if(!localStorage.getItem('id')){
+    const queryString = stringify({
+      redirect: window.location.href,
+    });
+    message.success('请重新登陆！');
+    history.push(`/user/login?${queryString}`)
+  }
 }

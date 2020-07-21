@@ -3,6 +3,7 @@ import { history } from 'umi';
 import { login,logout } from '@/services/login';
 import { setAuthority } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
+import { message } from 'antd';
 
 const Model = {
   namespace: 'login',
@@ -41,8 +42,9 @@ const Model = {
       }
     },
 
-    *logout({ payload }, { call, put }) {
+    *logout(_, { call, put }) {
       // const { redirect } = getPageQuery(); // Note: There may be security issues, please note
+      debugger
       const response = yield call(logout);
       yield put({
         type: 'changeLoginStatus',
@@ -51,7 +53,19 @@ const Model = {
       if (response.code === 0) {
         const params = getPageQuery();
         let { redirect } = params;
-
+        message.success('退出成功！');
+        if (window.location.pathname !== '/user/login' && !redirect) {
+          history.replace({
+            pathname: '/user/login',
+            search: stringify({
+              redirect: window.location.href,
+            }),
+          });
+        }
+      }else{
+        message.success('退出失败！');
+        const params = getPageQuery();
+        let { redirect } = params;
         if (window.location.pathname !== '/user/login' && !redirect) {
           history.replace({
             pathname: '/user/login',

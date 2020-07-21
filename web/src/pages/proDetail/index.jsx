@@ -13,8 +13,8 @@ const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '�
 
 const proDetail = props => {
     const { dispatch } =props;
-    const params = useParams()
-    const { id } = params;
+    let params = useParams()
+    let { id } = params;
 
     useEffect(() => {
         if (dispatch) {

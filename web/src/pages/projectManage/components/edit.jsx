@@ -131,7 +131,7 @@ const Edit = props => {
       detail.builtTime = moment(detail.builtTime);
       form.setFieldsValue(detail);
       return(
-        <>
+        <PageHeaderWrapper title={false}>
             <Form {...formLayout} className='editProForm' form={form} initialValues={detail} onFinish={onFinish}>
               <Row gutter={gutter}>
                   <Col span={10}>
@@ -393,7 +393,7 @@ const Edit = props => {
                   </Col>
               </Row>        
             </Form>             
-        </>        
+        </PageHeaderWrapper>        
       )
     }else{
       return (<div></div>)

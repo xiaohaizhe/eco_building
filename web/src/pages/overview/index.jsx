@@ -63,7 +63,7 @@ class overview extends React.Component {
     const { fetching, data, value } = this.state;
     
     return (
-      <PageHeaderWrapper>
+      <PageHeaderWrapper title={false}>
         <Select
           showSearch
           value={value}

@@ -34,10 +34,10 @@ class Treemap extends React.Component {
         const { top5 } =this.props.overview;
         var myChart = echarts.init(document.getElementById('myChart'));
         let option = {
-            
             series: [{
                 name: 'ALL',
                 type: 'treemap',
+                top:52,
                 label: {
                     normal: {
                         formatter: function (params) {
@@ -84,7 +84,7 @@ class Treemap extends React.Component {
                     <div id="myChart" style={{width: '100%', height: `${window.innerHeight-310}px`}}></div>
                 </Col>
                 <Col span={10} style={{padding:'10px 20px'}}>
-                    <h4 className={styles.rankingTitle}>电耗排名</h4>
+                    <p className={styles.rankingTitle}>单位面积电耗排名</p>
                     <ul className={styles.rankingList}>
                         {top10.map((item, i) => (
                         <li key={item.name}>

@@ -6,6 +6,7 @@ import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Divider, Dropdown, Menu, message, Input,Modal } from 'antd';
 import ProTable from '@ant-design/pro-table';
+import { isUser } from '@/utils/authority';
 
 const fetchData =async (params, sort, filter) =>{
   
@@ -24,6 +25,10 @@ const userManage = props => {
     const [done, setDone] = useState(false);
     const [visible, setVisible] = useState(false);
     const [current, setCurrent] = useState(undefined);
+    useEffect(() => {
+      isUser();
+    }, []);
+    
     const showModal = () => {
       setVisible(true);
       setCurrent(undefined);
@@ -129,7 +134,7 @@ const userManage = props => {
     }
     return (
       
-      <PageHeaderWrapper>
+      <PageHeaderWrapper title={false}>
         <ProTable
           headerTitle="用户表格"
           actionRef={actionRef}

@@ -23,6 +23,7 @@ export default defineConfig({
   targets: {
     ie: 11,
   },
+  history: { type: 'hash' },
   // umi routes: https://umijs.org/docs/routing
   routes: [
     {
@@ -52,8 +53,24 @@ export default defineConfig({
             {
               path: '/overview',
               name: 'overview',
+              hideChildrenInMenu:true,
               icon: 'home',
-              component: './overview',
+              routes: [
+                {
+                  name: '',
+                  path: '/overview',
+                  component: './overview',
+                },
+                {
+                  path: '/overview/more/:name',
+                  name:'more',
+                  component: './overview/more',
+                },{
+                  path: '/overview/proDetail/:id',
+                  name: 'proDetail',
+                  component: './proDetail',
+                },
+              ],
             },
             {
               path: '/display',
@@ -62,44 +79,32 @@ export default defineConfig({
               component: './display',
             },
             {
-              path: '/overview/more/:name',
-              name:'more',
-              component: './overview/more',
-              // exact: false,
-            },{
-              path: '/overview/proDetail/:id',
-              name: 'proDetail',
-              component: './proDetail',
-              // exact: false,
-            },
-            {
               path: '/log',
               name: 'log',
               icon: 'profile',
-              authority: ['USER','ADMIN'],
               component: './log',
             },
             {
               path: '/projectManage',
               name: 'projectManage',
-              icon: 'profile',
-              authority: ['USER','ADMIN'],
+              icon: 'project',
+              hideChildrenInMenu:true,
               routes: [
                 {
                   path: '/projectManage',
-                  authority: ['USER','ADMIN'],
+                  name: '',
                   component: './projectManage',
                 },
                 {
                   path: '/projectManage/edit/:id',
-                  authority: ['USER','ADMIN'],
+                  name:"projectEdit",
                   component: './projectManage/components/edit',
                 },
                 {
                   path: '/projectManage/detail/:id',
-                  authority: ['USER','ADMIN'],
+                  name:"projectDetail",
                   component: './projectManage/components/projectDetail',
-                }
+                },
               ]
             },
             {
@@ -108,15 +113,15 @@ export default defineConfig({
               icon: 'user',
               component: './userManage',
               authority: ['ADMIN'],
-              routes: [
-                // {
-                //   path: '/admin/sub-page',
-                //   name: 'sub-page',
-                //   icon: 'smile',
-                //   component: './Welcome',
-                //   authority: ['admin'],
-                // },
-              ],
+              // routes: [
+              //   {
+              //     path: '/admin/sub-page',
+              //     name: 'sub-page',
+              //     icon: 'smile',
+              //     component: './Welcome',
+              //     authority: ['admin'],
+              //   },
+              // ],
             },
             // {
             //   name: 'list.table-list',

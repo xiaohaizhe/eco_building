@@ -9,7 +9,7 @@ const Authorized = ({
     <Result
       status="403"
       title="403"
-      subTitle="Sorry, you are not authorized to access this page."
+      subTitle="对不起，您没有权限查看此页面！"
     />
   ),
 }) => {

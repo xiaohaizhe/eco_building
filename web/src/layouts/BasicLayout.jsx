@@ -17,10 +17,10 @@ const noMatch = (
   <Result
     status={403}
     title="403"
-    subTitle="Sorry, you are not authorized to access this page."
+    subTitle="对不起，你没有权限查看此页面！"
     extra={
       <Button type="primary">
-        <Link to="/user/login">Go Login</Link>
+        <Link to="/user/login">去登陆</Link>
       </Button>
     }
   />
@@ -31,17 +31,19 @@ const noMatch = (
  */
 const menuDataRender = (menuList,currentUser) =>{
   return menuList.map(item => {
-    if((item.path.indexOf("overview") != -1 || item.path.indexOf("display") != -1) || currentUser.name){
-      const localItem = {
-        ...item,
-        children: item.children ? menuDataRender(item.children) : undefined,
-      };
-      localItem.name = localItem.name + "1";
+    if(currentUser && currentUser.id){
+      const localItem = { ...item, children: item.children ? menuDataRender(item.children,currentUser) : [] };
       return Authorized.check(item.authority, localItem, null);
-    } 
+    }else{
+      if(item.path.indexOf("overview") > -1 || item.path.indexOf("display") > -1){
+        const localItem = { ...item, children: item.children ? menuDataRender(item.children,currentUser) : [] };
+        return Authorized.check(item.authority, localItem, null);
+      }
+    }
+    
   });
 }
-
+  
 
   
 
@@ -124,7 +126,6 @@ const BasicLayout = props => {
         if (menuItemProps.isUrl || !menuItemProps.path) {
           return defaultDom;
         }
-
         return <Link to={menuItemProps.path}>{defaultDom}</Link>;
       }}
       breadcrumbRender={(routers = []) => [

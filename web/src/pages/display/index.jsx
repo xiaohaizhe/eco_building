@@ -230,7 +230,7 @@ class display extends React.Component {
     const { display } = this.props;
     const { maxMin,height } = display;
     return (
-      <PageHeaderWrapper>
+      <PageHeaderWrapper title={false}>
         <div className="display">
           <div id='container' style={{height:`${height}px`,width:'100%'}}></div>
           <div className="type" >

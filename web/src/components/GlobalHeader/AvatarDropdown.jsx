@@ -1,8 +1,9 @@
 import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Menu, Spin } from 'antd';
 import React from 'react';
-import { history, connect } from 'umi';
+import { history, connect} from 'umi';
 import HeaderDropdown from '../HeaderDropdown';
+import { stringify } from 'querystring';
 import styles from './index.less';
 
 class AvatarDropdown extends React.Component {
@@ -10,6 +11,7 @@ class AvatarDropdown extends React.Component {
     const { key } = event;
 
     if (key === 'logout') {
+      debugger
       const { dispatch } = this.props;
 
       if (dispatch) {
@@ -17,13 +19,18 @@ class AvatarDropdown extends React.Component {
           type: 'login/logout',
         });
       }
-
+      // debugger
       return;
     }
 
-    history.push(`/account/${key}`);
+    // history.push(`/account/${key}`);
   };
-
+  toLogin = ()=>{
+    const queryString = stringify({
+      redirect: window.location.href,
+    });
+    history.push(`/user/login?${queryString}`);
+  }
   render() {
     const {
       currentUser = {
@@ -62,15 +69,19 @@ class AvatarDropdown extends React.Component {
         </span>
       </HeaderDropdown>
     ) : (
+      // <span className={`${styles.action} ${styles.account}`}>
+      //   <Spin
+      //     size="small"
+      //     style={{
+      //       marginLeft: 8,
+      //       marginRight: 8,
+      //     }}
+      //   />
+      // </span>
       <span className={`${styles.action} ${styles.account}`}>
-        <Spin
-          size="small"
-          style={{
-            marginLeft: 8,
-            marginRight: 8,
-          }}
-        />
+          <span className={styles.name} onClick={this.toLogin}>登录</span>
       </span>
+      
     );
   }
 }
