@@ -138,9 +138,9 @@ const BasicLayout = props => {
         ...routers,
       ]}
       itemRender={(route, params, routes, paths) => {
-        const first = routes.indexOf(route) === 0;
+        const first = routes.indexOf(route) <2;
         return first ? (
-          <Link to={paths.join('/')}>{route.breadcrumbName}</Link>
+          <Link to={route.path}>{route.breadcrumbName}</Link>
         ) : (
           <span>{route.breadcrumbName}</span>
         );

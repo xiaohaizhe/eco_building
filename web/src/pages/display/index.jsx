@@ -158,7 +158,7 @@ class display extends React.Component {
       layer.setData(mapData, {
         lnglat:function (obj) {
           var value = obj.value;
-          console.log(isNaN(value['longitude'])+':'+value['name'])
+          // console.log(isNaN(value['longitude'])+':'+value['name'])
           return [value['longitude']?value['longitude']:0, value['latitude']?value['latitude']:0];
         },
         type:'json'// 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。
@@ -247,7 +247,7 @@ class display extends React.Component {
           <div className="legend">
             <div className="gradientLegend"></div>
             <p className="max">{Math.ceil(maxMin[this.state.radio].max)}</p>
-            <p className="min">{Math.ceil(maxMin[this.state.radio].min)}</p>
+            <p className="min">{Math.floor(maxMin[this.state.radio].min)}</p>
           </div>
         </div>
       </PageHeaderWrapper>)

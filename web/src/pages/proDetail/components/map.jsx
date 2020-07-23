@@ -1,7 +1,7 @@
 import React from 'react';
 import AMap from 'AMap';
 import Loca from 'Loca'
-import { connect ,history} from 'umi';
+import { connect ,history ,withRouter } from 'umi';
 import { Card } from 'antd';
 
 var infoWin;
@@ -12,16 +12,20 @@ const coolingMode = ['集中供冷','分户供冷','无供冷','未知'];
 const heatingMode = ['集中供暖', '分户采暖',  '无采暖', '未知'];
 const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '未知'];
 class Map extends React.Component {
+  
   constructor(props) {
     super(props);
     this.state = {
       radio:'1',
+      location:''
     };
   }
 
   componentDidMount() {
-    const { dispatch,display} = this.props;
+    debugger
+    const { dispatch,display,match} = this.props;
     const { mapData } = display;
+    this.setState({location:match.path.substring(0,match.path.length - 3)})
     if (dispatch) {
       dispatch({
         type: 'display/getMap',
@@ -31,14 +35,15 @@ class Map extends React.Component {
   }
   
   componentDidUpdate(preProps) {
-    const { display } = this.props;
+    const { display,detail} = this.props;
     const { mapData } = display;
-    if (preProps && JSON.stringify(preProps.display) !== JSON.stringify(display)) {
+    if (preProps && JSON.stringify(preProps.detail) !== JSON.stringify(detail)) {
         this.loadMap(mapData);
     }
   }
   //打开详情浮窗
   openInfoWin(map, event,title,address, content,id) {
+    let that = this;
     var tableDom;
     if (!infoWin) {
         infoWin = new AMap.InfoWindow({
@@ -65,7 +70,7 @@ class Map extends React.Component {
         bottonDom.innerHTML = '详细数据';
         bottonDom.onclick =function(){
           history.push({
-            pathname: '/overview/proDetail/'+id
+            pathname: that.state.location+id
           })
         }
         tableDom = document.createElement('table');
@@ -110,11 +115,15 @@ class Map extends React.Component {
           skyColor: '#33216a'
       });
 
-      var layer = new Loca.ScatterPointLayer({
-          map: map,
-          eventSupport: true
-      });
+      // var layer = new Loca.ScatterPointLayer({
+      //     map: map,
+      //     eventSupport: true
+      // });
 
+      var layer = new Loca.PointLayer({
+        map: map,
+        eventSupport: true
+      });
       layer.on('click', function (ev) {
         // 事件类型
         var type = ev.type;
@@ -185,4 +194,4 @@ export default connect(({ display, loading ,projectManage}) => ({
   display,
   detail:projectManage.detail,
   loading: loading.models.display,
-}))(Map);
+}))(withRouter(Map));

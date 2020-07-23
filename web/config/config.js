@@ -26,17 +26,17 @@ export default defineConfig({
   history: { type: 'hash' },
   // umi routes: https://umijs.org/docs/routing
   routes: [
-    {
-      path: '/user',
-      component: '../layouts/UserLayout',
-      routes: [
         {
-          name: 'login',
-          path: '/user/login',
-          component: './user/login',
+          path: '/user',
+          component: '../layouts/UserLayout',
+          routes: [
+            {
+              name: 'login',
+              path: '/user/login',
+              component: './user/login',
+            },
+          ],
         },
-      ],
-    },
     // {
     //   path: '/',
     //   component: '../layouts/SecurityLayout',
@@ -113,22 +113,7 @@ export default defineConfig({
               icon: 'user',
               component: './userManage',
               authority: ['ADMIN'],
-              // routes: [
-              //   {
-              //     path: '/admin/sub-page',
-              //     name: 'sub-page',
-              //     icon: 'smile',
-              //     component: './Welcome',
-              //     authority: ['admin'],
-              //   },
-              // ],
             },
-            // {
-            //   name: 'list.table-list',
-            //   icon: 'table',
-            //   path: '/list',
-            //   component: './ListTableList',
-            // },
             {
               component: './404',
             },

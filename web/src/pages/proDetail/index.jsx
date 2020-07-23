@@ -13,8 +13,8 @@ const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '�
 
 const proDetail = props => {
     const { dispatch } =props;
-    let params = useParams()
-    let { id } = params;
+    const params = useParams()
+    const { id } = params;
 
     useEffect(() => {
         if (dispatch) {
@@ -23,13 +23,13 @@ const proDetail = props => {
             payload:{projectId:id}
           });
         }
-      }, []);
-    let detail = props.detail;
-    let extra = (
+      }, [id]);
+      const detail = props.detail;
+      const extra = (
       <Avatar shape="square" size={150} src={detail.imgUrl} />
     );
-
-    let description = (
+        // debugger
+    const description = (
       <Descriptions
         title={detail.name}
       >
@@ -58,7 +58,7 @@ const proDetail = props => {
                 <Map/>
               </Col>
               <Col span={12}>
-                  <EchartItem name = "电耗趋势/按月" format = 'YYYY-MM-DD' echartId = "power1" dataType="电" timeType="月"/>
+                  <EchartItem name = "电耗趋势/按月" format = 'YYYY-MM' echartId = "power1" dataType="电" timeType="月"/>
               </Col>
           </Row>
           {/* <Row gutter={gutter}>

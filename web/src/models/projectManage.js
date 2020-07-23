@@ -56,7 +56,18 @@ const ProjectManageModel = {
     //获取图表信息
     *getDataByTime({ payload,callback }, { call }) {
       const response = yield call(getDataByTime,payload);
-      if (callback && response.code == 0) callback(response);
+      if (callback && response.code == 0) {
+        let sum = 0;
+        response.result.map((val, index, arr) => {
+            if(val.value){
+              sum += val.value
+            }
+            
+        })
+        
+
+        callback(response,sum);
+      }
     },
     //更新数据
     *update({ payload,callback }, { call }) {

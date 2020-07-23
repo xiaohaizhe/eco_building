@@ -13,8 +13,8 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
   const {dispatch } = props;
   const params = useParams()
   const { id } = params;
-  const start = '2014-01-01';
-  const end = '2018-01-01';  
+  const start = '1990-01-01';
+  const end = '2021-01-01';  
 
   const [data, setData] = useState([]); 
 
@@ -66,19 +66,28 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
 
   const getRowByKey = (key, newData) => (newData || data)?.filter(item => item.key === key)[0];
 
-  const toggleEditable = (e, key) => {
+  const editArray = [
+    "edit_year",
+    "edit_01","edit_02","edit_03","edit_04",
+    "edit_05","edit_06","edit_07","edit_08",
+    "edit_09","edit_10","edit_11","edit_12",
+  ];  
+  const toggleEditable = (e, key, editKey) => {
     e.preventDefault();
     const newData = data?.map(item => ({ ...item }));
     const target = getRowByKey(key, newData);
 
     if (target) {
       // 进入编辑状态时保存原始数据
-      if (!target.editable) {
+      if (!target[editKey]) {
         cacheOriginData[key] = { ...target };
         setCacheOriginData(cacheOriginData);
       }
-
-      target.editable = !target.editable;
+      //所有表格取消编辑状态
+      editArray.map((item,index)=>{
+        target[item] = false;
+      })
+      target[editKey] = !target[editKey];
       setData(newData);
     }
   };
@@ -145,9 +154,9 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
     var dataMap = [];
     data.map((item,index)=>{
       for(var key in item){
-        if(key != 'key' && key != 'year' && key != 'editable'){
+          if(key != 'key' && key != 'year' && key.indexOf('edit') == -1){
           var year = item['year'] + key;
-          var value = item[key];
+          var value = item[key]?item[key]-0:'';
           dataMap.push({
             [year]: value
           })
@@ -157,12 +166,12 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
     console.log(dataMap);
     dispatch({
         type: 'projectManage/updateData',
-        payload:{
+        payload:[{
             projectId: id,
             type: dataType,
             timeType: timeType,
             dataMap
-        },
+        }],
         callback: (response) => {
            
         },
@@ -203,18 +212,19 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
       dataIndex: 'year',
       key: 'year',
       render: (text, record) => {
-        if (record.editable) {
+        if (record["edit_year"]) {
           return (
             <Input
               value={text.split(" ")[0]}
               autoFocus
               onChange={e => handleFieldChange(e, 'year', record.key)}
               onKeyPress={e => handleKeyPress(e, record.key)}
+              onBlur={e => saveRow(e, record.key)}
               placeholder="日期"
             />
           );
         }
-        return text;
+        return <span onClick={e => toggleEditable(e, record.key, "edit_year")}>{text}</span>;
       },
     }    
   ];
@@ -269,71 +279,74 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
     },
   ]
   months.map((item,index)=>{
+    var editKey = "edit_" + item.key;
     columns.push(
       {
         title: item.value,
         dataIndex: item.key,
         key: item.key,
         render: (text, record) => {
-          if (record.editable) {
+          if (record[editKey]) {
             return (
               <Input
                 value={text}
+                autoFocus
                 onChange={e => handleFieldChange(e, item.key, record.key)}
-                onKeyPress={e => handleKeyPress(e, record.key)}
+                onKeyPress={e => handleKeyPress(e, record.key)}                
+                onBlur={e => saveRow(e, record.key)}
                 placeholder="消耗量"
               />
             );
           }
-          return text;
+          return <span style={{width: 50, height: 30, display: 'inline-block' }} onClick={e => toggleEditable(e, record.key, editKey)}>{text}</span>;
         },
       }
     )
   })
-  columns.push(
-    {
-      title: '操作',
-      key: 'action',
-      width: 120,
-      render: (text, record) => {
-        if (!!record.editable && loading) {
-          return null;
-        }
+  // columns.push(
+  //   {
+  //     title: '操作',
+  //     key: 'action',
+  //     width: 120,
+  //     render: (text, record) => {
+  //       if (!!record.editable && loading) {
+  //         return null;
+  //       }
 
-        if (record.editable) {
-          if (record.isNew) {
-            return (
-              <span>
-                <a onClick={e => saveRow(e, record.key)}>添加</a>
-                <Divider type="vertical" />
-                <Popconfirm title="是否要删除此行？" onConfirm={() => remove(record.key)}>
-                  <a>删除</a>
-                </Popconfirm>
-              </span>
-            );
-          }
+  //       if (record.editable) {
+  //         if (record.isNew) {
+  //           return (
+  //             <span>
+  //               <a onClick={e => saveRow(e, record.key)}>添加</a>
+  //               <Divider type="vertical" />
+  //               <Popconfirm title="是否要删除此行？" onConfirm={() => remove(record.key)}>
+  //                 <a>删除</a>
+  //               </Popconfirm>
+  //             </span>
+  //           );
+  //         }
 
-          return (
-            <span>
-              <a onClick={e => saveRow(e, record.key)}>保存</a>
-              <Divider type="vertical" />
-              <a onClick={e => cancel(e, record.key)}>取消</a>
-            </span>
-          );
-        }
+  //         return (
+  //           <span>
+  //             <a onClick={e => saveRow(e, record.key)}>保存</a>
+  //             <Divider type="vertical" />
+  //             <a onClick={e => cancel(e, record.key)}>取消</a>
+  //           </span>
+  //         );
+  //       }
 
-        return (
-          <span>
-            <a onClick={e => toggleEditable(e, record.key)}>编辑</a>
-            <Divider type="vertical" />
-            <Popconfirm title="是否要删除此行？" onConfirm={() => remove(record.key)}>
-              <a>删除</a>
-            </Popconfirm>
-          </span>
-        );
-      },
-    },
-  )  
+  //       return (
+  //         <span>
+  //           <a onClick={e => toggleEditable(e, record.key)}>编辑</a>
+  //           <Divider type="vertical" />
+  //           <Popconfirm title="是否要删除此行？" onConfirm={() => remove(record.key)}>
+  //             <a>删除</a>
+  //           </Popconfirm>
+  //         </span>
+  //       );
+  //     },
+  //   },
+  // )  
   return (
     <div className="tableItem">
       <div className="title">

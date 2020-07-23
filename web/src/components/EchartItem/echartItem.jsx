@@ -9,9 +9,9 @@ const EchartItem = props => {
     const {dispatch , name , format , echartId , dataType , timeType} = props;
     const params = useParams()
     const { id } = params;
-    const start = '2014-01-01';
-    const end = '2018-01-01';  
-
+    const start = '2014-01';
+    const end = '2018-01';  
+    const [sum,setSum] = useState(0)
     const [visible, setVisible] = useState(false);
     const [result, setResult] = useState([]); 
 
@@ -27,11 +27,12 @@ const EchartItem = props => {
             payload:{
                 dataType: dataType,
                 timeType: timeType,
-                start: start,
-                end: end,
+                start: start+'-01',
+                end: end+'-30',
                 projectId: id,
             },
-            callback: (response) => {
+            callback: (response,sum) => {
+                setSum(sum);
                 renderChart(response.result);
                 window[`${echartId}_big`] = response.result;
             },
@@ -137,10 +138,12 @@ const EchartItem = props => {
                     <div className="date">
                         <span style={{marginRight: 10}}>选择日期：</span>
                         <RangePicker
+                            picker="month"
                             defaultValue={[moment(start, format), moment(end, format)]}
                             format={format}
                             onChange={onChange}
                         />
+                        <span style={{margin: '0 10px 0 20px'}}>总和：{sum}</span>
                     </div>
                     <div id={echartId} style={{width: '100%' ,height: `${window.innerHeight-500}px`}}></div>
                 </div>           

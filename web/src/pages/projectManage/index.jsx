@@ -135,7 +135,7 @@ const projectManage = props => {
         },
       },
       {
-        title: '行政区划',
+        title: '地址',
         dataIndex: 'address',
         // valueType:'option',
         renderFormItem: (_, { type, defaultRender,onChange,...rest }, form) => {
@@ -151,7 +151,7 @@ const projectManage = props => {
         }
       },
       {
-        title: '创建时间',
+        title: '修改时间',
         dataIndex: 'builtTime',
         hideInSearch:'true'
       },

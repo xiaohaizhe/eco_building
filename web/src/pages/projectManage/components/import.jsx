@@ -57,7 +57,7 @@ const ImportModal = props => {
         onCancel
       }
     : {
-        okText: '保存',
+        okText: '确定',
         onOk: handleSubmit,
         onCancel,
       };

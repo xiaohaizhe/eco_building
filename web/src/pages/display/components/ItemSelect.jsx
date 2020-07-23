@@ -108,9 +108,9 @@ class ItemSelect extends React.Component {
       whetherToUseRenewableResources:values.whetherToUseRenewableResources?values.whetherToUseRenewableResources.toLocaleString():'',
       area:(values.areaMin?values.areaMin:0)+(values.areaMax?','+values.areaMax:''),
       date:values.date?(values.date[0].format('YYYY')+','+values.date[1].format('YYYY')):'',
-      electric:(values.electricMin?values.electricMin:0)+(values.electricMax?','+values.electricMax:''),
-      gas:(values.gasMin?values.gasMin:0)+(values.gasMax?','+values.gasMax:''),
-      water:(values.waterMin?values.waterMin:0)+(values.waterMax?','+values.waterMax:''),
+      powerConsumptionPerUnitArea:(values.electricMin?values.electricMin:0)+(values.electricMax?','+values.electricMax:''),
+      gasConsumptionPerUnitArea:(values.gasMin?values.gasMin:0)+(values.gasMax?','+values.gasMax:''),
+      waterConsumptionPerUnitArea:(values.waterMin?values.waterMin:0)+(values.waterMax?','+values.waterMax:''),
     };
     if(this.state.other){
       let arr = [];
@@ -253,7 +253,7 @@ class ItemSelect extends React.Component {
             label="建成时间"
             name="date"
           >
-            <RangePicker picker="year" format="YYYY"/>
+            <RangePicker picker="year" format="YYYY" style={{width:'278px'}}/>
           </Form.Item>
           <Form.Item
             label="建筑面积"

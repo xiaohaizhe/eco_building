@@ -23,7 +23,7 @@ const projectDetail = props => {
             payload:{projectId:id}
           });
         }
-      }, []);
+      }, [id]);
     const detail = props.detail;
     const extra = (
       <Avatar shape="square" size={150} src={detail.imgUrl} />
@@ -60,15 +60,15 @@ const projectDetail = props => {
                 <Map/>
               </Col>
               <Col span={12}>
-                  <EchartItem name = "电耗趋势/按月" format = 'YYYY-MM-DD' echartId = "power1" dataType="电" timeType="月"/>
+                  <EchartItem name = "电耗趋势/按月" format = 'YYYY-MM' echartId = "power1" dataType="电" timeType="月"/>
               </Col>
           </Row>
           <Row gutter={gutter}>
               <Col span={12}>                
-                  <EchartItem name = "气耗趋势/按月" format = 'YYYY-MM-DD' echartId = "gas1" dataType="气" timeType="月"/>
+                  <EchartItem name = "气耗趋势/按月" format = 'YYYY-MM' echartId = "gas1" dataType="气" timeType="月"/>
               </Col>
               <Col span={12}>
-                  <EchartItem name = "水耗趋势/按月" format = 'YYYY-MM-DD' echartId = "water1" dataType="水" timeType="月"/>
+                  <EchartItem name = "水耗趋势/按月" format = 'YYYY-MM' echartId = "water1" dataType="水" timeType="月"/>
               </Col>
           </Row>
         </PageHeaderWrapper>
