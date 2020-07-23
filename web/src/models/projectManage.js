@@ -22,12 +22,15 @@ const ProjectManageModel = {
       });
     },
     //详情
-    *getProjectDetail({ payload }, { call, put }) {
+    *getProjectDetail({ payload ,callback}, { call, put }) {
       const response = yield call(getProjectDetail, payload);
       yield put({
         type: 'saveDetail',
         payload: response,
       });
+      if(callback){
+        callback(response)
+      }
     },
     //导入
     *submit({ payload,callback }, { call }) {
@@ -70,8 +73,13 @@ const ProjectManageModel = {
       }
     },
     //更新数据
-    *update({ payload,callback }, { call }) {
+    *update({ payload,callback }, { call ,put}) {
       const response = yield call(update,payload);
+      yield put({
+        type: 'saveDetail',
+        payload: response,
+      });
+      callback(response)
     },
     //更新表格数据
     *updateData({ payload,callback }, { call }) {

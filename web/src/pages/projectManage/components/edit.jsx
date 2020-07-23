@@ -1,12 +1,14 @@
 import React ,{useEffect,useState}from 'react';
 import { Row, Col ,Cascader,Avatar,Form,Input,Select,DatePicker,Button,message,Upload} from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import { connect,useParams } from 'umi';
+import { connect,useParams,history } from 'umi';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import Map from './map';
 import moment from 'moment';
 import TableForm from './TableForm';
 import '../index.less'
+import psca from './pcas-code.json'
+
 const energySavingStandard = ['不执行节能标准','50%','65%','75%以上','未知'];
 const energySavingTransformationOrNot = ['是','否','未知'];
 const gbes = ['0星','1星','2星','3星','未知'];
@@ -17,24 +19,35 @@ const format = 'YYYY-MM-DD';
 const architecturalType = [ '商场', '酒店','办公','医院','餐饮','文化教育','其他'];
 // var marker, map;
 const Edit = props => {
-    const { dispatch,division } =props;
-    let { detail } = props
+    const { dispatch,detail } =props;
     const [form] = Form.useForm();
     const params = useParams();
     const { id } = params;
+    const [fileList, setFileList] = useState([]); 
 
     useEffect(() => {
       if (dispatch) {
-        dispatch({
-          type: 'display/getAddressOnMap',
-        });
+        // dispatch({
+        //   type: 'display/getAddressOnMap',
+        // });
         dispatch({
           type: 'projectManage/getProjectDetail',
-          payload:{projectId:id}
+          payload:{projectId:id},
+          callback:(res)=>{
+            res.result.builtTime = moment(res.result.builtTime);
+            form.setFieldsValue(res.result)
+          }
         });
       }
-    }, []);
-    
+    }, [id]);
+
+    useEffect(() => {
+      form.setFieldsValue({
+        latitude: detail.latitude,
+        longitude: detail.longitude,
+      });
+    },[detail.longitude])
+
     const formLayout = {
       labelCol: {
         span: 8,
@@ -43,10 +56,14 @@ const Edit = props => {
         span: 16,
       },
     };
-
+    const onBack = ()=>{
+      history.goBack();
+    }
     const onFinish = function (values) {
       values.builtTime = values.builtTime.format(format);
-      values.imgUrl = values.imgUrl.fileList?values.imgUrl.fileList[0].response.result:'';
+      if(values.imgUrl){
+        values.imgUrl = values.imgUrl.fileList?values.imgUrl.fileList[0].response.result:'';
+      }
       values.architecturalType = architecturalType[values.architecturalType];
       if(values.division){
         if(values.division.length==4){
@@ -70,6 +87,14 @@ const Edit = props => {
         payload:{
           id: id,
           ...values
+        },
+        callback: (res) => {
+          if (res.code==0) {
+            message.success('修改成功');
+            history.push('/projectManage')
+          }else{
+            message.success('修改失败');
+          }
         }
       });
     };
@@ -85,7 +110,7 @@ const Edit = props => {
         </Select>
       )
     }
-    const [fileList, setFileList] = useState([]); 
+    
     const onUploading = function (info) {
       const { status, response, thumbUrl } = info.file;
       setFileList([].concat(info.file));
@@ -126,13 +151,10 @@ const Edit = props => {
       });
     }
     const gutter = [16];
-    if(detail.id){
-      // debugger
-      detail.builtTime = moment(detail.builtTime);
-      form.setFieldsValue(detail);
+    debugger
       return(
         <PageHeaderWrapper title={false}>
-            <Form {...formLayout} className='editProForm' form={form} initialValues={detail} onFinish={onFinish}>
+            <Form {...formLayout} className='editProForm' form={form} onFinish={onFinish}>
               <Row gutter={gutter}>
                   <Col span={10}>
                     <Form.Item
@@ -175,7 +197,7 @@ const Edit = props => {
                           },
                         ]}
                       >
-                        <Cascader options={division} changeOnSelect placeholder="请选择地址" />
+                        <Cascader options={psca} fieldNames={{ label: 'name', value: 'name', children: 'children' }} changeOnSelect placeholder="请选择地址" />
                       </Form.Item>
                   </Col>
                   <Col span={10}>
@@ -198,12 +220,12 @@ const Edit = props => {
                       <Form.Item
                         name="floor"
                         label="层数"
-                        rules={[
-                          {
-                            required: true,
-                            message: '请输入',
-                          },
-                        ]}
+                        // rules={[
+                        //   {
+                        //     required: true,
+                        //     message: '请输入',
+                        //   },
+                        // ]}
                       >
                         <Input/>
                       </Form.Item>
@@ -224,17 +246,17 @@ const Edit = props => {
                   </Col>
                   
                   </Row>
-                  <Row gutter={gutter}>
+              <Row gutter={gutter}>
                     <Col span={10}>
                       <Form.Item
                         name="gbes"
                         label="绿建星级"
-                        rules={[
-                          {
-                            required: true,
-                            message: '请输入',
-                          },
-                        ]}
+                        // rules={[
+                        //   {
+                        //     required: true,
+                        //     message: '请输入',
+                        //   },
+                        // ]}
                       >
                         {renderSelect(gbes)}
                       </Form.Item>
@@ -243,12 +265,12 @@ const Edit = props => {
                         <Form.Item
                           name="energySavingStandard"
                           label="节能标准"
-                          rules={[
-                            {
-                              required: true,
-                              message: '请输入',
-                            },
-                          ]}
+                          // rules={[
+                          //   {
+                          //     required: true,
+                          //     message: '请输入',
+                          //   },
+                          // ]}
                         >
                           {renderSelect(energySavingStandard)}
                         </Form.Item>
@@ -260,12 +282,12 @@ const Edit = props => {
                     <Form.Item
                       name="coolingMode"
                       label="供冷方式"
-                      rules={[
-                        {
-                          required: true,
-                          message: '请输入',
-                        },
-                      ]}
+                      // rules={[
+                      //   {
+                      //     required: true,
+                      //     message: '请输入',
+                      //   },
+                      // ]}
                     >
                       {renderSelect(coolingMode)}
                     </Form.Item>
@@ -274,12 +296,12 @@ const Edit = props => {
                       <Form.Item
                         name="heatingMode"
                         label="供暖方式"
-                        rules={[
-                          {
-                            required: true,
-                            message: '请输入',
-                          },
-                        ]}
+                        // rules={[
+                        //   {
+                        //     required: true,
+                        //     message: '请输入',
+                        //   },
+                        // ]}
                       >
                         {renderSelect(heatingMode)}
                       </Form.Item>
@@ -290,12 +312,12 @@ const Edit = props => {
                       <Form.Item
                         name="whetherToUseRenewableResources"
                         label="是否利用可再生能源"
-                        rules={[
-                          {
-                            required: true,
-                            message: '请输入',
-                          },
-                        ]}
+                        // rules={[
+                        //   {
+                        //     required: true,
+                        //     message: '请输入',
+                        //   },
+                        // ]}
                       >
                         {renderSelect(whetherToUseRenewableResources)}
                       </Form.Item>
@@ -304,12 +326,12 @@ const Edit = props => {
                       <Form.Item
                         name="energySavingTransformationOrNot"
                         label="是否经过节能改造"
-                        rules={[
-                          {
-                            required: true,
-                            message: '请输入',
-                          },
-                        ]}
+                        // rules={[
+                        //   {
+                        //     required: true,
+                        //     message: '请输入',
+                        //   },
+                        // ]}
                       >
                         {renderSelect(energySavingTransformationOrNot)}
                       </Form.Item>
@@ -323,7 +345,7 @@ const Edit = props => {
                         rules={[
                           {
                             required: true,
-                            message: '请输入',
+                            message: '请输入经度',
                           },
                         ]}
                       >
@@ -335,7 +357,7 @@ const Edit = props => {
                           rules={[
                             {
                               required: true,
-                              message: '请输入',
+                              message: '请输入纬度',
                             },
                           ]}
                         >
@@ -377,7 +399,7 @@ const Edit = props => {
               
               
               <Row>
-                  <TableForm props={props} name = "逐月电耗" format = 'YYYY-MM-DD' dataType="电" timeType="月"/>
+                  <TableForm props={props}  name = "逐月电耗" format = 'YYYY-MM-DD' dataType="电" timeType="月"/>
               </Row>
               <Row>
                   <TableForm props={props} name = "逐月气耗" format = 'YYYY-MM-DD' dataType="气" timeType="月"/>
@@ -385,24 +407,25 @@ const Edit = props => {
               <Row>
                   <TableForm props={props} name = "逐月水耗" format = 'YYYY-MM-DD' dataType="水" timeType="月"/>
               </Row>        
-              <Row gutter={gutter}>
-                  <Col span={24}>
-                    <Button type="primary" htmlType="submit">
-                      提交
-                    </Button>
-                  </Col>
+              <Row gutter={gutter} style={{justifyContent: 'center'}}>
+                <Form.Item style={{marginRight:'20px'}}>
+                  <Button type="primary" htmlType="submit">
+                  提交
+                  </Button>
+                </Form.Item>
+                <Form.Item >
+                  <Button onClick={onBack}>
+                  返回
+                  </Button>
+                </Form.Item>
               </Row>        
             </Form>             
         </PageHeaderWrapper>        
       )
-    }else{
-      return (<div></div>)
-    }    
-  
 }
 
-export default connect(({ display,projectManage, loading }) => ({
-  division:display.address,
+export default connect(({ projectManage, loading }) => ({
+  // division:display.address,
   detail:projectManage.detail,
   loading
 }))(Edit);

@@ -13,6 +13,7 @@ const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '�
 
 const proDetail = props => {
     const { dispatch } =props;
+    const detail = props.detail;
     const params = useParams()
     const { id } = params;
 
@@ -24,17 +25,17 @@ const proDetail = props => {
           });
         }
       }, [id]);
-      const detail = props.detail;
+      
       const extra = (
       <Avatar shape="square" size={150} src={detail.imgUrl} />
     );
-        // debugger
+        debugger
     const description = (
       <Descriptions
         title={detail.name}
       >
         {/* <Descriptions.Item label="项目名称">{detail.name}</Descriptions.Item> */}
-        <Descriptions.Item label="地址" span={3}>{detail.province||''}{detail.city||''}{detail.district||''}{detail.street||''}{detail.address||''}</Descriptions.Item>
+        <Descriptions.Item label="地址" span={3}>{detail.province||''}{detail.city||''}{detail.district||''}{detail.street||''}<span style={{marginLeft:'8px'}}>{detail.address||''}</span></Descriptions.Item>
         <Descriptions.Item label="建筑类型">{detail.architecturalType}</Descriptions.Item>
         <Descriptions.Item label="建成时间">{detail.builtTime}</Descriptions.Item>
         <Descriptions.Item label="绿建星级">{gbes[detail.gbes]}</Descriptions.Item>

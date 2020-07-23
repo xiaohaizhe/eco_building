@@ -24,7 +24,8 @@ class Map extends React.Component {
   
   componentDidUpdate(preProps) {
     const {longitude,latitude} = this.props.detail;
-    if (preProps && JSON.stringify(preProps.detail) !== JSON.stringify(this.props.detail)) {
+    if (preProps && (JSON.stringify(preProps.detail.longitude) !== JSON.stringify(this.props.detail.longitude) 
+    || JSON.stringify(preProps.detail.latitude) !== JSON.stringify(this.props.detail.latitude))) {
         this.clearMarker();
         this.addMarker([longitude,latitude]);
     }

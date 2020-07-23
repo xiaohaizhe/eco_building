@@ -143,7 +143,7 @@ const EchartItem = props => {
                             format={format}
                             onChange={onChange}
                         />
-                        <span style={{margin: '0 10px 0 20px'}}>总和：{sum}</span>
+                        <span style={{margin: '0 10px 0 20px'}}>共计：{sum}</span>
                     </div>
                     <div id={echartId} style={{width: '100%' ,height: `${window.innerHeight-500}px`}}></div>
                 </div>           

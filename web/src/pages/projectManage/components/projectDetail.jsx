@@ -1,6 +1,6 @@
 import React ,{useEffect }from 'react';
-import { Row, Col ,Descriptions,Avatar } from 'antd';
-import { connect,useParams } from 'umi';
+import { Row, Col ,Descriptions,Avatar,Button } from 'antd';
+import { connect,useParams,history } from 'umi';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import EchartItem from '@/components/EchartItem/echartItem';
 import Map from '../../proDetail/components/map'
@@ -28,13 +28,18 @@ const projectDetail = props => {
     const extra = (
       <Avatar shape="square" size={150} src={detail.imgUrl} />
     );
-
+    // const onBack = ()=>{
+    //   history.goBack();
+    // }
+    // const toEdit =()=>{
+    //   history.push('/projectManage/edit/'+id)
+    // }
     const description = (
       <Descriptions
         title={detail.name}
       >
         {/* <Descriptions.Item label="项目名称">{detail.name}</Descriptions.Item> */}
-        <Descriptions.Item label="地址" span={3}>{detail.province||''}{detail.city||''}{detail.district||''}{detail.street||''}{detail.address||''}</Descriptions.Item>
+        <Descriptions.Item label="地址" span={3}>{detail.province||''}{detail.city||''}{detail.district||''}{detail.street||''}<span style={{marginLeft:'8px'}}>{detail.address||''}</span></Descriptions.Item>
         <Descriptions.Item label="建筑面积">{detail.area}㎡</Descriptions.Item>
         <Descriptions.Item label="层数">{detail.floor}</Descriptions.Item>
         <Descriptions.Item label="建成时间">{detail.builtTime}</Descriptions.Item>
@@ -71,6 +76,14 @@ const projectDetail = props => {
                   <EchartItem name = "水耗趋势/按月" format = 'YYYY-MM' echartId = "water1" dataType="水" timeType="月"/>
               </Col>
           </Row>
+          {/* <Row gutter={gutter} style={{justifyContent: 'center'}}>
+              <Button type="primary"  onClick={toEdit} style={{marginRight:'20px'}}>
+              编辑
+              </Button>
+              <Button onClick={onBack}>
+              返回
+              </Button>
+          </Row>  */}
         </PageHeaderWrapper>
       )
   

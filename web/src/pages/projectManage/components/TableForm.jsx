@@ -144,7 +144,7 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
       toggleEditable(e, key);
 
       //提交数据
-      updateData(data);
+      // updateData(data);
 
       setLoading(false);
     }, 500);
@@ -298,7 +298,7 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
               />
             );
           }
-          return <span style={{width: 50, height: 30, display: 'inline-block' }} onClick={e => toggleEditable(e, record.key, editKey)}>{text}</span>;
+          return <span style={{minWidth: 50, height: 30, display: 'inline-block' }} onClick={e => toggleEditable(e, record.key, editKey)}>{text}</span>;
         },
       }
     )

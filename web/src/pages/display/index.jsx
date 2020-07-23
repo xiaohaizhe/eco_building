@@ -105,6 +105,9 @@ class display extends React.Component {
   }
   //生成地图
   loadMap(mapData,typeData){
+    if (infoWin) {
+      infoWin.close();
+    }
     let that = this;
     var map = new AMap.Map('container', {
           center: [108.5525, 34.3227],
@@ -121,6 +124,7 @@ class display extends React.Component {
       });
 
       layer.on('click', function (ev) {
+        
         // 事件类型
         var type = ev.type;
         // 当前元素的原始数据
