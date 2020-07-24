@@ -22,7 +22,6 @@ class Map extends React.Component {
   }
 
   componentDidMount() {
-    debugger
     const { dispatch,display,match} = this.props;
     const { mapData } = display;
     this.setState({location:match.path.substring(0,match.path.length - 3)})

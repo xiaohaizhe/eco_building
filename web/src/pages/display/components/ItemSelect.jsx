@@ -13,10 +13,10 @@ const architecturalType = [
   { label: '其他', value: '其他' }
 ];
 const floor = [
-  { label: '1-3层（低层）', value: '1,2,3' },
-  { label: '4-6层（多层）', value: '4,5,6' },
-  { label: '7层以上（高层）', value: '7,8,9' },
-  { label: '其他', value: '0' }
+  { label: '1-3层（低层）', value: '0' },
+  { label: '4-6层（多层）', value: '1' },
+  { label: '7层以上（高层）', value: '2' },
+  { label: '其他', value: '3' }
 ];
 const gbes = [
   { label: '0星', value: '0' },
@@ -88,7 +88,7 @@ class ItemSelect extends React.Component {
   }
   //层数变化
   floorChange(value){
-    if(value.indexOf('0')>-1){
+    if(value.indexOf('3')>-1){
       this.setState({'other':true})
     }else{
       this.setState({'other':false})
@@ -97,7 +97,22 @@ class ItemSelect extends React.Component {
 
   onFinish (values) {
     console.log('Success:', values);
-    
+    let area ='';
+    if(values.areaMin || values.areaMax){
+      area=(values.areaMin?values.areaMin:0)+(values.areaMax?','+values.areaMax:'');
+    }
+    let powerConsumptionPerUnitArea = '';
+    if(values.electricMin || values.electricMax){
+      powerConsumptionPerUnitArea=(values.electricMin?values.electricMin:0)+(values.electricMax?','+values.electricMax:'');
+    }
+    let gasConsumptionPerUnitArea = '';
+    if(values.gasMin || values.gasMax){
+      gasConsumptionPerUnitArea=(values.gasMin?values.gasMin:0)+(values.gasMax?','+values.gasMax:'')
+    }
+    let waterConsumptionPerUnitArea=''
+    if(values.waterMin || values.waterMax){
+      waterConsumptionPerUnitArea=(values.waterMin?values.waterMin:0)+(values.waterMax?','+values.waterMax:'')
+    }
     let result = {
       gbes:values.gbes?values.gbes.toLocaleString():'',
       architecturalType:values.architecturalType?values.architecturalType.toLocaleString():'',
@@ -106,25 +121,39 @@ class ItemSelect extends React.Component {
       coolingMode:values.coolingMode?values.coolingMode.toLocaleString():'',
       heatingMode:values.heatingMode?values.heatingMode.toLocaleString():'',
       whetherToUseRenewableResources:values.whetherToUseRenewableResources?values.whetherToUseRenewableResources.toLocaleString():'',
-      area:(values.areaMin?values.areaMin:0)+(values.areaMax?','+values.areaMax:''),
+      area:area,
       date:values.date?(values.date[0].format('YYYY')+','+values.date[1].format('YYYY')):'',
-      powerConsumptionPerUnitArea:(values.electricMin?values.electricMin:0)+(values.electricMax?','+values.electricMax:''),
-      gasConsumptionPerUnitArea:(values.gasMin?values.gasMin:0)+(values.gasMax?','+values.gasMax:''),
-      waterConsumptionPerUnitArea:(values.waterMin?values.waterMin:0)+(values.waterMax?','+values.waterMax:''),
+      powerConsumptionPerUnitArea:powerConsumptionPerUnitArea,
+      gasConsumptionPerUnitArea:gasConsumptionPerUnitArea,
+      waterConsumptionPerUnitArea:waterConsumptionPerUnitArea,
     };
-    if(this.state.other){
-      let arr = [];
-      for(let i = values.floorMin;i<=values.floorMax;i++){
-        arr.push(i);
+    if(values.floor){
+      let temp = [0,0,0,0];
+      for(var i = 0; i < values.floor.length; i++) {
+        temp[values.floor[i]]=1;
       }
-      if(values.floor){
-        let temp = values.floor.toLocaleString();
-        temp = temp.substr(0,temp.length-2).split(",");
-        result.floor=  Array.from(new Set(arr.concat(temp))).toLocaleString();
+      if(this.state.other){
+        //其他
+        temp.push(values.floorMin);
+        temp.push(values.floorMax);
       }
-    }else{
-      result.floor = values.floor?values.floor.toLocaleString():''
+      result.floor = temp.toLocaleString();
     }
+    // if(this.state.other){
+    //   debugger
+    //   let arr = [];
+    //   for(let i = values.floorMin;i<=values.floorMax;i++){
+    //     arr.push(i);
+    //   }
+    //   if(values.floor){
+    //     let temp = values.floor.toLocaleString();
+    //     temp = temp.substr(0,temp.length-2).split(",");
+    //     result.floor=  Array.from(new Set(arr.concat(temp))).toLocaleString();
+    //   }
+    // }else{
+    //   result.floor = values.floor?values.floor.toLocaleString():''
+    // }
+
     if(values.address){
       if(values.address.length==4){
         result.province = values.address[0];
@@ -221,7 +250,13 @@ class ItemSelect extends React.Component {
               <Checkbox.Group options={floor} onChange={(v)=>this.floorChange(v)} />
             </Form.Item>
             {this.state.other &&  <Input.Group compact >
-              <Form.Item name="floorMin">
+              <Form.Item name="floorMin" 
+              rules={[
+                {
+                  required: true,
+                  message: '请输入最小值',
+                },
+              ]}>
                 <Input style={{ width: 100, textAlign: 'center' }}/> 
               </Form.Item>
               
@@ -236,7 +271,12 @@ class ItemSelect extends React.Component {
                 placeholder="~"
                 disabled
               />
-              <Form.Item name="floorMax">
+              <Form.Item name="floorMax" rules={[
+                {
+                  required: true,
+                  message: '请输入最大值',
+                },
+              ]}>
                 <Input
                   className="site-input-right"
                   suffix="层"

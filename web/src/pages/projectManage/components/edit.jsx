@@ -34,7 +34,7 @@ const Edit = props => {
           type: 'projectManage/getProjectDetail',
           payload:{projectId:id},
           callback:(res)=>{
-            res.result.builtTime = moment(res.result.builtTime);
+            res.result.buildTime = moment(res.result.builtTime);
             form.setFieldsValue(res.result)
           }
         });
@@ -60,7 +60,7 @@ const Edit = props => {
       history.goBack();
     }
     const onFinish = function (values) {
-      values.builtTime = values.builtTime.format(format);
+      values.builtTime = values.buildTime.format(format);
       if(values.imgUrl){
         values.imgUrl = values.imgUrl.fileList?values.imgUrl.fileList[0].response.result:'';
       }
@@ -121,10 +121,19 @@ const Edit = props => {
         if (response.code === 0 ) {
           message.success(`图片上传成功`);
         } else {
-          message.error(`图片上传失败`);
+          setFileList([]);
+          message.error(response.message);
         }
       } else if (status === 'error') {
-        message.error(`图片上传失败.`);
+        if(response.code == 401 ){
+          message.success('请重新登陆！');
+          history.push("/user/login");
+        }else{
+          setFileList([]);
+          message.error(`图片上传失败`);
+        }
+        
+        
       }
     }
 
@@ -151,7 +160,6 @@ const Edit = props => {
       });
     }
     const gutter = [16];
-    debugger
       return(
         <PageHeaderWrapper title={false}>
             <Form {...formLayout} className='editProForm' form={form} onFinish={onFinish}>
@@ -232,7 +240,7 @@ const Edit = props => {
                   </Col>
                 <Col span={10}>
                       <Form.Item
-                        name="builtTime"
+                        name="buildTime"
                         label="建成时间"
                         rules={[
                           {

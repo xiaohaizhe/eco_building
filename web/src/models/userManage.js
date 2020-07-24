@@ -1,4 +1,5 @@
 import { getUserPage,update,register,deleteUser } from '@/services/userManage';
+import { message } from 'antd';
 
 const UserManageModel = {
   namespace: 'userManage',
@@ -24,6 +25,8 @@ const UserManageModel = {
       const response = yield call(callbackFun, payload); // post
       if(response.code==0){
         callback(response)
+      }else{
+        message.error(response.message)
       }
       
     },

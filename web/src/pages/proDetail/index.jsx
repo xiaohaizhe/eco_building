@@ -29,21 +29,20 @@ const proDetail = props => {
       const extra = (
       <Avatar shape="square" size={150} src={detail.imgUrl} />
     );
-        debugger
     const description = (
       <Descriptions
-        title={detail.name}
+        title={detail.name?detail.name:""}
       >
         {/* <Descriptions.Item label="项目名称">{detail.name}</Descriptions.Item> */}
-        <Descriptions.Item label="地址" span={3}>{detail.province||''}{detail.city||''}{detail.district||''}{detail.street||''}<span style={{marginLeft:'8px'}}>{detail.address||''}</span></Descriptions.Item>
-        <Descriptions.Item label="建筑类型">{detail.architecturalType}</Descriptions.Item>
-        <Descriptions.Item label="建成时间">{detail.builtTime}</Descriptions.Item>
-        <Descriptions.Item label="绿建星级">{gbes[detail.gbes]}</Descriptions.Item>
-        <Descriptions.Item label="节能标准">{energySavingStandard[detail.energySavingStandard]}</Descriptions.Item>
-        <Descriptions.Item label="是否经过节能改造">{energySavingTransformationOrNot[detail.energySavingTransformationOrNot]}</Descriptions.Item>
-        <Descriptions.Item label="供冷方式">{coolingMode[detail.coolingMode]}</Descriptions.Item>
-        <Descriptions.Item label="供暖方式">{heatingMode[detail.heatingMode]}</Descriptions.Item>
-        <Descriptions.Item label="是否利用可再生能源">{whetherToUseRenewableResources[detail.whetherToUseRenewableResources]}</Descriptions.Item>
+        <Descriptions.Item label="地址" span={3}>{detail.province?detail.province:''}{detail.city?detail.city:''}{detail.district?detail.district:''}{detail.street?detail.street:''}<span style={{marginLeft:'8px'}}>{detail.address?detail.address:''}</span></Descriptions.Item>
+        <Descriptions.Item label="建筑类型">{detail.architecturalType?detail.architecturalType:''}</Descriptions.Item>
+        <Descriptions.Item label="建成时间">{detail.builtTime?detail.builtTime:''}</Descriptions.Item>
+        <Descriptions.Item label="绿建星级">{gbes[detail.gbes?detail.gbes:0]}</Descriptions.Item>
+        <Descriptions.Item label="节能标准">{energySavingStandard[detail.energySavingStandard?detail.energySavingStandard:0]}</Descriptions.Item>
+        <Descriptions.Item label="是否经过节能改造">{energySavingTransformationOrNot[detail.energySavingTransformationOrNot?detail.energySavingTransformationOrNot:0]}</Descriptions.Item>
+        <Descriptions.Item label="供冷方式">{coolingMode[detail.coolingMode?detail.coolingMode:0]}</Descriptions.Item>
+        <Descriptions.Item label="供暖方式">{heatingMode[detail.heatingMode?detail.heatingMode:0]}</Descriptions.Item>
+        <Descriptions.Item label="是否利用可再生能源">{whetherToUseRenewableResources[detail.whetherToUseRenewableResources?detail.whetherToUseRenewableResources:0]}</Descriptions.Item>
       </Descriptions>
     );
 

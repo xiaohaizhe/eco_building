@@ -151,8 +151,8 @@ const projectManage = props => {
         }
       },
       {
-        title: '修改时间',
-        dataIndex: 'builtTime',
+        title: '最后修改时间',
+        dataIndex: 'lastModified',
         hideInSearch:'true'
       },
       {

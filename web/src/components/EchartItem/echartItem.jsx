@@ -19,7 +19,7 @@ const EchartItem = props => {
         if (dispatch) {
             getData(start,end);
         }       
-    }, []);
+    }, [id]);
 
     const getData = function (start,end){
         dispatch({

@@ -4,6 +4,7 @@ import { connect,useParams,history } from 'umi';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import EchartItem from '@/components/EchartItem/echartItem';
 import Map from '../../proDetail/components/map'
+import nopic from '../../../assets/nopic.png'
 const energySavingStandard = ['不执行节能标准','50%','65%','75%以上','未知'];
 const energySavingTransformationOrNot = ['是','否','未知'];
 const gbes = ['0星','1星','2星','3星','未知'];
@@ -12,7 +13,7 @@ const heatingMode = ['集中供暖', '分户采暖',  '无采暖', '未知'];
 const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '未知'];
 
 const projectDetail = props => {
-    const { dispatch } =props;
+    const { dispatch ,detail } =props;
     const params = useParams()
     const { id } = params;
 
@@ -24,9 +25,9 @@ const projectDetail = props => {
           });
         }
       }, [id]);
-    const detail = props.detail;
+      
     const extra = (
-      <Avatar shape="square" size={150} src={detail.imgUrl} />
+      <Avatar shape="square" size={150} src={detail.imgUrl?detail.imgUrl:nopic} />
     );
     // const onBack = ()=>{
     //   history.goBack();
@@ -34,26 +35,23 @@ const projectDetail = props => {
     // const toEdit =()=>{
     //   history.push('/projectManage/edit/'+id)
     // }
+    
     const description = (
-      <Descriptions
-        title={detail.name}
-      >
-        {/* <Descriptions.Item label="项目名称">{detail.name}</Descriptions.Item> */}
-        <Descriptions.Item label="地址" span={3}>{detail.province||''}{detail.city||''}{detail.district||''}{detail.street||''}<span style={{marginLeft:'8px'}}>{detail.address||''}</span></Descriptions.Item>
-        <Descriptions.Item label="建筑面积">{detail.area}㎡</Descriptions.Item>
-        <Descriptions.Item label="层数">{detail.floor}</Descriptions.Item>
-        <Descriptions.Item label="建成时间">{detail.builtTime}</Descriptions.Item>
-        <Descriptions.Item label="建筑类型">{detail.architecturalType}</Descriptions.Item>
-        <Descriptions.Item label="绿建星级">{gbes[detail.gbes]}</Descriptions.Item>
-        <Descriptions.Item label="节能标准">{energySavingStandard[detail.energySavingStandard]}</Descriptions.Item>
-        <Descriptions.Item label="是否经过节能改造">{energySavingTransformationOrNot[detail.energySavingTransformationOrNot]}</Descriptions.Item>
-        <Descriptions.Item label="供冷方式">{coolingMode[detail.coolingMode]}</Descriptions.Item>
-        <Descriptions.Item label="供暖方式">{heatingMode[detail.heatingMode]}</Descriptions.Item>
-        <Descriptions.Item label="是否利用可再生能源">{whetherToUseRenewableResources[detail.whetherToUseRenewableResources]}</Descriptions.Item>
-      </Descriptions>
+      <Descriptions title={detail.name?detail.name:""}>
+        <Descriptions.Item label="地址" span={3}>{detail.province?detail.province:''}{detail.city?detail.city:''}{detail.district?detail.district:''}{detail.street?detail.street:''}<span style={{marginLeft:'8px'}}>{detail.address?detail.address:''}</span></Descriptions.Item>
+        <Descriptions.Item label="建筑面积">{detail.area?detail.area:''}㎡</Descriptions.Item>
+        <Descriptions.Item label="层数">{detail.floor?detail.floor:''}</Descriptions.Item>
+        <Descriptions.Item label="建成时间">{detail.builtTime?detail.builtTime:''}</Descriptions.Item>
+        <Descriptions.Item label="建筑类型">{detail.architecturalType?detail.architecturalType:''}</Descriptions.Item>
+        <Descriptions.Item label="绿建星级">{gbes[detail.gbes?detail.gbes:0]}</Descriptions.Item>
+        <Descriptions.Item label="节能标准">{energySavingStandard[detail.energySavingStandard?detail.energySavingStandard:0]}</Descriptions.Item>
+        <Descriptions.Item label="是否经过节能改造">{energySavingTransformationOrNot[detail.energySavingTransformationOrNot?detail.energySavingTransformationOrNot:0]}</Descriptions.Item>
+        <Descriptions.Item label="供冷方式">{coolingMode[detail.coolingMode?detail.coolingMode:0]}</Descriptions.Item>
+        <Descriptions.Item label="供暖方式">{heatingMode[detail.heatingMode?detail.heatingMode:0]}</Descriptions.Item>
+        <Descriptions.Item label="是否利用可再生能源">{whetherToUseRenewableResources[detail.whetherToUseRenewableResources?detail.whetherToUseRenewableResources:0]}</Descriptions.Item>
+    </Descriptions>
     );
-
-    const gutter = [16, 16];
+    const gutter = [16];
     return(
       <PageHeaderWrapper
         title={false}

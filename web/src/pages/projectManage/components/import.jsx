@@ -30,7 +30,6 @@ const ImportModal = props => {
   };
 
   const handleFinish = values => {
-    debugger
       let temp = new FormData();
       temp.append("file",values.file.file)
       setLoading(true);
@@ -89,7 +88,7 @@ const ImportModal = props => {
                   // for ie 10 and later
                   if (window.navigator.msSaveBlob) {
                       try { 
-                          window.navigator.msSaveBlob(blob, 'example.xls');
+                          window.navigator.msSaveBlob(blob, 'example.xlsx');
                       }
                       catch (e) {
                           console.log(e);
@@ -98,7 +97,7 @@ const ImportModal = props => {
                         let blobUrl = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.style.display = 'none';
-                        a.download = 'example.xls';
+                        a.download = 'example.xlsx';
                         a.href = blobUrl;
                         a.click();
                         // document.body.removeChild(a);

@@ -137,12 +137,12 @@ class display extends React.Component {
             '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 )+' kWh/㎡',
             '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0)+' m³/㎡',
             '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0)+' m³/㎡',
-            '节能标准：': rawData.energySavingStandard?energySavingStandard[rawData.energySavingStandard]:'无',
-            '是否经过节能改造：': rawData.energySavingTransformationOrNot?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
-            '绿建等级：': rawData.gbes?gbes[rawData.gbes]:'无',
-            '供冷方式：': rawData.coolingMode?coolingMode[rawData.coolingMode]:'无',
-            '供暖方式：': rawData.heatingMode?heatingMode[rawData.heatingMode]:'无',
-            '可再生能源利用：': rawData.whetherToUseRenewableResources?whetherToUseRenewableResources[rawData.whetherToUseRenewableResources]:'无',
+            '节能标准：': rawData.energySavingStandard!=undefined?energySavingStandard[rawData.energySavingStandard]:'无',
+            '是否经过节能改造：': rawData.energySavingTransformationOrNot!=undefined?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
+            '绿建等级：': rawData.gbes!=undefined?gbes[rawData.gbes]:'无',
+            '供冷方式：': rawData.coolingMode!=undefined?coolingMode[rawData.coolingMode]:'无',
+            '供暖方式：': rawData.heatingMode!=undefined?heatingMode[rawData.heatingMode]:'无',
+            '可再生能源利用：': rawData.whetherToUseRenewableResources!=undefined?whetherToUseRenewableResources[rawData.whetherToUseRenewableResources]:'无',
           },rawData.id);
       });
 
