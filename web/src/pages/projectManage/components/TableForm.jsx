@@ -62,6 +62,7 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
       })
     }
     setData(tableData);
+    updateData(tableData);
   }
 
   const getRowByKey = (key, newData) => (newData || data)?.filter(item => item.key === key)[0];
@@ -89,6 +90,7 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
       })
       target[editKey] = !target[editKey];
       setData(newData);
+      updateData(data);
     }
   };
 
@@ -162,20 +164,16 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
           })
         }
       }
-    })
-    console.log(dataMap);
-    dispatch({
-        type: 'projectManage/updateData',
-        payload:[{
-            projectId: id,
-            type: dataType,
-            timeType: timeType,
-            dataMap
-        }],
-        callback: (response) => {
-           
-        },
-    });   
+    })    
+    onChange(
+      dataType,
+      {
+        projectId: id,
+        type: dataType,
+        timeType: timeType,
+        dataMap
+      }
+    ); 
   }
 
   const handleKeyPress = (e, key) => {

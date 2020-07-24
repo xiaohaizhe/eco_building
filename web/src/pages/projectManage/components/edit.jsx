@@ -23,7 +23,8 @@ const Edit = props => {
     const [form] = Form.useForm();
     const params = useParams();
     const { id } = params;
-    const [fileList, setFileList] = useState([]); 
+    const [fileList, setFileList] = useState([]);
+    const [tableData, setTableData] = useState({});  
 
     useEffect(() => {
       if (dispatch) {
@@ -97,6 +98,19 @@ const Edit = props => {
           }
         }
       });
+
+      var array = [];
+      for(var key in tableData){
+        array.push(tableData[key]);
+      }
+      dispatch({
+          type: 'projectManage/updateData',
+          payload: array,
+          callback: (response) => {
+            
+          },
+      });  
+
     };
 
     const renderSelect = function (data) {
@@ -147,18 +161,27 @@ const Edit = props => {
       const { response} = file;
       window.open(response.result);
     }
+
     const longChange = (val)=>{
       dispatch({
         type: 'projectManage/changeLongLat',
         payload:{longitude:val.target.value}
       });
     }
+
     const latChange = (val)=>{
       dispatch({
         type: 'projectManage/changeLongLat',
         payload:{latitude:val.target.value}
       });
     }
+
+    const onChange = function ( dataType,newData) {
+      console.log( dataType,newData);
+      tableData[ dataType] = newData;
+      setTableData(tableData);
+    }
+
     const gutter = [16];
       return(
         <PageHeaderWrapper title={false}>
@@ -407,13 +430,13 @@ const Edit = props => {
               
               
               <Row>
-                  <TableForm props={props}  name = "逐月电耗" format = 'YYYY-MM-DD' dataType="电" timeType="月"/>
+                  <TableForm props={props} onChange={onChange} name = "逐月电耗" format = 'YYYY-MM-DD' dataType="电" timeType="月"/>
               </Row>
               <Row>
-                  <TableForm props={props} name = "逐月气耗" format = 'YYYY-MM-DD' dataType="气" timeType="月"/>
+                  <TableForm props={props} onChange={onChange} name = "逐月气耗" format = 'YYYY-MM-DD' dataType="气" timeType="月"/>
               </Row>  
               <Row>
-                  <TableForm props={props} name = "逐月水耗" format = 'YYYY-MM-DD' dataType="水" timeType="月"/>
+                  <TableForm props={props} onChange={onChange} name = "逐月水耗" format = 'YYYY-MM-DD' dataType="水" timeType="月"/>
               </Row>        
               <Row gutter={gutter} style={{justifyContent: 'center'}}>
                 <Form.Item style={{marginRight:'20px'}}>
