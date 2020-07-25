@@ -204,7 +204,7 @@ class Map extends React.Component {
                 padding: 0,
                 }}
             >
-                <div id="container" className="map" tabIndex="0" style={{height: `${window.innerHeight-310}px`}}></div>
+                <div id="container" className="map" tabIndex="0" style={{height: `${window.innerHeight-255}px`}}></div>
             </Card>)
         }
 }

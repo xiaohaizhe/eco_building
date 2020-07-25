@@ -26,7 +26,7 @@
     li {
       display: flex;
       align-items: center;
-      margin-top: 16px;
+      margin-top: 20px;
       zoom: 1;
       &::before,
       &::after {
@@ -51,7 +51,7 @@
         margin-top: 1.5px;
         margin-right: 16px;
         font-weight: 600;
-        font-size: 12px;
+        font-size: 14px;
         line-height: 20px;
         text-align: center;
         background-color:#fafafa;
@@ -63,6 +63,7 @@
       }
       .rankingItemTitle {
         flex: 1;
+        font-size: 16px;
         margin-right: 8px;
         overflow: hidden;
         white-space: nowrap;
@@ -72,12 +73,16 @@
     }
   }
   .rankingTitle{
+    font-weight: bold;
     margin-bottom: 0;
+    font-size: 18px;
   }
   @media screen and (max-width: @screen-xxl) {
     .rankingList___gLJST li{
       margin-top:10px !important;
     }
-    
+    .rankingItemNumber ,.rankingItemTitle,.rankingTitle{
+      font-size: 12px !important;
+    }
   }
   

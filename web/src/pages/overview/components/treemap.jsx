@@ -36,10 +36,13 @@ class Treemap extends React.Component {
         let option = {
             series: [{
                 name: 'ALL',
+                breadcrumb: {show: false},
                 type: 'treemap',
-                top:52,
+                top:15,
+                left:20,
+                right:20,
+                bottom:20,
                 label: {
-                    normal: {
                         formatter: function (params) {
                             var arr = [
                                 '{name|' + params.name + '}',
@@ -58,8 +61,8 @@ class Treemap extends React.Component {
                                 fontSize: 16,
                                 color: '#fff'
                             },
-                        }
-                    }
+                            
+                        },
                 },
                 data:top5
             }]
@@ -80,10 +83,10 @@ class Treemap extends React.Component {
             padding: 0,
             }}>
             <Row>
-                <Col span={14}>
-                    <div id="myChart" style={{width: '100%', height: `${window.innerHeight-310}px`}}></div>
+                <Col span={12}>
+                    <div id="myChart" style={{width: '100%', height: `${window.innerHeight-255}px`}}></div>
                 </Col>
-                <Col span={10} style={{padding:'10px 20px'}}>
+                <Col span={12} style={{padding:'10px 20px'}}>
                     <p className={styles.rankingTitle}>单位面积电耗排名</p>
                     <ul className={styles.rankingList}>
                         {top10.map((item, i) => (

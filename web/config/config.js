@@ -79,12 +79,6 @@ export default defineConfig({
               component: './display',
             },
             {
-              path: '/log',
-              name: 'log',
-              icon: 'profile',
-              component: './log',
-            },
-            {
               path: '/projectManage',
               name: 'projectManage',
               icon: 'project',
@@ -106,6 +100,12 @@ export default defineConfig({
                   component: './projectManage/components/projectDetail',
                 },
               ]
+            },
+            {
+              path: '/log',
+              name: 'log',
+              icon: 'profile',
+              component: './log',
             },
             {
               path: '/admin',

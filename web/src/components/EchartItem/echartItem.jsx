@@ -51,12 +51,21 @@ const EchartItem = props => {
         })
         var myChart = echarts.init(document.getElementById(echartId));
         let option = {
+            tooltip: {
+                trigger: 'axis',
+            },
             xAxis: {
                 type: 'category',
                 data: xAxisData
             },
             yAxis: {
                 type: 'value'
+            },
+            itemStyle:{
+                color:['#26B99A']
+            },
+            lineStyle:{
+                color:['#26B99A']
             },
             series: [{
                 data: seriesData,
