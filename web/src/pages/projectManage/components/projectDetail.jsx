@@ -38,8 +38,9 @@ const projectDetail = props => {
     
     const description = (
       <Descriptions title={detail.name?detail.name:""}>
-        <Descriptions.Item label="地址" span={3}>{detail.province?detail.province:''}{detail.city?detail.city:''}{detail.district?detail.district:''}{detail.street?detail.street:''}<span style={{marginLeft:'8px'}}>{detail.address?detail.address:''}</span></Descriptions.Item>
-        <Descriptions.Item label="建筑面积">{detail.area?detail.area:''}㎡</Descriptions.Item>
+        <Descriptions.Item label="地址" span={3}>{detail.province?detail.province:''}{detail.city?detail.city:''}{detail.district?detail.district:''}<span style={{marginLeft:'8px'}}>{detail.address?detail.address:''}</span></Descriptions.Item>
+        <Descriptions.Item label="工程名称">{detail.projectName?detail.projectName:''}</Descriptions.Item>
+        <Descriptions.Item label="建筑面积">{detail.area?detail.area:''}㎡</Descriptions.Item>   
         <Descriptions.Item label="层数">{detail.floor?detail.floor:''}</Descriptions.Item>
         <Descriptions.Item label="建成时间">{detail.builtTime?detail.builtTime:''}</Descriptions.Item>
         <Descriptions.Item label="建筑类型">{detail.architecturalType?detail.architecturalType:''}</Descriptions.Item>
@@ -51,7 +52,7 @@ const projectDetail = props => {
         <Descriptions.Item label="是否利用可再生能源">{whetherToUseRenewableResources[detail.whetherToUseRenewableResources?detail.whetherToUseRenewableResources:0]}</Descriptions.Item>
     </Descriptions>
     );
-    const gutter = [16];
+    const gutter = [16,16];
     return(
       <PageHeaderWrapper
         title={false}

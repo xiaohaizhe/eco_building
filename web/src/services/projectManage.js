@@ -1,8 +1,15 @@
 import request from '@/utils/request';
 
-//项目分页
+//项目分页（有校验）
 export async function getProjectPage(params) {
   return request('/api/project/page', {
+    method: 'GET',
+    params: params
+  });
+}
+//项目分页（无校验）
+export async function getProjectScreenPage(params) {
+  return request('/api/project/screenPage', {
     method: 'GET',
     params: params
   });

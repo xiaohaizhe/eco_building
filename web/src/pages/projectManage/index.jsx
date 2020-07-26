@@ -10,12 +10,7 @@ import { isUser,getAuthority } from '@/utils/authority';
 
 const fetchData =async (params, sort, filter) =>{
   if(params.address){
-    if(params.address.length==4){
-      params.province = params.address[0];
-      params.city = params.address[1];
-      params.district = params.address[2];
-      params.street = params.address[3];
-    }else if(params.address.length==3){
+    if(params.address.length==3){
       params.province = params.address[0];
       params.city = params.address[1];
       params.district = params.address[2];

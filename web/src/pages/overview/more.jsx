@@ -1,7 +1,7 @@
 import React ,{useEffect}from 'react';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { useParams,history  } from 'umi';
-import { getProjectPage } from '@/services/projectManage';
+import { getProjectScreenPage } from '@/services/projectManage';
 import { connect } from 'umi';
 import ProTable from '@ant-design/pro-table';
 
@@ -11,7 +11,7 @@ const more = props => {
     
     const { name } = params;
     const fetchData =async (params, sort, filter) =>{
-        const res =await getProjectPage({...params,number:params.current,size:params.pageSize,name:name});
+        const res =await getProjectScreenPage({...params,number:params.current,size:params.pageSize,name:name});
         return {
           data:res.result,
           current: 1,

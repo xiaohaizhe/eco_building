@@ -81,7 +81,7 @@ class Map extends React.Component {
                 title:mapData[i].name,
                 city:mapData[i].city,
                 district:mapData[i].district,
-                street:mapData[i].street,
+                // street:mapData[i].street,
                 position: [mapData[i].longitude,mapData[i].latitude],
                 offset: new AMap.Pixel(-24, 5),
             });
@@ -153,7 +153,7 @@ class Map extends React.Component {
             //     +'<div>'+context.count+'</div></div>';
             // }
             else if(level<13||level==13){
-                div.innerHTML = '<div class="name"><div>'+context.markers[0].w.street+'</div>'
+                div.innerHTML = '<div class="name"><div>'+context.markers[0].w.district+'</div>'
                 +'<div>'+context.count+'</div></div>';
             }else{
                 div.innerHTML = '<div class="name"><div>'+context.markers[0].w.title+'</div>'

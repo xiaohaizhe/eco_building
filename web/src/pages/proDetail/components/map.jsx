@@ -36,7 +36,7 @@ class Map extends React.Component {
   componentDidUpdate(preProps) {
     const { display,detail} = this.props;
     const { mapData } = display;
-    if (preProps && JSON.stringify(preProps.detail) !== JSON.stringify(detail)) {
+    if (preProps && (JSON.stringify(preProps.detail) !== JSON.stringify(detail) || JSON.stringify(preProps.mapData) !== JSON.stringify(mapData))) {
         this.loadMap(mapData);
     }
   }
