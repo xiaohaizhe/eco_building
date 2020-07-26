@@ -32,7 +32,7 @@ const OverviewModel = {
         // let min = (payload.result[payload.result.length-1].value-0)>1?payload.result[payload.result.length-1].value-0:2;//payload.result.length-1
         for(let i=0;i<temp.length;i++){
           temp[i].realValue = temp[i].value;
-          temp[i].value = Math.log(temp[i].value-0);
+          temp[i].value = Math.log(temp[i].value-0>1?temp[i].value-0:2);
         }
         return { ...state, top5:temp};
     },
