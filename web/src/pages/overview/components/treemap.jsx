@@ -46,7 +46,7 @@ class Treemap extends React.Component {
                         formatter: function (params) {
                             var arr = [
                                 '{name|' + params.name + '}',
-                                '{value|' + params.value + '}',
+                                '{value|' + params.data.realValue + '}',
                             ];
                             return arr.join('\n');
                         },
