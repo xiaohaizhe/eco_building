@@ -32,13 +32,18 @@ import java.util.*;
 @Component
 public class ExcelUtil {
     private static Logger logger = LoggerFactory.getLogger(ExcelUtil.class);
-    private static String[] columNames =
+    /*private static String[] columNames =
             {"建筑名称", "省", "市", "区县", "街道", "地址", "建筑类型", "建成时间", "项目概况图片",//9
                     "绿建星级", "执行节能标准", "是否经过节能改造", "供冷方式", "供暖方式", "是否利用可再生能源",//6
                     "经度", "纬度", "建筑面积", "层数",//4
                     "电耗", "全年电耗(kWh)", "逐月电耗 (kWh)",
                     "气耗", "全年气耗(m3)", "逐月气耗 (m3)",
-                    "水耗", "全年水耗(m3)", "逐月水耗 (m3)"};
+                    "水耗", "全年水耗(m3)", "逐月水耗 (m3)"};*/
+    private static String[] columNames = {
+            "编号", "项目名称", "工程名称", "建设单位", "面积", "竣工日期", "建筑类型",
+            "省", "市", "区县", "详细地址", "经度", "纬度", "层数", "项目概况图片",
+            "绿建星级", "执行节能标准", "是否经过节能改造", "供冷方式", "供暖方式", "是否利用可再生能源"
+    };
     private ProjectRepository projectRepository;
 
     private UploadService uploadService;
@@ -380,8 +385,8 @@ public class ExcelUtil {
         Object index3 = map.get(3);
         if (index3 != null) project.setDistrict((String) index3);
 
-        Object index4 = map.get(4);
-        if (index4 != null) project.setStreet((String) index4);
+        /*Object index4 = map.get(4);
+        if (index4 != null) project.setStreet((String) index4);*/
 
         Object index5 = map.get(5);
         if (index5 != null) project.setAddress((String) index5);

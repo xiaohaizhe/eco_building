@@ -32,7 +32,7 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
         WebResponse response = new WebResponse();
         response.setCode(-1);
         response.setMessage(e.getMessage());
-        httpServletResponse.setStatus(HttpServletResponse.SC_OK);
+        httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
         httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.toString());
         httpServletResponse.getWriter().write(JSON.toJSONString(response));

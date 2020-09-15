@@ -33,6 +33,8 @@ public class ProjectData implements Serializable {
      */
     @Column(name = "project_id")
     private Long projectId;
+    @Column(name = "serial_number")
+    private String serialNumber;
     /**
      * 年数据/月数据
      * 0-年数据

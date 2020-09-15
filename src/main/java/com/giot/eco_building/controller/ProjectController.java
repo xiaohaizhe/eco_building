@@ -2,10 +2,10 @@ package com.giot.eco_building.controller;
 
 import com.giot.eco_building.aop.SystemControllerLog;
 import com.giot.eco_building.bean.WebResponse;
-import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.DataModel;
 import com.giot.eco_building.model.ProjectModel;
 import com.giot.eco_building.service.ProjectService;
+import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,11 +32,13 @@ public class ProjectController {
     }
 
     @PostMapping("update")
+    @SystemControllerLog(description = "项目修改")
     public WebResponse update(@RequestBody ProjectModel project) {
         return projectService.update(project);
     }
 
     @PostMapping("updateData")
+    @SystemControllerLog(description = "项目数据修改")
     public WebResponse updateData(@RequestBody List<DataModel> dataModelList) {
         return projectService.updateData(dataModelList);
     }
@@ -48,6 +50,16 @@ public class ProjectController {
             return projectService.importExcel(file, request);
         } catch (IOException | ParseException e) {
             e.printStackTrace();
+            return WebResponse.exception(e);
+        }
+    }
+
+    @PostMapping("import")
+    @SystemControllerLog(description = "上传")
+    public WebResponse importFile(MultipartFile[] files, boolean isData, HttpServletRequest request) {
+        try {
+            return projectService.importCsv(files, isData, request);
+        } catch (IOException | CsvValidationException | ParseException e) {
             return WebResponse.exception(e);
         }
     }
@@ -76,6 +88,7 @@ public class ProjectController {
     }
 
     @PostMapping("delete")
+    @SystemControllerLog(description = "项目删除")
     public WebResponse deleteById(Long id) {
         return projectService.deleteById(id);
     }
@@ -84,4 +97,10 @@ public class ProjectController {
     public WebResponse getDataByTime(String dataType, String timeType, Long projectId, String start, String end) {
         return projectService.getDataByTime(dataType, timeType, projectId, start, end);
     }
+
+    @GetMapping("shape")
+    public void updateShape(){
+        projectService.insertShape();
+    }
+
 }

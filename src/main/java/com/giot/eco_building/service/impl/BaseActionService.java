@@ -113,6 +113,7 @@ public class BaseActionService implements ActionService {
                 in.value(1);
                 in.value(2);
                 in.value(3);
+                in.value(4);
             }
             list.add(criteriaBuilder.and(criteriaBuilder.and(in)));
             //3.date
@@ -137,7 +138,7 @@ public class BaseActionService implements ActionService {
     public WebResponse getActionType() {
         Object[] list = {
                 "登入/登出", 0,
-                "删除", 2,
+                "项目修改", 4,
                 "上传", 3,
                 "全部", -1};
         List<Map<String, Object>> result = new ArrayList<>();

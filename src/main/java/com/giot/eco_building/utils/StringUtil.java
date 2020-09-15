@@ -1,5 +1,7 @@
 package com.giot.eco_building.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,15 +34,5 @@ public class StringUtil {
             return false;
         }
         return true;
-    }
-
-    public static void main(String[] args) throws ParseException {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy");
-        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMM");
-        String sd = "201501";
-        Date d = sdf1.parse(sd);
-        System.out.println(d);
-        System.out.println(sdf.format(d));
     }
 }

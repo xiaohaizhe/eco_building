@@ -4,6 +4,7 @@ import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.DataModel;
 import com.giot.eco_building.model.ProjectModel;
+import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -54,6 +55,8 @@ public interface ProjectService {
 
     WebResponse importExcel(MultipartFile file, HttpServletRequest request) throws IOException, ParseException;
 
+    WebResponse importCsv(MultipartFile[] files, boolean isData, HttpServletRequest request) throws IOException, CsvValidationException, ParseException;
+
     WebResponse screen(String province, String city, String district, String street,
                        //多选
                        String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
@@ -63,5 +66,9 @@ public interface ProjectService {
                        Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea);
 
     WebResponse projectDetail(Long projectId);
+
+    WebResponse importFile(MultipartFile file, boolean isData, HttpServletRequest request) throws IOException, CsvValidationException, ParseException;
+
+    void insertShape();
 
 }

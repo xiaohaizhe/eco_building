@@ -11,12 +11,18 @@ import com.giot.eco_building.model.ProjectData;
 import com.giot.eco_building.model.ProjectModel;
 import com.giot.eco_building.repository.ProjectDataRepository;
 import com.giot.eco_building.repository.ProjectRepository;
+import com.giot.eco_building.service.MapService;
 import com.giot.eco_building.service.ProjectDataService;
 import com.giot.eco_building.service.ProjectService;
 import com.giot.eco_building.service.UploadService;
 import com.giot.eco_building.utils.ExcelUtil;
 import com.giot.eco_building.utils.HttpUtil;
 import com.giot.eco_building.utils.ImageCheck;
+import com.giot.eco_building.utils.ProjectCsvToBeanFilter;
+import com.opencsv.CSVReader;
+import com.opencsv.bean.CsvToBeanBuilder;
+import com.opencsv.bean.HeaderColumnNameMappingStrategy;
+import com.opencsv.exceptions.CsvValidationException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
@@ -70,6 +76,13 @@ public class BaseProjectService implements ProjectService {
 
     private ProjectDataRepository projectDataRepository;
 
+    private MapService mapService;
+
+    @Autowired
+    public void setMapService(MapService mapService) {
+        this.mapService = mapService;
+    }
+
     @Autowired
     public void setProjectDataRepository(ProjectDataRepository projectDataRepository) {
         this.projectDataRepository = projectDataRepository;
@@ -104,8 +117,8 @@ public class BaseProjectService implements ProjectService {
      * @return
      */
     private boolean projectNameExist(String name) {
-        Project project = projectRepository.findByNameAndDelStatus(name, Constants.DelStatus.NORMAL.isValue());
-        return (project != null);
+        Optional<Project> project = projectRepository.findByNameAndDelStatus(name, Constants.DelStatus.NORMAL.isValue());
+        return project.isPresent();
     }
 
     /**
@@ -122,10 +135,12 @@ public class BaseProjectService implements ProjectService {
         List<Project> projectListResult = new ArrayList<>();
         Map<String, String> result = new HashMap<>();
         for (Project project : projectList) {
+            logger.info(project.toString());
             if (project != null
                     && project.getName() != null
                     && project.getProvince() != null && project.getCity() != null && project.getDistrict() != null
-                    && project.getStreet() != null && project.getAddress() != null && project.getArchitecturalType() != null
+//                    && project.getStreet() != null
+                    && project.getAddress() != null && project.getArchitecturalType() != null
                     && project.getLongitude() != null && project.getLatitude() != null && project.getArea() != null
                     && project.getBuiltTime() != null) {
                 String projectName = project.getName();
@@ -142,7 +157,7 @@ public class BaseProjectService implements ProjectService {
                 }
             } else if (project.getName() != null) {
                 String projectName = project.getName();
-                logger.error("项目{}参数不完整（项目名不存在）", projectName);
+                logger.error("项目{}参数不完整", projectName);
                 result.put(projectName, "参数不完整");
             }
         }
@@ -193,6 +208,8 @@ public class BaseProjectService implements ProjectService {
     @Override
     public WebResponse updateData(List<DataModel> dataModelList) {
         List<com.giot.eco_building.entity.ProjectData> projectDataList = new ArrayList<>();
+        boolean flag = false;
+        Set<Long> projectIds = new HashSet<>();
         for (DataModel dataModel :
                 dataModelList) {
             Integer type = null;
@@ -211,14 +228,16 @@ public class BaseProjectService implements ProjectService {
             switch (dataModel.getTimeType()) {
                 case "年":
                     isMonth = false;
+                    flag = true;
                     break;
                 case "月":
                     isMonth = true;
                     break;
             }
             if (type != null && isMonth != null && dataModel.getProjectId() != null) {
+                projectIds.add(dataModel.getProjectId());
                 SimpleDateFormat sdf;
-                if (isMonth) sdf = new SimpleDateFormat("yyyy-MM");
+                if (isMonth) sdf = new SimpleDateFormat("yyyyMM");
                 else sdf = new SimpleDateFormat("yyyy");
                 for (Map<String, Double> map : dataModel.getDataMap()) {
                     for (String key :
@@ -253,6 +272,14 @@ public class BaseProjectService implements ProjectService {
             }
         }
         List<com.giot.eco_building.entity.ProjectData> result = projectDataRepository.saveAll(projectDataList);
+        if (flag) {//存在更新年数据
+            List<Project> projectList = projectRepository.findAll();
+            for (Project project :
+                    projectList) {
+//            updateProjectAddress(project);
+                updateLatestYearData(project);
+            }
+        }
         return WebResponse.success();
     }
 
@@ -285,9 +312,9 @@ public class BaseProjectService implements ProjectService {
                 if (projectNew.getDistrict() != null && !"".equals(projectNew.getDistrict())) {
                     projectOld.setDistrict(projectNew.getDistrict());
                 }
-                if (projectNew.getStreet() != null && !"".equals(projectNew.getStreet())) {
+                /*if (projectNew.getStreet() != null && !"".equals(projectNew.getStreet())) {
                     projectOld.setStreet(projectNew.getStreet());
-                }
+                }*/
                 if (projectNew.getAddress() != null && !"".equals(projectNew.getAddress())) {
                     projectOld.setAddress(projectNew.getAddress());
                 }
@@ -376,11 +403,193 @@ public class BaseProjectService implements ProjectService {
         List<Project> projectList = projectRepository.findAll();
         for (Project project :
                 projectList) {
-            updateProjectAddress(project);
+//            updateProjectAddress(project);
             updateLatestYearData(project);
         }
         logger.info("end up updating project info");
         return WebResponse.success();
+    }
+
+
+    @Override
+    public WebResponse importCsv(MultipartFile[] files, boolean isData, HttpServletRequest request) throws IOException, CsvValidationException, ParseException {
+        if (files.length > 0) {
+            String message = "";
+            for (int i = 0; i < files.length; i++) {
+                MultipartFile file = files[i];
+                message += file.getOriginalFilename() + ":";
+                if (!file.getContentType().equals("text/csv") || !file.getOriginalFilename().contains(".csv")) {
+                    message += HttpResponseStatusEnum.FILE_FORMAT_ERROR.getMessage();
+                    continue;
+                }
+                if (isData) {//水电气数据
+                    logger.info("开始读取文件：{}", file.getOriginalFilename());
+                    //1.判断项目数据是否存在
+                    String fileName = file.getOriginalFilename().split(".csv")[0];
+                    String serialNumber = fileName.substring(0, fileName.length() - 2);
+                    char type = fileName.charAt(fileName.length() - 1);
+                    Optional<Project> optional = projectRepository.findBySerialNumberAndDelStatus(serialNumber, Constants.DelStatus.NORMAL.isValue());
+                    if (optional.isPresent()) {
+                        Project project = optional.get();
+                        Long projectId = project.getId();
+                        //2.判断水电气类型
+                        Integer projectType;
+                        switch (type) {
+                            case 'w':
+                                projectType = Constants.DataType.WATER.getCode();
+                                break;
+                            case 'g':
+                                projectType = Constants.DataType.GAS.getCode();
+                                break;
+                            default:
+                                projectType = Constants.DataType.ELECTRICITY.getCode();
+                                break;
+                        }
+                        //3.判断年月
+                        char y = serialNumber.charAt(serialNumber.length() - 1);
+                        boolean isYear = y == 'Y';
+                        //4.新增
+                        Map<String, Double> dataMap = readCsv(file.getInputStream());
+                        List<com.giot.eco_building.entity.ProjectData> dataList = new ArrayList<>();
+                        SimpleDateFormat sdf;
+                        if (isYear) {
+                            sdf = new SimpleDateFormat("yyyy");
+                        } else {
+                            sdf = new SimpleDateFormat("yyyyMM");
+                        }
+                        for (String date :
+                                dataMap.keySet()) {
+                            com.giot.eco_building.entity.ProjectData projectData = new com.giot.eco_building.entity.ProjectData();
+                            projectData.setIsMonth(!isYear);
+                            projectData.setProjectId(projectId);
+                            projectData.setSerialNumber(serialNumber);
+                            projectData.setDelStatus(Constants.DelStatus.NORMAL.isValue());
+
+                            projectData.setType(projectType);
+
+                            Date d = sdf.parse(date);
+                            projectData.setActualDate(d);
+                            projectData.setValue(dataMap.get(date));
+                            dataList.add(projectData);
+                        }
+                        projectDataService.saveOrUpdateByProjectId(dataList);
+                        message += HttpResponseStatusEnum.SUCCESS.getMessage();
+                    } else {
+                        message += HttpResponseStatusEnum.PROJECT_NOT_EXISTED.getMessage();
+                    }
+                } else {//项目数据
+                    try {
+                        //1.默认使用GBK编码
+                        String code = "GBK";
+                        //2.解析csv
+                        InputStreamReader is = new InputStreamReader(file.getInputStream(), code);
+                        HeaderColumnNameMappingStrategy strategy = new HeaderColumnNameMappingStrategy();
+                        strategy.setType(com.giot.eco_building.model.Project.class);
+                        List<com.giot.eco_building.model.Project> projects = new CsvToBeanBuilder(is)
+                                .withType(com.giot.eco_building.model.Project.class)
+                                .withFilter(new ProjectCsvToBeanFilter())
+                                .withSeparator(',')
+//                    .withSkipLines(1)
+                                .withMappingStrategy(strategy)
+                                .withIgnoreQuotations(true)
+                                .build()
+                                .parse();
+                        //3.确定新增数据和更新数据
+                        //已存在序列号数据
+                        Set<String> serialNumberSet = projectRepository.findSerialNumberByDelStatus(Constants.DelStatus.NORMAL.isValue());
+                        //新增序列号数据
+                        Set<String> serialNumberSet_n = new HashSet<>();
+                        //新增项目数据
+                        List<com.giot.eco_building.entity.Project> newProjectList = new ArrayList<>();
+                        //更新项目数据
+                        List<com.giot.eco_building.entity.Project> oldProjectList = new ArrayList<>();
+                        List<com.giot.eco_building.entity.Project> oldProjectListNew = new ArrayList<>();
+                        /*
+                         * 根据serialNumber
+                         * 对数据库中已存在数据更新，不存在数据新增
+                         * 在新增数据中，若出现重复serialNumer，只保留第一个出现数据
+                         */
+                        for (com.giot.eco_building.model.Project p :
+                                projects) {
+                            String serialNumber = p.getSerialNumber();
+                            //数据库中不存在序列号数据
+                            if (!serialNumberSet.contains(serialNumber)) {
+                                //新增数据中不存在的数据
+                                if (!serialNumberSet_n.contains(serialNumber)) {
+                                    Project project = p.getEntity();
+                                    newProjectList.add(project);
+                                    serialNumberSet_n.add(serialNumber);
+                                }
+                            } else {
+                                //数据库中已存在序列号数据
+                                oldProjectList.add(p.getEntity());
+                            }
+                        }
+
+                        //4.对数据库中已存在需要的更新的数据进行更新赋值
+                        for (Project project :
+                                oldProjectList) {
+                            Optional<Project> optionalProject = projectRepository.findBySerialNumberAndDelStatus(project.getSerialNumber(), Constants.DelStatus.NORMAL.isValue());
+                            if (optionalProject.isPresent()) {
+                                Project project1 = optionalProject.get();
+                                project1.setName(project.getName());
+                                project1.setProjectName(project.getProjectName());
+                                project1.setContractor(project.getContractor());
+                                project1.setArea(project.getArea());
+                                project1.setBuiltTime(project.getBuiltTime());
+                                project1.setArchitecturalType(project.getArchitecturalType());
+                                project1.setProvince(project.getProvince());
+                                project1.setCity(project.getCity());
+                                project1.setDistrict(project.getDistrict());
+                                project1.setAddress(project.getAddress());
+                                project1.setLongitude(project.getLongitude());
+                                project1.setLatitude(project.getLatitude());
+                                project1.setFloor(project.getFloor());
+                                project1.setImgUrl(project.getImgUrl());
+                                project1.setGbes(project.getGbes());
+                                project1.setEnergySavingStandard(project.getEnergySavingStandard());
+                                project1.setEnergySavingTransformationOrNot(project.getEnergySavingTransformationOrNot());
+                                project1.setHeatingMode(project.getHeatingMode());
+                                project1.setCoolingMode(project.getCoolingMode());
+                                project1.setWhetherToUseRenewableResources(project.getWhetherToUseRenewableResources());
+                                project1.setDelStatus(project.getDelStatus());
+                                oldProjectListNew.add(project1);
+                            }
+                        }
+                        projectRepository.saveAll(newProjectList);
+                        projectRepository.saveAll(oldProjectListNew);
+                        message += HttpResponseStatusEnum.SUCCESS.getMessage();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        message += e.getMessage();
+                    }
+                }
+                message += ";";
+            }
+            return WebResponse.success(message);
+        } else {
+            return WebResponse.failure(HttpResponseStatusEnum.EMPTY_FILE);
+        }
+    }
+
+    public Map<String, Double> readCsv(InputStream fis) throws IOException, CsvValidationException {
+        Map<String, Double> res = new HashMap<>();
+        DataInputStream in = new DataInputStream(fis);
+        CSVReader csvReader = new CSVReader(new InputStreamReader(in, "UTF-8"));
+        String[] strs;
+        while ((strs = csvReader.readNext()) != null) {
+            if (strs[0] == null || "".equals(strs[0])) continue;
+            if (strs.length % 2 == 0) {
+                for (int i = 0; i < strs.length / 2; i++) {
+                    int date = (int) Float.parseFloat(strs[0 + i * 2]);
+                    res.put(date + "", Double.valueOf(strs[1 + i * 2]));
+                }
+            } else {
+                throw new IOException("数据列错误");
+            }
+        }
+        csvReader.close();
+        return res;
     }
 
     /**
@@ -390,7 +599,8 @@ public class BaseProjectService implements ProjectService {
      */
     private void updateProjectAddress(Project project) {
         if (project.getProvince() == null && project.getCity() == null
-                && project.getDistrict() == null && project.getStreet() == null
+                && project.getDistrict() == null
+//                && project.getStreet() == null
                 && project.getLongitude() != null && project.getLatitude() != null) {
             double longitude = project.getLongitude();
             double latitude = project.getLatitude();
@@ -404,7 +614,7 @@ public class BaseProjectService implements ProjectService {
                     project.setProvince(province);
                     project.setCity(city);
                     project.setDistrict(district);
-                    project.setStreet(street);
+//                    project.setStreet(street);
                     projectRepository.saveAndFlush(project);
                 }
             } catch (IOException e) {
@@ -549,17 +759,18 @@ public class BaseProjectService implements ProjectService {
                                        Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea,
                                        Double[] waterConsumptionPerUnitArea) {
         Specification<Project> projectSpecification = (Specification<Project>) (root, criteriaQuery, criteriaBuilder) -> {
-            List<Predicate> list = new ArrayList<>();//查询条件集
-            list.add(criteriaBuilder.equal(root.get("delStatus").as(Boolean.class), Constants.DelStatus.NORMAL.isValue()));
+            List<Predicate> list_and = new ArrayList<>();//查询条件集
+            List<Predicate> list_or = new ArrayList<>();
+            list_and.add(criteriaBuilder.equal(root.get("delStatus").as(Boolean.class), Constants.DelStatus.NORMAL.isValue()));
             //1. province,  city,  district,  street
             if (province != null && !"".equals(province))
-                list.add(criteriaBuilder.equal(root.get("province").as(String.class), province));
+                list_and.add(criteriaBuilder.equal(root.get("province").as(String.class), province));
             if (city != null && !"".equals(city))
-                list.add(criteriaBuilder.equal(root.get("city").as(String.class), city));
+                list_and.add(criteriaBuilder.equal(root.get("city").as(String.class), city));
             if (district != null && !"".equals(district))
-                list.add(criteriaBuilder.equal(root.get("district").as(String.class), district));
+                list_and.add(criteriaBuilder.equal(root.get("district").as(String.class), district));
             if (street != null && !"".equals(street))
-                list.add(criteriaBuilder.equal(root.get("street").as(String.class), street));
+                list_and.add(criteriaBuilder.equal(root.get("street").as(String.class), street));
             //2. architecturalType,gbes,energySavingStandard,energySavingTransformationOrNot,
             //   HeatingMode,CoolingMode,WhetherToUseRenewableResources,
             if (architecturalType != null && architecturalType.length > 0) {
@@ -569,7 +780,7 @@ public class BaseProjectService implements ProjectService {
                         architecturalType) {
                     in.value(type);
                 }
-                list.add(criteriaBuilder.and(criteriaBuilder.and(in)));
+                list_and.add(criteriaBuilder.and(criteriaBuilder.and(in)));
             }
             if (gbes != null && gbes.length > 0) {
                 Path<Integer> path = root.get("gbes");
@@ -578,7 +789,7 @@ public class BaseProjectService implements ProjectService {
                         gbes) {
                     in.value(type);
                 }
-                list.add(criteriaBuilder.and(criteriaBuilder.and(in)));
+                list_and.add(criteriaBuilder.and(criteriaBuilder.and(in)));
             }
             if (energySavingStandard != null && energySavingStandard.length > 0) {
                 Path<Integer> path = root.get("energySavingStandard");
@@ -587,7 +798,7 @@ public class BaseProjectService implements ProjectService {
                         energySavingStandard) {
                     in.value(type);
                 }
-                list.add(criteriaBuilder.and(criteriaBuilder.and(in)));
+                list_and.add(criteriaBuilder.and(criteriaBuilder.and(in)));
             }
             if (energySavingTransformationOrNot != null && energySavingTransformationOrNot.length > 0) {
                 Path<Integer> path = root.get("energySavingTransformationOrNot");
@@ -596,50 +807,62 @@ public class BaseProjectService implements ProjectService {
                         energySavingTransformationOrNot) {
                     in.value(type);
                 }
-                list.add(criteriaBuilder.and(criteriaBuilder.and(in)));
+                list_and.add(criteriaBuilder.and(criteriaBuilder.and(in)));
             }
             if (HeatingMode != null && HeatingMode.length > 0) {
-                Path<Integer> path = root.get("HeatingMode");
+                Path<Integer> path = root.get("heatingMode");
                 CriteriaBuilder.In<Integer> in = criteriaBuilder.in(path);
                 for (Integer type :
                         HeatingMode) {
                     in.value(type);
                 }
-                list.add(criteriaBuilder.and(criteriaBuilder.and(in)));
+                list_and.add(criteriaBuilder.and(criteriaBuilder.and(in)));
             }
             if (CoolingMode != null && CoolingMode.length > 0) {
-                Path<Integer> path = root.get("CoolingMode");
+                Path<Integer> path = root.get("coolingMode");
                 CriteriaBuilder.In<Integer> in = criteriaBuilder.in(path);
                 for (Integer type :
                         CoolingMode) {
                     in.value(type);
                 }
-                list.add(criteriaBuilder.and(criteriaBuilder.and(in)));
+                list_and.add(criteriaBuilder.and(criteriaBuilder.and(in)));
             }
             if (WhetherToUseRenewableResources != null && WhetherToUseRenewableResources.length > 0) {
-                Path<Integer> path = root.get("WhetherToUseRenewableResources");
+                Path<Integer> path = root.get("whetherToUseRenewableResources");
                 CriteriaBuilder.In<Integer> in = criteriaBuilder.in(path);
                 for (Integer type :
                         WhetherToUseRenewableResources) {
                     in.value(type);
                 }
-                list.add(criteriaBuilder.and(criteriaBuilder.and(in)));
+                list_and.add(criteriaBuilder.and(criteriaBuilder.and(in)));
             }
             //3.Double[] area, Integer[] floor, String[] date,
             //Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea
             if (area != null) {
                 if (area.length == 2) {
-                    list.add(criteriaBuilder.between(root.get("area").as(Double.class), area[0], area[1]));
+                    list_and.add(criteriaBuilder.between(root.get("area").as(Double.class), area[0], area[1]));
                 } else if (area.length == 1) {
-                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("area").as(Double.class), area[0]));
+                    list_and.add(criteriaBuilder.greaterThanOrEqualTo(root.get("area").as(Double.class), area[0]));
                 }
 
             }
             if (floor != null) {
-                if (floor.length == 2) {
-                    list.add(criteriaBuilder.between(root.get("floor").as(Integer.class), floor[0], floor[1]));
-                } else if (floor.length == 1) {
-                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("floor").as(Integer.class), floor[0]));
+
+                if (floor.length >= 4) {
+                    if (floor[0] == 1) {
+                        list_or.add(criteriaBuilder.between(root.get("floor").as(Integer.class), 1, 3));
+                    }
+                    if (floor[1] == 1) {
+                        list_or.add(criteriaBuilder.between(root.get("floor").as(Integer.class), 4, 6));
+                    }
+                    if (floor[2] == 1) {
+                        list_or.add(criteriaBuilder.greaterThan(root.get("floor").as(Integer.class), 7));
+                    }
+                    if (floor.length == 6) {
+                        if (floor[3] == 1) {
+                            list_or.add(criteriaBuilder.between(root.get("floor").as(Integer.class), floor[4], floor[5]));
+                        }
+                    }
                 }
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
@@ -658,7 +881,7 @@ public class BaseProjectService implements ProjectService {
                     } catch (ParseException e) {
                         flag = false;
                     }
-                    if (flag) list.add(criteriaBuilder.between(root.get("builtTime").as(Date.class), sdate, edate));
+                    if (flag) list_and.add(criteriaBuilder.between(root.get("builtTime").as(Date.class), sdate, edate));
                 } else if (date.length == 1) {
                     try {
                         sdate = sdf.parse(date[0]);
@@ -666,32 +889,50 @@ public class BaseProjectService implements ProjectService {
                         flag = false;
                     }
                     if (flag)
-                        list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("builtTime").as(Date.class), sdate));
+                        list_and.add(criteriaBuilder.greaterThanOrEqualTo(root.get("builtTime").as(Date.class), sdate));
                 }
             }
             if (powerConsumptionPerUnitArea != null) {
-                if (powerConsumptionPerUnitArea.length == 2) {
-                    list.add(criteriaBuilder.between(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0], powerConsumptionPerUnitArea[1]));
-                } else if (powerConsumptionPerUnitArea.length == 1) {
-                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0]));
+                if (powerConsumptionPerUnitArea.length > 0) {
+                    if (powerConsumptionPerUnitArea.length == 2) {
+                        list_and.add(criteriaBuilder.between(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0], powerConsumptionPerUnitArea[1]));
+                    } else if (powerConsumptionPerUnitArea.length == 1) {
+                        list_and.add(criteriaBuilder.greaterThanOrEqualTo(root.get("powerConsumptionPerUnitArea"), powerConsumptionPerUnitArea[0]));
+                    }
+                    list_and.add(criteriaBuilder.isNotNull(root.get("powerConsumptionPerUnitArea")));
                 }
             }
             if (gasConsumptionPerUnitArea != null) {
-                if (gasConsumptionPerUnitArea.length == 2) {
-                    list.add(criteriaBuilder.between(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0], gasConsumptionPerUnitArea[1]));
-                } else if (gasConsumptionPerUnitArea.length == 1) {
-                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0]));
+                if (gasConsumptionPerUnitArea.length > 0) {
+                    if (gasConsumptionPerUnitArea.length == 2) {
+                        list_and.add(criteriaBuilder.between(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0], gasConsumptionPerUnitArea[1]));
+                    } else if (gasConsumptionPerUnitArea.length == 1) {
+                        list_and.add(criteriaBuilder.greaterThanOrEqualTo(root.get("gasConsumptionPerUnitArea"), gasConsumptionPerUnitArea[0]));
+                    }
+                    list_and.add(criteriaBuilder.isNotNull(root.get("gasConsumptionPerUnitArea")));
                 }
             }
             if (waterConsumptionPerUnitArea != null) {
-                if (waterConsumptionPerUnitArea.length == 2) {
-                    list.add(criteriaBuilder.between(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0], waterConsumptionPerUnitArea[1]));
-                } else if (waterConsumptionPerUnitArea.length == 1) {
-                    list.add(criteriaBuilder.greaterThanOrEqualTo(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0]));
+                if (waterConsumptionPerUnitArea.length > 0) {
+                    if (waterConsumptionPerUnitArea.length == 2) {
+                        list_and.add(criteriaBuilder.between(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0], waterConsumptionPerUnitArea[1]));
+                    } else if (waterConsumptionPerUnitArea.length == 1) {
+                        list_and.add(criteriaBuilder.greaterThanOrEqualTo(root.get("waterConsumptionPerUnitArea"), waterConsumptionPerUnitArea[0]));
+                    }
+                    list_and.add(criteriaBuilder.isNotNull(root.get("waterConsumptionPerUnitArea")));
                 }
             }
+            Predicate[] array_and = new Predicate[list_and.size()];
+            Predicate pre_and = criteriaBuilder.and(list_and.toArray(array_and));
 
-            return criteriaBuilder.and(list.toArray(new Predicate[list.size()]));
+            Predicate[] array_or = new Predicate[list_or.size()];
+            Predicate pre_or = criteriaBuilder.or(list_or.toArray(array_or));
+            if (array_or.length == 0) {
+                criteriaQuery.where(pre_and);
+            } else {
+                criteriaQuery.where(pre_and, pre_or);
+            }
+            return criteriaQuery.getRestriction();
         };
         Sort sort = Sort.by(Sort.Direction.DESC,
                 "created"); //创建时间降序排序
@@ -763,6 +1004,38 @@ public class BaseProjectService implements ProjectService {
             return WebResponse.success(projectOptional.get());
         } else {
             return WebResponse.failure(HttpResponseStatusEnum.PROJECT_NOT_EXISTED);
+        }
+    }
+
+    @Override
+    public WebResponse importFile(MultipartFile file, boolean isData, HttpServletRequest request) throws IOException, CsvValidationException, ParseException {
+        String fileName = file.getOriginalFilename();
+        String extString = fileName.substring(fileName.lastIndexOf('.'));
+        /*if (file.getContentType().equals("text/csv") && ".csv".equals(extString)) {
+            return importCsv(file, isData, request);
+        } else */
+        if (".xls".equals(extString) || ".xlsx".equals(extString)) {
+            return importExcel(file, request);
+        } else {
+            return WebResponse.failure(HttpResponseStatusEnum.FILE_FORMAT_ERROR);
+        }
+    }
+
+    @Override
+    public void insertShape() {
+        List<Project> projectList = projectRepository.findAll();
+        for (Project pro :
+                projectList) {
+            if (pro.getShape() == null || pro.getShape().equals("")) {
+                logger.info("开始更新：{}的shape", pro.getName());
+                List<String> poiIds = mapService.getPoiId(pro.getLongitude(), pro.getLatitude(), pro.getName());
+                if (poiIds.size() > 0) {
+                    String poiId = poiIds.get(0);
+                    String shape = mapService.getDistrictLocation(poiId);
+                    pro.setShape(shape);
+                    projectRepository.saveAndFlush(pro);
+                }
+            }
         }
     }
 
@@ -841,7 +1114,7 @@ public class BaseProjectService implements ProjectService {
     @Override
     public WebResponse page(String name, String province, String city, String district, String street, String architecturalType, Integer number, Integer size) {
         Sort sort = Sort.by(Sort.Direction.DESC,
-                "lastModified"); //创建时间降序排序
+                "lastModified"); //最新修改时间降序排序
         Pageable pageable = PageRequest.of(number - 1, size, sort);
         Specification<Project> projectSpecification = (Specification<Project>) (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> list = new ArrayList<>();//查询条件集
