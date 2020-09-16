@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -29,7 +30,7 @@ public class BaseMapServiceTest {
 
     @Test
     public void getPoiId() {
-        List<String> res = mapService.getPoiId(31.89508803, 120.3144302, "江阴市皇达五金机电市场有限公司");
+        Set<String> res = mapService.getPoiId(31.89508803, 120.3144302, "江阴市皇达五金机电市场有限公司", "江阴市");
         for (String s :
                 res) {
             System.out.println(s);

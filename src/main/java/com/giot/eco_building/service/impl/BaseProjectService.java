@@ -1,5 +1,6 @@
 package com.giot.eco_building.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.giot.eco_building.bean.WebResponse;
@@ -566,6 +567,13 @@ public class BaseProjectService implements ProjectService {
                 }
                 message += ";";
             }
+            /*logger.info("start updating project info");
+            List<Project> projectList = projectRepository.findAll();
+            for (Project project :
+                    projectList) {
+                updateLatestYearData(project);
+            }
+            logger.info("end up updating project info");*/
             return WebResponse.success(message);
         } else {
             return WebResponse.failure(HttpResponseStatusEnum.EMPTY_FILE);
@@ -719,7 +727,7 @@ public class BaseProjectService implements ProjectService {
                 JSONArray districtArray = new JSONArray();
                 for (String district :
                         districts) {
-                    JSONArray streetArray = new JSONArray();
+                    /*JSONArray streetArray = new JSONArray();
                     List<String> streets = projectRepository.findDistinctStreetByDistrict(district);
                     for (String street :
                             streets) {
@@ -727,11 +735,11 @@ public class BaseProjectService implements ProjectService {
                         streetObject.put("label", street);
                         streetObject.put("value", street);
                         streetArray.add(streetObject);
-                    }
+                    }*/
                     JSONObject districtJson = new JSONObject();
                     districtJson.put("label", district);
                     districtJson.put("value", district);
-                    districtJson.put("children", streetArray);
+//                    districtJson.put("children", streetArray);
                     districtArray.add(districtJson);
                 }
                 JSONObject cityJson = new JSONObject();
@@ -955,6 +963,7 @@ public class BaseProjectService implements ProjectService {
                 architecturalType, gbes, energySavingStandard,
                 energySavingTransformationOrNot, HeatingMode, CoolingMode, WhetherToUseRenewableResources,
                 area, floor, date, powerConsumptionPerUnitArea, gasConsumptionPerUnitArea, waterConsumptionPerUnitArea);
+
         Double waterMin = null;
         Double waterMax = (double) 0;
         Double gasMin = null;
@@ -989,8 +998,24 @@ public class BaseProjectService implements ProjectService {
         logger.info("水：{}-{}", waterMin, waterMax);
         logger.info("电：{}-{}", elecMin, elecMax);
         logger.info("气：{}-{}", gasMin, gasMax);
+        JSONArray projectArray = JSONArray.parseArray(JSON.toJSONString(projectList));
+        for (int i = 0; i < projectArray.size(); i++) {
+            JSONObject object = (JSONObject) projectArray.get(i);
+            if (object.get("shape") != null) {
+                String shape = object.getString("shape");
+                JSONArray shapeArray = new JSONArray();
+                String[] locations = shape.split(";");
+                for (int j = 0; j < locations.length; j++) {
+                    JSONArray locaArray = new JSONArray();
+                    String loca = locations[j];
+                    shapeArray.add(loca.split(","));
+                }
+                object.put("shape", shapeArray);
+            }
+        }
         JSONObject result = new JSONObject();
-        result.put("project", projectList);
+//        result.put("project", projectList);
+        result.put("project", projectArray);
         result.put("water", "" + waterMin + "-" + waterMax);
         result.put("gas", "" + gasMin + "-" + gasMax);
         result.put("elec", "" + elecMin + "-" + elecMax);
@@ -1028,12 +1053,15 @@ public class BaseProjectService implements ProjectService {
                 projectList) {
             if (pro.getShape() == null || pro.getShape().equals("")) {
                 logger.info("开始更新：{}的shape", pro.getName());
-                List<String> poiIds = mapService.getPoiId(pro.getLongitude(), pro.getLatitude(), pro.getName());
-                if (poiIds.size() > 0) {
-                    String poiId = poiIds.get(0);
+                Set<String> poiIds = mapService.getPoiId(pro.getLongitude(), pro.getLatitude(), pro.getName(), pro.getCity());
+                for (String poiId :
+                        poiIds) {
                     String shape = mapService.getDistrictLocation(poiId);
-                    pro.setShape(shape);
-                    projectRepository.saveAndFlush(pro);
+                    if (shape != null && !"".equals(shape)) {
+                        pro.setShape(shape);
+                        projectRepository.saveAndFlush(pro);
+                        break;
+                    }
                 }
             }
         }
@@ -1112,7 +1140,7 @@ public class BaseProjectService implements ProjectService {
     }
 
     @Override
-    public WebResponse page(String name, String province, String city, String district, String street, String architecturalType, Integer number, Integer size) {
+    public WebResponse page(String name, String province, String city, String district, String architecturalType, Integer number, Integer size) {
         Sort sort = Sort.by(Sort.Direction.DESC,
                 "lastModified"); //最新修改时间降序排序
         Pageable pageable = PageRequest.of(number - 1, size, sort);
@@ -1127,8 +1155,8 @@ public class BaseProjectService implements ProjectService {
                 list.add(criteriaBuilder.equal(root.get("city").as(String.class), city));
             if (district != null && !"".equals(district))
                 list.add(criteriaBuilder.equal(root.get("district").as(String.class), district));
-            if (street != null && !"".equals(street))
-                list.add(criteriaBuilder.equal(root.get("street").as(String.class), street));
+            /*if (street != null && !"".equals(street))
+                list.add(criteriaBuilder.equal(root.get("street").as(String.class), street));*/
             if (architecturalType != null && !"".equals(architecturalType)) {
                 list.add(criteriaBuilder.equal(root.get("architecturalType").as(String.class), architecturalType));
             }

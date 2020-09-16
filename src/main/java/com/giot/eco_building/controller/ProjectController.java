@@ -81,10 +81,18 @@ public class ProjectController {
 
     @GetMapping("page")
     public WebResponse projectPage(String name,
-                                   String province, String city, String district, String street,
+                                   String province, String city, String district,
                                    String architecturalType,
                                    Integer number, Integer size) {
-        return projectService.page(name, province, city, district, street, architecturalType, number, size);
+        return projectService.page(name, province, city, district, architecturalType, number, size);
+    }
+
+    @GetMapping("screenPage")
+    public WebResponse projectcreenPage(String name,
+                                   String province, String city, String district,
+                                   String architecturalType,
+                                   Integer number, Integer size) {
+        return projectService.page(name, province, city, district, architecturalType, number, size);
     }
 
     @PostMapping("delete")

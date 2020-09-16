@@ -38,7 +38,7 @@ public interface ProjectService {
     WebResponse deleteById(Long id);
 
     WebResponse page(String name,
-                     String province, String city, String district, String street,
+                     String province, String city, String district,
                      String architecturalType,
                      Integer number, Integer size);
 

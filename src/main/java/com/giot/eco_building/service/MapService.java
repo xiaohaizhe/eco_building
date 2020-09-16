@@ -1,6 +1,6 @@
 package com.giot.eco_building.service;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,7 +10,7 @@ import java.util.List;
  * Time: 16:00
  */
 public interface MapService {
-    List<String> getPoiId(Double longitude, Double latitude, String name);
+    Set<String> getPoiId(Double longitude, Double latitude, String name, String district);
 
     String getDistrictLocation(String poiId);
 }

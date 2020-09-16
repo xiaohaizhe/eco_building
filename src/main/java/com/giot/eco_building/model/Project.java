@@ -41,7 +41,7 @@ public class Project {
     private String contractor;
 
     //    @CsvBindByPosition(position = 4)
-    @CsvBindByName(column = "面积   (㎡)")
+    @CsvBindByName(column = "面积")
     private Double area;
 
     @CsvBindByName(column = "竣工日期")
