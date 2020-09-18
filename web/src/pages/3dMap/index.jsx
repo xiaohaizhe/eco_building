@@ -36,14 +36,14 @@ class display extends React.Component {
       });
     }
     
-    this.loadMap(mapData,maxMin[this.state.radio]);
+    this.loadMap(mapData,maxMin[this.state.radio],this.state.radio);
   }
   
   componentDidUpdate(preProps) {
     const { display } = this.props;
     const { mapData,maxMin } = display;
     if (preProps && JSON.stringify(preProps.display) !== JSON.stringify(display)) {
-        this.loadMap(mapData,maxMin[this.state.radio]);
+        this.loadMap(mapData,maxMin[this.state.radio],this.state.radio);
     }
   }
   //打开详情浮窗
@@ -108,7 +108,7 @@ class display extends React.Component {
     }
   }
   //生成地图
-  loadMap(mapData,typeData){
+  loadMap(mapData,typeData,flag){
     if (infoWin) {
       infoWin.close();
     }
@@ -130,11 +130,11 @@ class display extends React.Component {
         let color1 = 'ff969696';
       if(typeData.max-typeData.min!=0){
         var val = 0;
-        if(that.state.radio=='0'){
+        if(flag==='0'){
           val = value.waterConsumptionPerUnitArea;
-        }else if (that.state.radio=='1'){
+        }else if (flag==='1'){
           val = value.powerConsumptionPerUnitArea;
-        }else if(that.state.radio=='2'){
+        }else if(flag==='2'){
           val = value.gasConsumptionPerUnitArea;
         }
         var max = typeData.max;
@@ -168,19 +168,22 @@ class display extends React.Component {
             var rawData = ev.target.Ce.value;
             // 原始鼠标事件
             var originalEvent = ev.pixel;
-            polygon = new AMap.Polygon({
-                  bubble:false,
-                  fillOpacity:0.3,
-                  strokeWeight:0.1,
-                  path:rawData.shape,
-                  map:map,
-                  zIndex:1
-                })
+            if(rawData.shape && rawData.shape.length>1){
+              polygon = new AMap.Polygon({
+                bubble:false,
+                fillOpacity:0.3,
+                strokeWeight:0.1,
+                path:rawData.shape,
+                map:map,
+                zIndex:1
+              })
+            }
+            
             that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
                 '建筑类型：': rawData.architecturalType || '无',
-                '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(2)+' kWh/㎡',
-                '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
-                '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
+                '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(3)+' kWh/㎡',
+                '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
+                '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
                 '节能标准：': rawData.energySavingStandard!=undefined?energySavingStandard[rawData.energySavingStandard]:'无',
                 '是否经过节能改造：': rawData.energySavingTransformationOrNot!=undefined?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
                 '绿建等级：': rawData.gbes!=undefined?gbes[rawData.gbes]:'无',
@@ -232,7 +235,7 @@ class display extends React.Component {
     this.setState({
       radio: e.target.value,
     });
-    this.loadMap(mapData,maxMin[e.target.value]);
+    this.loadMap(mapData,maxMin[e.target.value],e.target.value);
   };
   render(){
     const { display } = this.props;

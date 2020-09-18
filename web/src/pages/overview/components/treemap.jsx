@@ -98,7 +98,7 @@ class Treemap extends React.Component {
                             {item.name}
                             </span>
                             <span className={styles.rankingItemValue}>
-                            {item.powerConsumptionPerUnitArea}
+                            {item.powerConsumptionPerUnitArea.toFixed(3)}
                             </span>
                         </li>
                         ))}

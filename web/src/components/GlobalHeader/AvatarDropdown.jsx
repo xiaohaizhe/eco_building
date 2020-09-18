@@ -11,7 +11,6 @@ class AvatarDropdown extends React.Component {
     const { key } = event;
 
     if (key === 'logout') {
-      debugger
       const { dispatch } = this.props;
 
       if (dispatch) {

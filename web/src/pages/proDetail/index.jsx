@@ -1,4 +1,4 @@
-import React ,{useEffect }from 'react';
+import React, { useState, useRef, useEffect} from 'react';
 import { Row, Col ,Descriptions,Avatar } from 'antd';
 import { connect,useParams } from 'umi';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
@@ -15,21 +15,32 @@ const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '�
 const proDetail = props => {
     const { dispatch } =props;
     const detail = props.detail;
-    const params = useParams()
-    const { id } = params;
+    const params = useParams();
+    const { id } = params;   
+    const [ loading, setLoading] = useState(false);
+    const [ timeType, setTimeType] = useState("月");
+    const [ format, setFormat] = useState("YYYY-MM"); 
 
     useEffect(() => {
-        if (dispatch) {
-          dispatch({
-            type: 'projectManage/getProjectDetail',
-            payload:{projectId:id}
-          });
-        }
-      }, [id]);
+      if (dispatch) {
+        dispatch({
+          type: 'projectManage/getProjectDetail',
+          payload:{projectId:id},
+          callback:function (data) {
+            if(data.serialNumber.indexOf("Y") != -1){
+              setTimeType("年");
+              setFormat("YYYY");
+            }
+            setLoading(true);
+          }
+        });
+      }
+    }, [id]);
       
-      const extra = (
+    const extra = (
       <Avatar shape="square" size={150} src={detail.imgUrl?detail.imgUrl:nopic}/>
     );
+
     const description = (
       <Descriptions
         title={detail.name?detail.name:""}
@@ -37,6 +48,8 @@ const proDetail = props => {
         {/* <Descriptions.Item label="项目名称">{detail.name}</Descriptions.Item> */}
         <Descriptions.Item label="地址" span={3}>{detail.province?detail.province:''}{detail.city?detail.city:''}{detail.district?detail.district:''}<span style={{marginLeft:'8px'}}>{detail.address?detail.address:''}</span></Descriptions.Item>
         <Descriptions.Item label="工程名称">{detail.projectName?detail.projectName:''}</Descriptions.Item>
+        <Descriptions.Item label="建筑面积">{detail.area?detail.area:''}㎡</Descriptions.Item> 
+        <Descriptions.Item label="围栏坐标">{detail.shape?detail.shape.split(';')[0]+"...":'无'}</Descriptions.Item>     
         <Descriptions.Item label="建筑类型">{detail.architecturalType?detail.architecturalType:''}</Descriptions.Item>
         <Descriptions.Item label="建成时间">{detail.builtTime?detail.builtTime:''}</Descriptions.Item>
         <Descriptions.Item label="绿建星级">{gbes[detail.gbes?detail.gbes:0]}</Descriptions.Item>
@@ -50,28 +63,34 @@ const proDetail = props => {
 
     const gutter = [16, 16];
     return(
-      <PageHeaderWrapper
-        title={false}
-        content={description}
-        extraContent={extra}
-        >
-          <Row gutter={gutter}>
-              <Col span={12}>
-                <Map/>
-              </Col>
-              <Col span={12}>
-                  <EchartItem name = "电耗趋势/按月" format = 'YYYY-MM' echartId = "power1" dataType="电" timeType="月"/>
-              </Col>
-          </Row>
-          {/* <Row gutter={gutter}>
-              <Col span={12}>                
-                  <EchartItem name = "气耗趋势/按月" format = 'YYYY-MM-DD' echartId = "gas1" dataType="气" timeType="月"/>
-              </Col>
-              <Col span={12}>
-                  <EchartItem name = "水耗趋势/按月" format = 'YYYY-MM-DD' echartId = "water1" dataType="水" timeType="月"/>
-              </Col>
-          </Row> */}
-        </PageHeaderWrapper>
+          <>
+              {
+                loading
+                &&
+                <PageHeaderWrapper
+                  title={false}
+                  content={description}
+                  extraContent={extra}
+                  >
+                    <Row gutter={gutter}>
+                        <Col span={12}>
+                          <Map/>
+                        </Col>
+                        <Col span={12}>
+                            <EchartItem name = "电耗趋势" format = {format} echartId = "power1" dataType="电" timeType={timeType}/>
+                        </Col>
+                    </Row>
+                    {/* <Row gutter={gutter}>
+                        <Col span={12}>                
+                            <EchartItem name = "气耗趋势/按月" format = 'YYYY-MM-DD' echartId = "gas1" dataType="气" timeType="月"/>
+                        </Col>
+                        <Col span={12}>
+                            <EchartItem name = "水耗趋势/按月" format = 'YYYY-MM-DD' echartId = "water1" dataType="水" timeType="月"/>
+                        </Col>
+                    </Row> */}
+                </PageHeaderWrapper>
+              }
+          </>
       )
   
 }

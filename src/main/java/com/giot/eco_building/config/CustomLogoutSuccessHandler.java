@@ -30,14 +30,24 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         String sessionId = request.getRequestedSessionId();
-        User user = IpUtil.getUserId(sessionId);
-        IpUtil.removeSession(sessionId);
-        actionService.add(Constants.ActionType.LOGOUT, "成功", user);
-        WebResponse httpServletResponse = WebResponse.success("退出成功");
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
-        response.getWriter().write(JSON.toJSONString(httpServletResponse));
+        WebResponse httpServletResponse;
+        if (sessionId != null) {
+            User user = IpUtil.getUserId(sessionId);
+            IpUtil.removeSession(sessionId);
+            actionService.add(Constants.ActionType.LOGOUT, "成功", user);
+            httpServletResponse = WebResponse.success("退出成功");
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
+            response.getWriter().write(JSON.toJSONString(httpServletResponse));
+        } else {
+            httpServletResponse = WebResponse.failure();
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
+            response.getWriter().write(JSON.toJSONString(httpServletResponse));
+        }
+
     }
 
 }

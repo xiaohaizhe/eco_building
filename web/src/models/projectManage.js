@@ -40,7 +40,7 @@ const ProjectManageModel = {
         payload: response,
       });
       if(callback){
-        callback(response)
+        callback(response.result)
       }
     },
     //导入

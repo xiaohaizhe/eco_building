@@ -9,8 +9,10 @@ public enum HttpResponseStatusEnum implements CommonResponse {
     FAILURE(1, "failure"),                            // 失败请求
     FORBIDDEN_OPERATION(2, "forbidden"),               // 权限不足
     EXCEPTION(100, "exception"),                         //异常
+
     FILE_FORMAT_ERROR(300, "文件格式错误"),
     PARAM_ERROR(301, "参数错误"),
+    EMPTY_FILE(302, "文件为空"),
 
     USER_HAS_EXISTED(10001, "用户已存在"),
 

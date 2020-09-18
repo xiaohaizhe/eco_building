@@ -56,7 +56,16 @@ const EchartItem = props => {
             },
             xAxis: {
                 type: 'category',
-                data: xAxisData
+                data: xAxisData,
+                axisLabel: {
+                    formatter: function (value) {
+                        if(timeType=='年'){
+                            return value.substring(0,4)
+                        }else{
+                            return value.substring(0,7)
+                        }
+                    },
+                }
             },
             yAxis: {
                 type: 'value'
@@ -80,9 +89,15 @@ const EchartItem = props => {
     }
 
     const onChange = function (e) {
-        if(e){            
-            var start = e[0].format(format);
-            var end = e[1].format(format);
+        debugger
+        if(e){     
+            if(format=='YYYY'){
+                var start = e[0].format(format)+'-01';
+                var end = e[1].format(format)+'-12';
+            }else{
+                var start = e[0].format(format);
+                var end = e[1].format(format);
+            } 
             getData(start,end);
         }
     }
@@ -102,7 +117,16 @@ const EchartItem = props => {
                 let option = {
                     xAxis: {
                         type: 'category',
-                        data: xAxisData
+                        data: xAxisData,
+                        axisLabel: {
+                            formatter: function (value) {
+                                if(timeType=='年'){
+                                    return value.substring(0,4)
+                                }else{
+                                    return value.substring(0,7)
+                                }
+                            },
+                        }
                     },
                     yAxis: {
                         type: 'value'
@@ -147,7 +171,7 @@ const EchartItem = props => {
                     <div className="date">
                         <span style={{marginRight: 10}}>选择日期：</span>
                         <RangePicker
-                            picker="month"
+                            picker={format == "YYYY" ? "year" : "month"}
                             defaultValue={[moment(start, format), moment(end, format)]}
                             format={format}
                             onChange={onChange}

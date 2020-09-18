@@ -27,7 +27,6 @@ const OverviewModel = {
       return { ...state, top10: payload.result};
     },
     save5(state, { payload }){
-      debugger
         let temp = [...payload.result];
         // let min = (payload.result[payload.result.length-1].value-0)>1?payload.result[payload.result.length-1].value-0:2;//payload.result.length-1
         for(let i=0;i<temp.length;i++){

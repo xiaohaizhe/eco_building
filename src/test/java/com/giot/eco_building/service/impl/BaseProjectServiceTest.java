@@ -14,8 +14,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * @Author: pyt
  * @Date: 2020/6/11 17:38
@@ -39,7 +37,6 @@ class BaseProjectServiceTest {
     }
 
 
-
     @Test
     public void getProvinces() {
         List<String> result = projectRepository.findDistinctCityByProvince("江苏省");
@@ -52,6 +49,29 @@ class BaseProjectServiceTest {
 
     @Test
     public void getAddress() {
-        System.out.println(projectService.getAddress());
+//        System.out.println(projectService.getAddress());
+    }
+
+    @Test
+    public void updateData() {
+//        List<DataModel> dataModelList = new ArrayList<>();
+//        List<Project> projectList = projectRepository.findAll();
+//        double value = 200000;
+//        for (Project project :
+//                projectList) {
+//            DataModel model = new DataModel();
+//            model.setProjectId(project.getId());
+//            model.setTimeType("年");
+//            model.setType("电");
+//            List<Map<String, Double>> list = new ArrayList<>();
+//            Map<String, Double> map = new HashMap<>();
+//            map.put("2020", value);
+//            list.add(map);
+//            model.setDataMap(list);
+//            value += 10000;
+//            dataModelList.add(model);
+//        }
+//        projectService.updateData(dataModelList);
+
     }
 }

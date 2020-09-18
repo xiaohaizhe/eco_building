@@ -35,7 +35,7 @@ const menuDataRender = (menuList,currentUser) =>{
       const localItem = { ...item, children: item.children ? menuDataRender(item.children,currentUser) : [] };
       return Authorized.check(item.authority, localItem, null);
     }else{
-      if(item.path.indexOf("overview") > -1 || item.path.indexOf("display") > -1){
+      if(item.path.indexOf("overview") > -1 || item.path.indexOf("display") > -1|| item.path.indexOf("3dmap") > -1){
         const localItem = { ...item, children: item.children ? menuDataRender(item.children,currentUser) : [] };
         return Authorized.check(item.authority, localItem, null);
       }

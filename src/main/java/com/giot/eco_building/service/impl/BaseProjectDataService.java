@@ -38,9 +38,9 @@ public class BaseProjectDataService implements ProjectDataService {
     }
 
     private Long getProejctIdByProjectName(String projectName) {
-        Project project = projectRepository.findByNameAndDelStatus(projectName, Constants.DelStatus.NORMAL.isValue());
-        if (project == null) return null;
-        return project.getId();
+        Optional<Project> project = projectRepository.findByNameAndDelStatus(projectName, Constants.DelStatus.NORMAL.isValue());
+        if (!project.isPresent()) return null;
+        return project.get().getId();
     }
 
 
@@ -89,6 +89,47 @@ public class BaseProjectDataService implements ProjectDataService {
 
         }
         projectDataRepository.saveAll(realDataList);
+    }
+
+    /**
+     * 该项目下同类型、同年/月类型数据
+     *
+     * @param dataList
+     */
+    @Override
+    public void saveOrUpdateByProjectId(List<com.giot.eco_building.entity.ProjectData> dataList) {
+        com.giot.eco_building.entity.ProjectData projectData = dataList.get(0);
+        Long projectId = projectData.getProjectId();
+        boolean isMonth = projectData.getIsMonth();
+        Integer type = projectData.getType();
+        List<com.giot.eco_building.entity.ProjectData> projectDataList = projectDataRepository.findByProjectIdAndIsMonthAndType(projectId, isMonth, type);
+        if (projectDataList.size() == 0) {
+            projectDataRepository.saveAll(dataList);
+        } else {
+            List<com.giot.eco_building.entity.ProjectData> newDataList = new ArrayList<>();
+            for (com.giot.eco_building.entity.ProjectData data :
+                    dataList) {
+                Date actualDate = data.getActualDate();
+                boolean flag = true;
+                com.giot.eco_building.entity.ProjectData oldData = null;
+                for (com.giot.eco_building.entity.ProjectData data1 :
+                        projectDataList) {
+                    Date oldActualDate = data1.getActualDate();
+                    if (actualDate.getTime() == oldActualDate.getTime()) {
+                        oldData = data1;
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag) {
+                    newDataList.add(data);
+                } else {
+                    oldData.setValue(data.getValue());
+                    newDataList.add(oldData);
+                }
+            }
+            projectDataRepository.saveAll(newDataList);
+        }
     }
 
     @Override

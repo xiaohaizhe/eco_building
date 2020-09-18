@@ -35,8 +35,8 @@ const Edit = props => {
           type: 'projectManage/getProjectDetail',
           payload:{projectId:id},
           callback:(res)=>{
-            res.result.buildTime = moment(res.result.builtTime);
-            form.setFieldsValue(res.result)
+            res.buildTime = moment(res.builtTime);
+            form.setFieldsValue(res)
           }
         });
       }
@@ -241,6 +241,36 @@ const Edit = props => {
                       </Form.Item>
                   </Col>
               </Row>
+              <Row gutter={gutter}>
+                  <Col span={10}>
+                    <Form.Item
+                      name="area"
+                      label="建筑面积"
+                      rules={[
+                        {
+                          required: true,
+                          message: '请输入',
+                        },
+                      ]}
+                    >
+                      <Input/>
+                    </Form.Item>
+                  </Col>
+                  <Col span={10}>
+                    <Form.Item
+                      name="shape"
+                      label="围栏坐标"
+                      rules={[
+                        {
+                          required: true,
+                          message: '请输入',
+                        },
+                      ]}
+                    >
+                      <Input.TextArea />
+                    </Form.Item>
+                  </Col>
+              </Row> 
               <Row gutter={gutter}>
                 <Col span={10}>
                     <Form.Item

@@ -42,10 +42,11 @@ public class SystemLogAspect {
     @AfterReturning(pointcut = "controllerAspect()", returning = "object")
     public void doAfter(JoinPoint joinPoint, WebResponse object) throws ClassNotFoundException {
         String desc = getControllerMethodDescription(joinPoint);
+        logger.info(desc);
         Constants.ActionType type = null;
         for (Constants.ActionType actionType :
                 Constants.ActionType.values()) {
-            if (desc.equals(actionType.getValue())) {
+            if (desc.contains(actionType.getValue())) {
                 type = actionType;
                 break;
             }

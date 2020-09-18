@@ -20,6 +20,13 @@ baidu:
       code: http://api.map.baidu.com/geocoding/v3/
       decode: http://api.map.baidu.com/reverse_geocoding/v3/
     ak: vEe2dQodlX1GvI6L9qRIvf753savFWFt
+geo:
+  address:
+    url:
+      around: https://restapi.amap.com/v3/place/around
+      search: https://restapi.amap.com/v3/place/text
+      detail: https://www.amap.com/detail/get/detail
+  key: baba4e3ce1575a93de89b8c23d717de1
 logging:
   file:
     path: eco_building-log

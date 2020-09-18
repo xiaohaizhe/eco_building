@@ -38,7 +38,7 @@ public class ProjectModel {
     /**
      * 街道
      */
-    private String street;
+//    private String street;
     /**
      * 纬度
      */
@@ -133,7 +133,7 @@ public class ProjectModel {
         project.setProvince(this.province);
         project.setCity(this.city);
         project.setDistrict(this.district);
-        project.setStreet(this.street);
+//        project.setStreet(this.street);
 
         project.setLatitude(this.latitude);
         project.setLongitude(this.longitude);
