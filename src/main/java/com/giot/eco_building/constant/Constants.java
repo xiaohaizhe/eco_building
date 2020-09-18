@@ -117,6 +117,10 @@ public class Constants {
         DELETE_USER("删除用户", 2),
 
         IMPORT_EXCEL("上传", 3),
+
+        EDIT_PROJECT("项目修改", 4),
+        DELETE_PROJECT("项目删除", 4),
+        EDIT_PROJECT_DATA("项目数据修改", 4),
         ;
         private String value;
         private Integer code;

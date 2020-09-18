@@ -8,9 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.text.ParseException;
 
 /**
@@ -65,13 +62,13 @@ public class ShowController {
     public WebResponse screen(String province, String city, String district, String street,
                               //多选
                               String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
-                              Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode, Integer[] WhetherToUseRenewableResources,
+                              Integer[] energySavingTransformationOrNot, Integer[] heatingMode, Integer[] coolingMode, Integer[] whetherToUseRenewableResources,
                               //范围
                               Double[] area, Integer[] floor, String[] date,
                               Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea) {
         return projectService.screen(province, city, district, street,
                 architecturalType, gbes, energySavingStandard,
-                energySavingTransformationOrNot, HeatingMode, CoolingMode, WhetherToUseRenewableResources,
+                energySavingTransformationOrNot, heatingMode, coolingMode, whetherToUseRenewableResources,
                 area, floor, date,
                 powerConsumptionPerUnitArea, gasConsumptionPerUnitArea, waterConsumptionPerUnitArea);
     }
