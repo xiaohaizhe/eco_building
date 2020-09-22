@@ -54,8 +54,8 @@ class display extends React.Component {
         });
     }
 
-    var x = event.x;
-    var y = event.y;
+    var x = event.x+30;
+    var y = event.y+120;
     var lngLat = map.containerToLngLat(new AMap.Pixel(x, y));
     if (!tableDom) {
         let infoDom = document.createElement('div');
@@ -164,14 +164,14 @@ class display extends React.Component {
           });
           function gradientColor(data,max,min){
               //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
-                let startR = 194;
-                let startG = 107;
-                let startB = 80;
+                let startR = 192;
+                let startG = 0;
+                let startB = 0;
                
               //   let endRGB = this.colorRgb('#0000ff'); 
-                let endR = 81;
-                let endG = 153;
-                let endB = 133;
+                let endR = 0;
+                let endG = 176;
+                let endB = 80;
                
                 let step = (max-data)/(max-min);
                 let sR = (endR-startR)*step;//总差值

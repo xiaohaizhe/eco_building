@@ -58,6 +58,7 @@ import java.util.*;
  * @Description:
  */
 @Service
+@Transactional
 public class BaseProjectService implements ProjectService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -304,6 +305,9 @@ public class BaseProjectService implements ProjectService {
                 if (projectNew.getName() != null && !"".equals(projectNew.getName())) {
                     projectOld.setName(projectNew.getName());
                 }
+                if (!org.apache.commons.lang3.StringUtils.isEmpty(projectNew.getProjectName())) {
+                    projectOld.setProjectName(projectNew.getProjectName());
+                }
                 if (projectNew.getProvince() != null && !"".equals(projectNew.getProvince())) {
                     projectOld.setProvince(projectNew.getProvince());
                 }
@@ -413,172 +417,316 @@ public class BaseProjectService implements ProjectService {
 
 
     @Override
-    public WebResponse importCsv(MultipartFile[] files, boolean isData, HttpServletRequest request) throws IOException, CsvValidationException, ParseException {
+    public WebResponse importFile(MultipartFile[] files, HttpServletRequest request) throws IOException, CsvValidationException, ParseException {
         if (files.length > 0) {
             String message = "";
             for (int i = 0; i < files.length; i++) {
                 MultipartFile file = files[i];
                 message += file.getOriginalFilename() + ":";
-                if (!file.getContentType().equals("text/csv") || !file.getOriginalFilename().contains(".csv")) {
+                //1.判断文件类型：csv、xls、xlsx-0,1,2
+                if (file.getContentType().equals("text/csv") && file.getOriginalFilename().contains(".csv")) {
+                    message += dealWithCsvFile(file);
+                } else if (file.getOriginalFilename().contains(".xls") || file.getOriginalFilename().contains(".xlsx")) {
+                    message += dealWithExcelFile(file);
+                } else {
                     message += HttpResponseStatusEnum.FILE_FORMAT_ERROR.getMessage();
                     continue;
                 }
-                if (isData) {//水电气数据
-                    logger.info("开始读取文件：{}", file.getOriginalFilename());
-                    //1.判断项目数据是否存在
-                    String fileName = file.getOriginalFilename().split(".csv")[0];
-                    String serialNumber = fileName.substring(0, fileName.length() - 2);
-                    char type = fileName.charAt(fileName.length() - 1);
-                    Optional<Project> optional = projectRepository.findBySerialNumberAndDelStatus(serialNumber, Constants.DelStatus.NORMAL.isValue());
-                    if (optional.isPresent()) {
-                        Project project = optional.get();
-                        Long projectId = project.getId();
-                        //2.判断水电气类型
-                        Integer projectType;
-                        switch (type) {
-                            case 'w':
-                                projectType = Constants.DataType.WATER.getCode();
-                                break;
-                            case 'g':
-                                projectType = Constants.DataType.GAS.getCode();
-                                break;
-                            default:
-                                projectType = Constants.DataType.ELECTRICITY.getCode();
-                                break;
-                        }
-                        //3.判断年月
-                        char y = serialNumber.charAt(serialNumber.length() - 1);
-                        boolean isYear = y == 'Y';
-                        //4.新增
-                        Map<String, Double> dataMap = readCsv(file.getInputStream());
-                        List<com.giot.eco_building.entity.ProjectData> dataList = new ArrayList<>();
-                        SimpleDateFormat sdf;
-                        if (isYear) {
-                            sdf = new SimpleDateFormat("yyyy");
-                        } else {
-                            sdf = new SimpleDateFormat("yyyyMM");
-                        }
-                        for (String date :
-                                dataMap.keySet()) {
-                            com.giot.eco_building.entity.ProjectData projectData = new com.giot.eco_building.entity.ProjectData();
-                            projectData.setIsMonth(!isYear);
-                            projectData.setProjectId(projectId);
-                            projectData.setSerialNumber(serialNumber);
-                            projectData.setDelStatus(Constants.DelStatus.NORMAL.isValue());
-
-                            projectData.setType(projectType);
-
-                            Date d = sdf.parse(date);
-                            projectData.setActualDate(d);
-                            projectData.setValue(dataMap.get(date));
-                            dataList.add(projectData);
-                        }
-                        projectDataService.saveOrUpdateByProjectId(dataList);
-                        message += HttpResponseStatusEnum.SUCCESS.getMessage();
-                    } else {
-                        message += HttpResponseStatusEnum.PROJECT_NOT_EXISTED.getMessage();
-                    }
-                } else {//项目数据
-                    try {
-                        //1.默认使用GBK编码
-                        String code = "GBK";
-                        //2.解析csv
-                        InputStreamReader is = new InputStreamReader(file.getInputStream(), code);
-                        HeaderColumnNameMappingStrategy strategy = new HeaderColumnNameMappingStrategy();
-                        strategy.setType(com.giot.eco_building.model.Project.class);
-                        List<com.giot.eco_building.model.Project> projects = new CsvToBeanBuilder(is)
-                                .withType(com.giot.eco_building.model.Project.class)
-                                .withFilter(new ProjectCsvToBeanFilter())
-                                .withSeparator(',')
-//                    .withSkipLines(1)
-                                .withMappingStrategy(strategy)
-                                .withIgnoreQuotations(true)
-                                .build()
-                                .parse();
-                        //3.确定新增数据和更新数据
-                        //已存在序列号数据
-                        Set<String> serialNumberSet = projectRepository.findSerialNumberByDelStatus(Constants.DelStatus.NORMAL.isValue());
-                        //新增序列号数据
-                        Set<String> serialNumberSet_n = new HashSet<>();
-                        //新增项目数据
-                        List<com.giot.eco_building.entity.Project> newProjectList = new ArrayList<>();
-                        //更新项目数据
-                        List<com.giot.eco_building.entity.Project> oldProjectList = new ArrayList<>();
-                        List<com.giot.eco_building.entity.Project> oldProjectListNew = new ArrayList<>();
-                        /*
-                         * 根据serialNumber
-                         * 对数据库中已存在数据更新，不存在数据新增
-                         * 在新增数据中，若出现重复serialNumer，只保留第一个出现数据
-                         */
-                        for (com.giot.eco_building.model.Project p :
-                                projects) {
-                            String serialNumber = p.getSerialNumber();
-                            //数据库中不存在序列号数据
-                            if (!serialNumberSet.contains(serialNumber)) {
-                                //新增数据中不存在的数据
-                                if (!serialNumberSet_n.contains(serialNumber)) {
-                                    Project project = p.getEntity();
-                                    newProjectList.add(project);
-                                    serialNumberSet_n.add(serialNumber);
-                                }
-                            } else {
-                                //数据库中已存在序列号数据
-                                oldProjectList.add(p.getEntity());
-                            }
-                        }
-
-                        //4.对数据库中已存在需要的更新的数据进行更新赋值
-                        for (Project project :
-                                oldProjectList) {
-                            Optional<Project> optionalProject = projectRepository.findBySerialNumberAndDelStatus(project.getSerialNumber(), Constants.DelStatus.NORMAL.isValue());
-                            if (optionalProject.isPresent()) {
-                                Project project1 = optionalProject.get();
-                                project1.setName(project.getName());
-                                project1.setProjectName(project.getProjectName());
-                                project1.setContractor(project.getContractor());
-                                project1.setArea(project.getArea());
-                                project1.setBuiltTime(project.getBuiltTime());
-                                project1.setArchitecturalType(project.getArchitecturalType());
-                                project1.setProvince(project.getProvince());
-                                project1.setCity(project.getCity());
-                                project1.setDistrict(project.getDistrict());
-                                project1.setAddress(project.getAddress());
-                                project1.setLongitude(project.getLongitude());
-                                project1.setLatitude(project.getLatitude());
-                                project1.setFloor(project.getFloor());
-                                project1.setImgUrl(project.getImgUrl());
-                                project1.setGbes(project.getGbes());
-                                project1.setEnergySavingStandard(project.getEnergySavingStandard());
-                                project1.setEnergySavingTransformationOrNot(project.getEnergySavingTransformationOrNot());
-                                project1.setHeatingMode(project.getHeatingMode());
-                                project1.setCoolingMode(project.getCoolingMode());
-                                project1.setWhetherToUseRenewableResources(project.getWhetherToUseRenewableResources());
-                                project1.setDelStatus(project.getDelStatus());
-                                oldProjectListNew.add(project1);
-                            }
-                        }
-                        projectRepository.saveAll(newProjectList);
-                        projectRepository.saveAll(oldProjectListNew);
-                        message += HttpResponseStatusEnum.SUCCESS.getMessage();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        message += e.getMessage();
-                    }
-                }
                 message += ";";
             }
-            /*logger.info("start updating project info");
-            List<Project> projectList = projectRepository.findAll();
-            for (Project project :
-                    projectList) {
-                updateLatestYearData(project);
-            }
-            logger.info("end up updating project info");*/
             return WebResponse.success(message);
         } else {
             return WebResponse.failure(HttpResponseStatusEnum.EMPTY_FILE);
         }
     }
+
+    private String dealWithExcelFile(MultipartFile file) throws IOException, ParseException {
+        String message = "";
+        int size = file.getOriginalFilename().split("-").length;
+        boolean isData = size == 4;
+        Workbook wb = excelUtil.getWorkbook(file);
+        if (isData) {
+            //水电气数据
+            message += "水电气数据请使用.csv上传";
+        } else {
+            //项目数据
+            if (wb != null) {
+                int sheetNum = wb.getNumberOfSheets();
+                logger.info("{}文件共有{}页", file.getOriginalFilename(), sheetNum);
+                for (int i = 0; i < sheetNum; i++) {
+                    Sheet sheet = wb.getSheetAt(i);
+                    logger.info("开始处理第{}页数据", (i + 1));
+                    //获取项目基础数据
+                    List<Map<String, Object>> projectMapList = excelUtil.dealWithExcelSheet(sheet);
+                    List<com.giot.eco_building.model.Project> projectList = toProjectList(projectMapList);
+                    saveProject(projectList);
+                }
+                message += HttpResponseStatusEnum.SUCCESS.getMessage();
+            }
+        }
+        return message;
+    }
+
+    private List<com.giot.eco_building.model.Project> toProjectList(List<Map<String, Object>> projectMapList) throws ParseException {
+        List<com.giot.eco_building.model.Project> projectList = new ArrayList<>();
+        for (Map<String, Object> map :
+                projectMapList) {
+            String serialNumber = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[0]))) {
+                serialNumber = (String) map.get(ExcelUtil.columNames[0]);
+            } else continue;
+
+            String name = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[1]))) {
+                name = (String) map.get(ExcelUtil.columNames[1]);
+            }
+
+            String projectName = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[2]))) {
+                projectName = (String) map.get(ExcelUtil.columNames[2]);
+            }
+
+            String contractor = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[3]))) {
+                contractor = (String) map.get(ExcelUtil.columNames[3]);
+            }
+
+            Double area = null;
+            if (map.get(ExcelUtil.columNames[4]) != null) {
+                area = (Double) map.get(ExcelUtil.columNames[4]);
+            }
+
+            Date builtTime = null;
+            if (map.get(ExcelUtil.columNames[5]) != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                String sdfTime = (String) map.get(ExcelUtil.columNames[5]);
+                builtTime = sdf.parse(sdfTime);
+            }
+
+            String architecturalType = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[6]))) {
+                architecturalType = (String) map.get(ExcelUtil.columNames[6]);
+            }
+            String province = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[7]))) {
+                province = (String) map.get(ExcelUtil.columNames[7]);
+            }
+            String city = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[8]))) {
+                city = (String) map.get(ExcelUtil.columNames[8]);
+            }
+            String district = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[9]))) {
+                district = (String) map.get(ExcelUtil.columNames[9]);
+            }
+            String address = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[10]))) {
+                address = (String) map.get(ExcelUtil.columNames[10]);
+            }
+
+            Double latitude = null;
+            if (map.get(ExcelUtil.columNames[11]) != null) {
+                latitude = (Double) map.get(ExcelUtil.columNames[11]);
+            }
+            Double longitude = null;
+            if (map.get(ExcelUtil.columNames[12]) != null) {
+                longitude = (Double) map.get(ExcelUtil.columNames[12]);
+            }
+
+            Integer floor = null;
+            if (map.get(ExcelUtil.columNames[13]) != null) {
+                floor = (Integer) map.get(ExcelUtil.columNames[13]);
+            }
+            String imgUrl = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[14]))) {
+                imgUrl = (String) map.get(ExcelUtil.columNames[14]);
+            }
+            String gbes = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[15]))) {
+                gbes = (String) map.get(ExcelUtil.columNames[15]);
+            }
+            String energySavingStandard = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[16]))) {
+                energySavingStandard = (String) map.get(ExcelUtil.columNames[16]);
+            }
+            String energySavingTransformationOrNot = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[17]))) {
+                energySavingTransformationOrNot = (String) map.get(ExcelUtil.columNames[17]);
+            }
+            String heatingMode = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[18]))) {
+                heatingMode = (String) map.get(ExcelUtil.columNames[18]);
+            }
+            String coolingMode = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[19]))) {
+                coolingMode = (String) map.get(ExcelUtil.columNames[19]);
+            }
+            String whetherToUseRenewableResources = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[20]))) {
+                whetherToUseRenewableResources = (String) map.get(ExcelUtil.columNames[20]);
+            }
+            com.giot.eco_building.model.Project project = new com.giot.eco_building.model.Project(serialNumber, name,
+                    projectName, contractor, area, builtTime, architecturalType, province, city, district, address,
+                    latitude, longitude, floor, imgUrl, gbes, energySavingStandard, energySavingTransformationOrNot,
+                    heatingMode, coolingMode, whetherToUseRenewableResources);
+            projectList.add(project);
+        }
+        return projectList;
+    }
+
+    private String dealWithCsvFile(MultipartFile file) throws IOException, CsvValidationException, ParseException {
+        String message = "";
+        int size = file.getOriginalFilename().split("-").length;
+        boolean isData = size == 4;
+        if (isData) {//水电气数据
+            logger.info("开始读取文件：{}", file.getOriginalFilename());
+            //1.判断项目数据是否存在
+            String fileName = file.getOriginalFilename().split(".csv")[0];
+            String serialNumber = fileName.substring(0, fileName.length() - 2);
+            char type = fileName.charAt(fileName.length() - 1);
+            Optional<Project> optional = projectRepository.findBySerialNumberAndDelStatus(serialNumber, Constants.DelStatus.NORMAL.isValue());
+            if (optional.isPresent()) {
+                Project project = optional.get();
+                Long projectId = project.getId();
+                //2.判断水电气类型
+                Integer projectType;
+                switch (type) {
+                    case 'w':
+                        projectType = Constants.DataType.WATER.getCode();
+                        break;
+                    case 'g':
+                        projectType = Constants.DataType.GAS.getCode();
+                        break;
+                    default:
+                        projectType = Constants.DataType.ELECTRICITY.getCode();
+                        break;
+                }
+                //3.判断年月
+                char y = serialNumber.charAt(serialNumber.length() - 1);
+                boolean isYear = y == 'Y';
+                //4.新增
+                Map<String, Double> dataMap = readCsv(file.getInputStream());
+                List<com.giot.eco_building.entity.ProjectData> dataList = new ArrayList<>();
+                SimpleDateFormat sdf;
+                if (isYear) {
+                    sdf = new SimpleDateFormat("yyyy");
+                } else {
+                    sdf = new SimpleDateFormat("yyyyMM");
+                }
+                for (String date :
+                        dataMap.keySet()) {
+                    com.giot.eco_building.entity.ProjectData projectData = new com.giot.eco_building.entity.ProjectData();
+                    projectData.setIsMonth(!isYear);
+                    projectData.setProjectId(projectId);
+                    projectData.setSerialNumber(serialNumber);
+                    projectData.setDelStatus(Constants.DelStatus.NORMAL.isValue());
+
+                    projectData.setType(projectType);
+
+                    Date d = sdf.parse(date);
+                    projectData.setActualDate(d);
+                    projectData.setValue(dataMap.get(date));
+                    dataList.add(projectData);
+                }
+                projectDataService.saveOrUpdateByProjectId(dataList);
+                message += HttpResponseStatusEnum.SUCCESS.getMessage();
+            } else {
+                message += HttpResponseStatusEnum.PROJECT_NOT_EXISTED.getMessage();
+            }
+        } else {//项目数据
+            try {
+                //1.默认使用GBK编码
+                String code = "GBK";
+                //2.解析csv
+                InputStreamReader is = new InputStreamReader(file.getInputStream(), code);
+                HeaderColumnNameMappingStrategy strategy = new HeaderColumnNameMappingStrategy();
+                strategy.setType(com.giot.eco_building.model.Project.class);
+                List<com.giot.eco_building.model.Project> projects = new CsvToBeanBuilder(is)
+                        .withType(com.giot.eco_building.model.Project.class)
+                        .withFilter(new ProjectCsvToBeanFilter())
+                        .withSeparator(',')
+//                    .withSkipLines(1)
+                        .withMappingStrategy(strategy)
+                        .withIgnoreQuotations(true)
+                        .build()
+                        .parse();
+                //3.确定新增数据和更新数据
+                saveProject(projects);
+                message += HttpResponseStatusEnum.SUCCESS.getMessage();
+            } catch (Exception e) {
+                e.printStackTrace();
+                message += e.getMessage();
+            }
+        }
+        return message;
+    }
+
+    private void saveProject(List<com.giot.eco_building.model.Project> projects) {
+        //已存在序列号数据
+        Set<String> serialNumberSet = projectRepository.findSerialNumberByDelStatus(Constants.DelStatus.NORMAL.isValue());
+        //新增序列号数据
+        Set<String> serialNumberSet_n = new HashSet<>();
+        //新增项目数据
+        List<com.giot.eco_building.entity.Project> newProjectList = new ArrayList<>();
+        //更新项目数据
+        List<com.giot.eco_building.entity.Project> oldProjectList = new ArrayList<>();
+        List<com.giot.eco_building.entity.Project> oldProjectListNew = new ArrayList<>();
+        /*
+         * 根据serialNumber
+         * 对数据库中已存在数据更新，不存在数据新增
+         * 在新增数据中，若出现重复serialNumer，只保留第一个出现数据
+         */
+        for (com.giot.eco_building.model.Project p :
+                projects) {
+            String serialNumber = p.getSerialNumber();
+            //数据库中不存在序列号数据
+            if (!serialNumberSet.contains(serialNumber)) {
+                //新增数据中不存在的数据
+                if (!serialNumberSet_n.contains(serialNumber)) {
+                    Project project = p.getEntity();
+                    newProjectList.add(project);
+                    serialNumberSet_n.add(serialNumber);
+                }
+            } else {
+                //数据库中已存在序列号数据
+                oldProjectList.add(p.getEntity());
+            }
+        }
+
+        //4.对数据库中已存在需要的更新的数据进行更新赋值
+        for (Project project :
+                oldProjectList) {
+            Optional<Project> optionalProject = projectRepository.findBySerialNumberAndDelStatus(project.getSerialNumber(), Constants.DelStatus.NORMAL.isValue());
+            if (optionalProject.isPresent()) {
+                Project project1 = optionalProject.get();
+                project1.setName(project.getName());
+                project1.setProjectName(project.getProjectName());
+                project1.setContractor(project.getContractor());
+                project1.setArea(project.getArea());
+                project1.setBuiltTime(project.getBuiltTime());
+                project1.setArchitecturalType(project.getArchitecturalType());
+                project1.setProvince(project.getProvince());
+                project1.setCity(project.getCity());
+                project1.setDistrict(project.getDistrict());
+                project1.setAddress(project.getAddress());
+                project1.setLongitude(project.getLongitude());
+                project1.setLatitude(project.getLatitude());
+                project1.setFloor(project.getFloor());
+                project1.setImgUrl(project.getImgUrl());
+                project1.setGbes(project.getGbes());
+                project1.setEnergySavingStandard(project.getEnergySavingStandard());
+                project1.setEnergySavingTransformationOrNot(project.getEnergySavingTransformationOrNot());
+                project1.setHeatingMode(project.getHeatingMode());
+                project1.setCoolingMode(project.getCoolingMode());
+                project1.setWhetherToUseRenewableResources(project.getWhetherToUseRenewableResources());
+                project1.setDelStatus(project.getDelStatus());
+                oldProjectListNew.add(project1);
+            }
+        }
+        projectRepository.saveAll(newProjectList);
+        projectRepository.saveAll(oldProjectListNew);
+    }
+
 
     public Map<String, Double> readCsv(InputStream fis) throws IOException, CsvValidationException {
         Map<String, Double> res = new HashMap<>();
@@ -587,7 +735,7 @@ public class BaseProjectService implements ProjectService {
         String[] strs;
         while ((strs = csvReader.readNext()) != null) {
             if (strs[0] == null || "".equals(strs[0])) continue;
-            if (strs.length % 2 == 0) {
+            if (strs.length == 2) {
                 for (int i = 0; i < strs.length / 2; i++) {
                     int date = (int) Float.parseFloat(strs[0 + i * 2]);
                     res.put(date + "", Double.valueOf(strs[1 + i * 2]));
@@ -703,9 +851,9 @@ public class BaseProjectService implements ProjectService {
             case 2:
                 result = projectRepository.findDistinctDistrictByCity(superiorDirectory);
                 break;
-            case 3:
+            /*case 3:
                 result = projectRepository.findDistinctStreetByDistrict(superiorDirectory);
-                break;
+                break;*/
             default:
         }
 
@@ -757,7 +905,7 @@ public class BaseProjectService implements ProjectService {
         return WebResponse.success(provinceArray);
     }
 
-    private List<Project> specialQuery(String province, String city, String district, String street,
+    private List<Project> specialQuery(String province, String city, String district,
                                        //多选
                                        String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
                                        Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode,
@@ -777,8 +925,8 @@ public class BaseProjectService implements ProjectService {
                 list_and.add(criteriaBuilder.equal(root.get("city").as(String.class), city));
             if (district != null && !"".equals(district))
                 list_and.add(criteriaBuilder.equal(root.get("district").as(String.class), district));
-            if (street != null && !"".equals(street))
-                list_and.add(criteriaBuilder.equal(root.get("street").as(String.class), street));
+            /*if (street != null && !"".equals(street))
+                list_and.add(criteriaBuilder.equal(root.get("street").as(String.class), street));*/
             //2. architecturalType,gbes,energySavingStandard,energySavingTransformationOrNot,
             //   HeatingMode,CoolingMode,WhetherToUseRenewableResources,
             if (architecturalType != null && architecturalType.length > 0) {
@@ -950,7 +1098,7 @@ public class BaseProjectService implements ProjectService {
     }
 
     @Override
-    public WebResponse screen(String province, String city, String district, String street,
+    public WebResponse screen(String province, String city, String district,
                               //多选
                               String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
                               Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode,
@@ -959,7 +1107,7 @@ public class BaseProjectService implements ProjectService {
                               Double[] area, Integer[] floor, String[] date,
                               Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea,
                               Double[] waterConsumptionPerUnitArea) {
-        List<Project> projectList = specialQuery(province, city, district, street,
+        List<Project> projectList = specialQuery(province, city, district,
                 architecturalType, gbes, energySavingStandard,
                 energySavingTransformationOrNot, HeatingMode, CoolingMode, WhetherToUseRenewableResources,
                 area, floor, date, powerConsumptionPerUnitArea, gasConsumptionPerUnitArea, waterConsumptionPerUnitArea);
@@ -1008,7 +1156,15 @@ public class BaseProjectService implements ProjectService {
                 for (int j = 0; j < locations.length; j++) {
                     JSONArray locaArray = new JSONArray();
                     String loca = locations[j];
-                    shapeArray.add(loca.split(","));
+                    if (loca.contains("|")) {
+                        String[] ll = loca.split("\\|");
+                        for (int k = 0; k < ll.length; k++) {
+                            String lls = ll[k];
+                            shapeArray.add(lls.split(","));
+                        }
+                    } else {
+                        shapeArray.add(loca.split(","));
+                    }
                 }
                 object.put("shape", shapeArray);
             }
@@ -1051,16 +1207,33 @@ public class BaseProjectService implements ProjectService {
         List<Project> projectList = projectRepository.findAll();
         for (Project pro :
                 projectList) {
-            if (pro.getShape() == null || pro.getShape().equals("")) {
+            String poiId;
+            String shape = null;
+            if (StringUtils.isEmpty(pro.getPoiId())) {
+                poiId = mapService.getPoiId(pro);
+                if (!StringUtils.isEmpty(poiId)) {
+                    pro.setPoiId(poiId);
+                }
+            } else {
+                poiId = pro.getPoiId();
+            }
+            if (StringUtils.isEmpty(pro.getShape()) && !StringUtils.isEmpty(poiId)) {
                 logger.info("开始更新：{}的shape", pro.getName());
-                Set<String> poiIds = mapService.getPoiId(pro.getLongitude(), pro.getLatitude(), pro.getName(), pro.getCity());
-                for (String poiId :
-                        poiIds) {
-                    String shape = mapService.getDistrictLocation(poiId);
-                    if (shape != null && !"".equals(shape)) {
+                if (!StringUtils.isEmpty(poiId)) {
+                    try {
+                        shape = mapService.getDistrictLocation(poiId);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (!StringUtils.isEmpty(shape)) {
                         pro.setShape(shape);
                         projectRepository.saveAndFlush(pro);
-                        break;
+                        long sleepTime = 60000 + (long) (Math.random() * 30000);
+                        try {
+                            Thread.sleep(sleepTime);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

@@ -38,8 +38,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
     @Query(value = "SELECT DISTINCT district FROM Project where city = :city and district != \"\"", nativeQuery = true)
     List<String> findDistinctDistrictByCity(String city);
 
-    @Query(value = "SELECT DISTINCT street FROM Project where district = :district and street != \"\"", nativeQuery = true)
-    List<String> findDistinctStreetByDistrict(String district);
+    /*@Query(value = "SELECT DISTINCT street FROM Project where district = :district and street != \"\"", nativeQuery = true)
+    List<String> findDistinctStreetByDistrict(String district);*/
 
     @Query(value = "select serialNumber from Project where del_status = :delStatus", nativeQuery = true)
     Set<String> findSerialNumberByDelStatus(@Param("delStatus") Boolean delStatus);

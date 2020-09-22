@@ -56,9 +56,9 @@ public class ProjectController {
 
     @PostMapping("import")
     @SystemControllerLog(description = "上传")
-    public WebResponse importFile(MultipartFile[] files, boolean isData, HttpServletRequest request) {
+    public WebResponse importFile(MultipartFile[] files, HttpServletRequest request) {
         try {
-            return projectService.importCsv(files, isData, request);
+            return projectService.importFile(files,  request);
         } catch (IOException | CsvValidationException | ParseException e) {
             return WebResponse.exception(e);
         }

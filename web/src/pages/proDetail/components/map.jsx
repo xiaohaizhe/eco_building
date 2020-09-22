@@ -52,8 +52,8 @@ class Map extends React.Component {
         });
     }
 
-    var x = event.offsetX;
-    var y = event.offsetY;
+    var x = event.offsetX+20;
+    var y = event.offsetY+60;
     var lngLat = map.containerToLngLat(new AMap.Pixel(x, y));
     if (!tableDom) {
         let infoDom = document.createElement('div');

@@ -8,7 +8,6 @@ import { connect ,history} from 'umi';
 import ItemSelect from './components/ItemSelect';
 import  './index.less';
 var infoWin;
-var polygon;
 var map;
 const energySavingStandard = ['不执行节能标准','50%','65%','75%以上','未知'];
 const energySavingTransformationOrNot = ['是','否','未知'];
@@ -57,8 +56,8 @@ class display extends React.Component {
         });
     }
 
-    var x = event.x;
-    var y = event.y;
+    var x = event.x+30;
+    var y = event.y+120;
     var lngLat = map.containerToLngLat(new AMap.Pixel(x, y));
     if (!tableDom) {
         let infoDom = document.createElement('div');
@@ -103,7 +102,6 @@ class display extends React.Component {
     function closeInfoWin() {
       if (infoWin) {
           infoWin.close();
-          map.remove(polygon);
       }
     }
   }
@@ -121,34 +119,39 @@ class display extends React.Component {
         features:['bg','point','road'],
         viewMode:'3D',
     });
-    var buildingLayer = new AMap.Buildings({zIndex:50,merge:false,sort:false,map:map});
+    
     let areas = [];
     mapData.forEach(value => {
       if(value.shape && value.shape.length>1){
-        debugger
         let color2 = 'ff414141';
         let color1 = 'ff969696';
-      if(typeData.max-typeData.min!=0){
-        var val = 0;
-        if(flag==='0'){
-          val = value.waterConsumptionPerUnitArea;
-        }else if (flag==='1'){
-          val = value.powerConsumptionPerUnitArea;
-        }else if(flag==='2'){
-          val = value.gasConsumptionPerUnitArea;
+        if(typeData.max-typeData.min!=0){
+          var val = 0;
+          if(flag==='0'){
+            val = value.waterConsumptionPerUnitArea;
+          }else if (flag==='1'){
+            val = value.powerConsumptionPerUnitArea;
+          }else if(flag==='2'){
+            val = value.gasConsumptionPerUnitArea;
+          }
+          var max = typeData.max;
+          var min = typeData.min;
+          if(val || val===0){
+            color2 = gradientColor(val,max,min,true);
+            color1 = gradientColor(val,max,min,false);
+          }
+          
         }
-        var max = typeData.max;
-        var min = typeData.min;
-        if(val || val===0){
-          color2 = gradientColor(val,max,min,true);
-          color1 = gradientColor(val,max,min,false);
-        }
-        
-      }
-
-        areas.push({path:value.shape,color1: color1,//楼顶颜色
-        color2: color2,//楼面颜色
-      })
+          areas.push({path:value.shape,color1: color1,//楼顶颜色
+          color2: color2,//楼面颜色
+        })
+        new AMap.Polygon({
+          zIndex:50,
+          fillOpacity:0.2,
+          strokeWeight:0.01,
+          path:value.shape,
+          map:map,
+        })
       }
       
       //添加点标记
@@ -158,9 +161,6 @@ class display extends React.Component {
         position: new AMap.LngLat(value['longitude']?value['longitude']:0, value['latitude']?value['latitude']:0),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
       });
       marker.on('click', function (ev) {
-            if(polygon){
-              map.remove(polygon);
-            }
             
             // 事件类型
             var type = ev.type;
@@ -168,16 +168,6 @@ class display extends React.Component {
             var rawData = ev.target.Ce.value;
             // 原始鼠标事件
             var originalEvent = ev.pixel;
-            if(rawData.shape && rawData.shape.length>1){
-              polygon = new AMap.Polygon({
-                bubble:false,
-                fillOpacity:0.3,
-                strokeWeight:0.1,
-                path:rawData.shape,
-                map:map,
-                zIndex:1
-              })
-            }
             
             that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
                 '建筑类型：': rawData.architecturalType || '无',
@@ -198,6 +188,7 @@ class display extends React.Component {
          hideWithoutStyle:false,//是否隐藏设定区域外的楼块
          areas:areas
     };
+    var buildingLayer = new AMap.Buildings({zIndex:99,merge:false,sort:false,map:map});
     buildingLayer.setStyle(options); //此配色优先级高于自定义mapStyle
     function gradientColor(data,max,min,flag){
       //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
