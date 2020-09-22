@@ -55,9 +55,9 @@ public interface ProjectService {
 
     WebResponse importExcel(MultipartFile file, HttpServletRequest request) throws IOException, ParseException;
 
-    WebResponse importCsv(MultipartFile[] files, boolean isData, HttpServletRequest request) throws IOException, CsvValidationException, ParseException;
+    WebResponse importFile(MultipartFile[] files, HttpServletRequest request) throws IOException, CsvValidationException, ParseException;
 
-    WebResponse screen(String province, String city, String district, String street,
+    WebResponse screen(String province, String city, String district,
                        //多选
                        String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
                        Integer[] energySavingTransformationOrNot, Integer[] HeatingMode, Integer[] CoolingMode, Integer[] WhetherToUseRenewableResources,

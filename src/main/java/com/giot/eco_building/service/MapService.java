@@ -1,6 +1,8 @@
 package com.giot.eco_building.service;
 
-import java.util.Set;
+import com.giot.eco_building.entity.Project;
+
+import java.io.IOException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,7 +12,7 @@ import java.util.Set;
  * Time: 16:00
  */
 public interface MapService {
-    Set<String> getPoiId(Double longitude, Double latitude, String name, String district);
+    String getPoiId(Project project);
 
-    String getDistrictLocation(String poiId);
+    String getDistrictLocation(String poiId) throws IOException;
 }

@@ -59,14 +59,14 @@ public class ShowController {
     }
 
     @GetMapping("/screen")
-    public WebResponse screen(String province, String city, String district, String street,
+    public WebResponse screen(String province, String city, String district,
                               //多选
                               String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
                               Integer[] energySavingTransformationOrNot, Integer[] heatingMode, Integer[] coolingMode, Integer[] whetherToUseRenewableResources,
                               //范围
                               Double[] area, Integer[] floor, String[] date,
                               Double[] powerConsumptionPerUnitArea, Double[] gasConsumptionPerUnitArea, Double[] waterConsumptionPerUnitArea) {
-        return projectService.screen(province, city, district, street,
+        return projectService.screen(province, city, district,
                 architecturalType, gbes, energySavingStandard,
                 energySavingTransformationOrNot, heatingMode, coolingMode, whetherToUseRenewableResources,
                 area, floor, date,
