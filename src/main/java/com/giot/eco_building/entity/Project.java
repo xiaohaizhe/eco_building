@@ -37,6 +37,8 @@ public class Project implements Serializable {
      * 编号
      */
     private String serialNumber;
+
+    private String poiId;
     /**
      * 建筑名称
      */

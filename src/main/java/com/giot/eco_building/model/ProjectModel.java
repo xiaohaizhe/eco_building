@@ -20,6 +20,14 @@ public class ProjectModel {
      */
     private String name;
     /**
+     * 建筑单位
+     */
+    private String contractor;
+    /**
+     * 工程名称
+     */
+    private String projectName;
+    /**
      * 建筑地址
      */
     private String address;
@@ -128,6 +136,8 @@ public class ProjectModel {
         Project project = new Project();
         project.setId(this.id);
         project.setName(this.name);
+        project.setProjectName(this.projectName);
+//        project.setContractor(this.contractor);
 
         project.setAddress(this.address);
         project.setProvince(this.province);

@@ -39,9 +39,14 @@ public class ExcelUtil {
                     "电耗", "全年电耗(kWh)", "逐月电耗 (kWh)",
                     "气耗", "全年气耗(m3)", "逐月气耗 (m3)",
                     "水耗", "全年水耗(m3)", "逐月水耗 (m3)"};*/
-    private static String[] columNames = {
+    /*private static String[] columNames = {
             "编号", "项目名称", "工程名称", "建设单位", "面积", "竣工日期", "建筑类型",
             "省", "市", "区县", "详细地址", "经度", "纬度", "层数", "项目概况图片",
+            "绿建星级", "执行节能标准", "是否经过节能改造", "供冷方式", "供暖方式", "是否利用可再生能源"
+    };*/
+    public static String[] columNames = {
+            "编号", "项目名称", "工程名称", "建设单位", "面积", "竣工日期", "建筑主要类型",
+            "省", "市", "区县", "详细地址", "经度", "纬度", "层数", "项目概况图",
             "绿建星级", "执行节能标准", "是否经过节能改造", "供冷方式", "供暖方式", "是否利用可再生能源"
     };
     private ProjectRepository projectRepository;
@@ -566,13 +571,14 @@ public class ExcelUtil {
      *
      * @param sheet
      */
+    @Deprecated
     public List<Map<Integer, Object>> dealWithSheet(Sheet sheet) throws IOException {
         int rowNum = sheet.getPhysicalNumberOfRows();
         logger.info("------------------------------------");
         /**
          * 当页数据量>0(第一行为字段名称，第二行为水电气日期标识)
          */
-        //保存项目基础数据与水电气数据
+        //保存项目基础数据
         List<Map<Integer, Object>> projectList = new ArrayList<>();
         if (rowNum > 2) {
 //            logger.info("根据第一行确定字段index");
@@ -662,5 +668,66 @@ public class ExcelUtil {
             logger.info("当页无数据");
         }
         return projectList;
+    }
+
+    public List<Map<String, Object>> dealWithExcelSheet(Sheet sheet) throws IOException {
+        int rowNum = sheet.getPhysicalNumberOfRows();
+        logger.info("------------------------------------");
+        /**
+         * 当页数据量>0(第一行为字段名称)
+         */
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (rowNum > 1) {
+//            logger.info("根据第一行确定字段index");
+            //处理每页的第1行数据，获取字段index
+            Integer[] columNamesIndex = dealWithFirstRow(sheet.getRow(0));
+            //处理图片
+            Map<Integer, PictureData> picMap = new HashMap<>();
+            if (sheet instanceof XSSFSheet) {
+                picMap = getPicture((XSSFSheet) sheet);
+            } else if (sheet instanceof HSSFSheet) {
+                picMap = getPicture((HSSFSheet) sheet);
+            }
+            for (int j = 1; j < rowNum; j++) {
+                Map<String, Object> projectBaseData = new HashMap<>();
+                Row row = sheet.getRow(j);
+                if (row != null) {
+                    int cellNum = row.getPhysicalNumberOfCells();
+//                    logger.info("第{}行共有{}个参数", (j + 1), cellNum);
+                    int serialNumberIndex = columNamesIndex[0];
+                    Cell serialNumberCell = row.getCell(serialNumberIndex);
+                    if (serialNumberCell != null && serialNumberCell.getCellType().equals(CellType.STRING)) {
+                        String serialNumber = (String) getCellData(serialNumberCell);
+                        logger.info("项目编号:{}的数据有效，开始处理>>>>>>>", serialNumber);
+                        projectBaseData.put(ExcelUtil.columNames[0], getCellData(serialNumberCell));
+                        //1.处理表格中的基础数据
+                        for (int k = 1; k < columNamesIndex.length; k++) {
+                            if (columNamesIndex[k] == null) continue;
+                            int cindex = columNamesIndex[k];
+                            Cell cCell = row.getCell(cindex);
+                            Object cellData;
+                            if (k == 5) {
+                                cellData = getDateByCell(cCell);
+                            } else {
+                                cellData = getCellData(cCell);
+                            }
+                            if (cellData != null) {
+                                projectBaseData.put(ExcelUtil.columNames[k], cellData);
+                            }
+                        }
+                        //处理基础数据中的图片数据
+                        PictureData projectPic = picMap.get(j);
+                        if (projectPic != null) {
+                            String imgUrl = uploadService.uploadProjectImg(projectPic.getData());
+                            projectBaseData.put(ExcelUtil.columNames[14], imgUrl);
+                        } else projectBaseData.put(ExcelUtil.columNames[14], null);
+                    }
+                }
+                result.add(projectBaseData);
+            }
+        } else {
+            logger.info("当页无数据");
+        }
+        return result;
     }
 }
