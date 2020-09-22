@@ -29,7 +29,7 @@ class overview extends React.Component {
     this.setState({ data: [], fetching: true ,searchName:value});
     const { dispatch} = this.props;
     dispatch({
-      type: 'projectManage/getProjectPage',
+      type: 'projectManage/getProjectScreenPage',
       payload:{number:1,size:10,name:value},
       callback:function(res){
         if (fetchId !== that.lastFetchId) {

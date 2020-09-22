@@ -79,6 +79,12 @@ export default defineConfig({
               component: './display',
             },
             {
+              path: '/3dmap',
+              name: '3dmap',
+              icon: 'dashboard',
+              component: './3dMap',
+            },
+            {
               path: '/projectManage',
               name: 'projectManage',
               icon: 'project',

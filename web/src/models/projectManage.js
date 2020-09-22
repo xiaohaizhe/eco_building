@@ -1,4 +1,4 @@
-import { getProjectPage,importExcel,deleteProject,getProjectDetail,getDataByTime,update,updateData} from '@/services/projectManage';
+import { getProjectPage,importExcel,deleteProject,getProjectDetail,getDataByTime,update,updateData,getProjectScreenPage} from '@/services/projectManage';
 import { getMap,getAddressOnMap } from '@/services/display';
 
 const ProjectManageModel = {
@@ -13,6 +13,17 @@ const ProjectManageModel = {
     //分页
     *getProjectPage({ payload,callback }, { call, put }) {
       const response = yield call(getProjectPage, payload);
+      if(response.code==0){
+        callback(response.result)
+      }
+      yield put({
+        type: 'save',
+        payload: response,
+      });
+    },
+    //分页(无校验)
+    *getProjectScreenPage({ payload,callback }, { call, put }) {
+      const response = yield call(getProjectScreenPage, payload);
       if(response.code==0){
         callback(response.result)
       }
@@ -111,11 +122,7 @@ const ProjectManageModel = {
       if(result.province){
         if(result.city){
           if(result.district){
-            if(result.street){
-              result.division= [result.province,result.city,result.district,result.street];
-            }else{
               result.division= [result.province,result.city,result.district];
-            }
           }else{
             result.division= [result.province,result.city];
           }

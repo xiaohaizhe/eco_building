@@ -1,6 +1,7 @@
 export default {
   'menu.overview': '总览',
   'menu.display': '图上展示',
+  'menu.3dmap': '图上展示-3D',
   'menu.log': '日志管理',
   'menu.overview.more': '更多',
   'menu.overview.proDetail': '项目详情',

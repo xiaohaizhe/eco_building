@@ -8,6 +8,8 @@ import { connect ,history} from 'umi';
 import ItemSelect from './components/ItemSelect';
 import  './index.less';
 var infoWin;
+var polygon;
+var map;
 const energySavingStandard = ['不执行节能标准','50%','65%','75%以上','未知'];
 const energySavingTransformationOrNot = ['是','否','未知'];
 const gbes = ['0星','1星','2星','3星','未知'];
@@ -33,6 +35,7 @@ class display extends React.Component {
         type: 'display/getMap',
       });
     }
+    
     this.loadMap(mapData,maxMin[this.state.radio]);
   }
   
@@ -48,7 +51,7 @@ class display extends React.Component {
     var tableDom;
     if (!infoWin) {
         infoWin = new AMap.InfoWindow({
-          autoMove:false,
+            autoMove:false,
             isCustom: true,  //使用自定义窗体
             offset: new AMap.Pixel(170, 200)
         });
@@ -100,6 +103,7 @@ class display extends React.Component {
     function closeInfoWin() {
       if (infoWin) {
           infoWin.close();
+          map.remove(polygon);
       }
     }
   }
@@ -109,46 +113,69 @@ class display extends React.Component {
       infoWin.close();
     }
     let that = this;
-    var map = new AMap.Map('container', {
-          center: [108.5525, 34.3227],
-          mapStyle:'amap://styles/macaron',
-          rotation: 0,
-          zoom: 4.5,
-          pitch: 0,
-          skyColor: '#33216a'
-      });
-    //添加点
+    map = new AMap.Map("container", {
+        zoom:17,
+        pitch:50,
+        mapStyle:'amap://styles/light',
+        center:[120.2794519,31.91857754],
+        features:['bg','point','road'],
+        viewMode:'3D',
+    });
+    var buildingLayer = new AMap.Buildings({zIndex:50,merge:false,sort:false,map:map});
+    let areas = [];
     mapData.forEach(value => {
-      let color = '#0000ff'
+      if(value.shape && value.shape.length>1){
+        debugger
+        let color2 = 'ff414141';
+        let color1 = 'ff969696';
       if(typeData.max-typeData.min!=0){
         var val = 0;
         if(that.state.radio=='0'){
-          val = value.waterConsumptionPerUnitArea || 0;
+          val = value.waterConsumptionPerUnitArea;
         }else if (that.state.radio=='1'){
-          val = value.powerConsumptionPerUnitArea || 0;
+          val = value.powerConsumptionPerUnitArea;
         }else if(that.state.radio=='2'){
-          val = value.gasConsumptionPerUnitArea || 0;
+          val = value.gasConsumptionPerUnitArea;
         }
         var max = typeData.max;
         var min = typeData.min;
+        if(val || val===0){
+          color2 = gradientColor(val,max,min,true);
+          color1 = gradientColor(val,max,min,false);
+        }
         
-        color = gradientColor(val,max,min);
       }
-      let content = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1600329129334" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3195" xmlns:xlink="http://www.w3.org/1999/xlink" width="30" height="30"><defs><style type="text/css"></style></defs><path d="M512 0C345.975467 0 152.234667 101.444267 152.234667 359.765333c0 175.3088 276.753067 562.7904 359.765333 664.234667 73.796267-101.444267 359.765333-479.709867 359.765333-664.234667C871.765333 101.512533 678.024533 0 512 0z" fill='+color+' p-id="3196"></path></svg>'
+
+        areas.push({path:value.shape,color1: color1,//楼顶颜色
+        color2: color2,//楼面颜色
+      })
+      }
+      
+      //添加点标记
       let marker = new AMap.Marker({
         value,
         map: map,
-        content:content,
         position: new AMap.LngLat(value['longitude']?value['longitude']:0, value['latitude']?value['latitude']:0),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
       });
       marker.on('click', function (ev) {
+            if(polygon){
+              map.remove(polygon);
+            }
+            
             // 事件类型
             var type = ev.type;
             // 当前元素的原始数据
             var rawData = ev.target.Ce.value;
             // 原始鼠标事件
             var originalEvent = ev.pixel;
-            
+            polygon = new AMap.Polygon({
+                  bubble:false,
+                  fillOpacity:0.3,
+                  strokeWeight:0.1,
+                  path:rawData.shape,
+                  map:map,
+                  zIndex:1
+                })
             that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
                 '建筑类型：': rawData.architecturalType || '无',
                 '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(2)+' kWh/㎡',
@@ -162,127 +189,39 @@ class display extends React.Component {
                 '可再生能源利用：': rawData.whetherToUseRenewableResources!=undefined?whetherToUseRenewableResources[rawData.whetherToUseRenewableResources]:'无',
               },rawData.id);
           });
-          function gradientColor(data,max,min){
-              //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
-                let startR = 194;
-                let startG = 107;
-                let startB = 80;
-               
-              //   let endRGB = this.colorRgb('#0000ff'); 
-                let endR = 81;
-                let endG = 153;
-                let endB = 133;
-               
-                let step = (max-data)/(max-min);
-                let sR = (endR-startR)*step;//总差值
-                let sG = (endG-startG)*step;
-                let sB = (endB-startB)*step;
-               
-                var color = 'rgb('+parseInt((sR+startR))+','+parseInt((sG+startG))+','+parseInt((sB+startB))+')';
-                return color;
-          }
     })
-    
-    //   var layer = new Loca.PointLayer({
-    //       map: map,
-    //       eventSupport: true
-    //   });
-
-    //   layer.on('click', function (ev) {
+    let options = 
+    {
+         hideWithoutStyle:false,//是否隐藏设定区域外的楼块
+         areas:areas
+    };
+    buildingLayer.setStyle(options); //此配色优先级高于自定义mapStyle
+    function gradientColor(data,max,min,flag){
+      //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
+        let startR = 194;
+        let startG = 107;
+        let startB = 80;
+       
+      //   let endRGB = this.colorRgb('#0000ff'); 
+        let endR = 81;
+        let endG = 153;
+        let endB = 133;
+       
+        let step = (max-data)/(max-min);
+        let sR = (endR-startR)*step;//总差值
+        let sG = (endG-startG)*step;
+        let sB = (endB-startB)*step;
+       
+      //   var color = 'rgb('+parseInt((sR+startR))+','+parseInt((sG+startG))+','+parseInt((sB+startB))+')';
+        var color
+        if(flag){
+          color = 'ff'+ parseInt((sR+startR)).toString(16)+ parseInt((sG+startG)).toString(16)+parseInt((sB+startB)).toString(16)
+        }else{
+          color = 'ff'+ parseInt((sR+startR+40)).toString(16)+ parseInt((sG+startG+40)).toString(16)+parseInt((sB+startB+40)).toString(16)
+        }
         
-    //     // 事件类型
-    //     var type = ev.type;
-    //     // 当前元素的原始数据
-    //     var rawData = ev.rawData;
-    //     // 原始鼠标事件
-    //     var originalEvent = ev.originalEvent;
-        
-    //     that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
-    //         '建筑类型：': rawData.architecturalType || '无',
-    //         '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(2)+' kWh/㎡',
-    //         '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
-    //         '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
-    //         '节能标准：': rawData.energySavingStandard!=undefined?energySavingStandard[rawData.energySavingStandard]:'无',
-    //         '是否经过节能改造：': rawData.energySavingTransformationOrNot!=undefined?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
-    //         '绿建等级：': rawData.gbes!=undefined?gbes[rawData.gbes]:'无',
-    //         '供冷方式：': rawData.coolingMode!=undefined?coolingMode[rawData.coolingMode]:'无',
-    //         '供暖方式：': rawData.heatingMode!=undefined?heatingMode[rawData.heatingMode]:'无',
-    //         '可再生能源利用：': rawData.whetherToUseRenewableResources!=undefined?whetherToUseRenewableResources[rawData.whetherToUseRenewableResources]:'无',
-    //       },rawData.id);
-    //   });
-
-    //   // layer.on('mouseleave', function (ev) {
-    //   //     that.closeInfoWin();
-    //   // });
-      
-    //   // var data = [
-    //   // {
-    //   //   "lnglat":[116.258446,37.686622],
-    //   //   "title":'xxx项目',
-    //   //   "name":"景县",
-    //   //   "style":2,
-    //   //   'value':500
-    //   // }]
-    //   //设置数据源
-    //   layer.setData(mapData, {
-    //     lnglat:function (obj) {
-    //       var value = obj.value;
-    //       // console.log(isNaN(value['longitude'])+':'+value['name'])
-    //       return [value['longitude']?value['longitude']:0, value['latitude']?value['latitude']:0];
-    //     },
-    //     type:'json'// 指定坐标数据的来源，数据格式: 经度在前，维度在后，数组格式。
-    //   });
-    //   //设置参数
-    //   layer.setOptions({
-    //     unit: 'px',
-    //     style: {
-    //         radius: 10,
-    //         height: 0,
-    //         // 根据车辆类型设定不同填充颜色
-    //         color: function (obj) {
-    //             if(typeData.max-typeData.min===0){
-    //               return '#0000ff';
-    //             }else{
-    //               var value = 0;
-    //               if(that.state.radio=='0'){
-    //                 value = obj.value.waterConsumptionPerUnitArea || 0;
-    //               }else if (that.state.radio=='1'){
-    //                 value = obj.value.powerConsumptionPerUnitArea || 0;
-    //               }else if(that.state.radio=='2'){
-    //                 value = obj.value.gasConsumptionPerUnitArea || 0;
-    //               }
-    //               var max = typeData.max;
-    //               var min = typeData.min;
-                  
-    //               return gradientColor(value,max,min);
-    //             }
-                
-
-    //             function gradientColor(data,max,min){
-    //               //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
-    //                 let startR = 194;
-    //                 let startG = 107;
-    //                 let startB = 80;
-    //                
-    //               //   let endRGB = this.colorRgb('#0000ff'); 
-    //                 let endR = 81;
-    //                 let endG = 153;
-    //                 let endB = 133;
-    //                
-    //                 let step = (max-data)/(max-min);
-    //                 let sR = (endR-startR)*step;//总差值
-    //                 let sG = (endG-startG)*step;
-    //                 let sB = (endB-startB)*step;
-    //                
-    //                 var color = 'rgb('+parseInt((sR+startR))+','+parseInt((sG+startG))+','+parseInt((sB+startB))+')';
-    //                 return color;
-    //                }
-    //         },
-    //         opacity: 1
-    //     }
-    // });
-
-    // layer.render();
+        return color;
+    }
   }
   toggleForm(){
       this.setState({"show":!this.state.show})

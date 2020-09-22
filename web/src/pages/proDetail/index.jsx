@@ -4,6 +4,7 @@ import { connect,useParams } from 'umi';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import EchartItem from '@/components/EchartItem/echartItem';
 import Map from './components/map'
+import nopic from '../../assets/nopic.png'
 const energySavingStandard = ['不执行节能标准','50%','65%','75%以上','未知'];
 const energySavingTransformationOrNot = ['是','否','未知'];
 const gbes = ['0星','1星','2星','3星','未知'];
@@ -27,14 +28,15 @@ const proDetail = props => {
       }, [id]);
       
       const extra = (
-      <Avatar shape="square" size={150} src={detail.imgUrl} />
+      <Avatar shape="square" size={150} src={detail.imgUrl?detail.imgUrl:nopic}/>
     );
     const description = (
       <Descriptions
         title={detail.name?detail.name:""}
       >
         {/* <Descriptions.Item label="项目名称">{detail.name}</Descriptions.Item> */}
-        <Descriptions.Item label="地址" span={3}>{detail.province?detail.province:''}{detail.city?detail.city:''}{detail.district?detail.district:''}{detail.street?detail.street:''}<span style={{marginLeft:'8px'}}>{detail.address?detail.address:''}</span></Descriptions.Item>
+        <Descriptions.Item label="地址" span={3}>{detail.province?detail.province:''}{detail.city?detail.city:''}{detail.district?detail.district:''}<span style={{marginLeft:'8px'}}>{detail.address?detail.address:''}</span></Descriptions.Item>
+        <Descriptions.Item label="工程名称">{detail.projectName?detail.projectName:''}</Descriptions.Item>
         <Descriptions.Item label="建筑类型">{detail.architecturalType?detail.architecturalType:''}</Descriptions.Item>
         <Descriptions.Item label="建成时间">{detail.builtTime?detail.builtTime:''}</Descriptions.Item>
         <Descriptions.Item label="绿建星级">{gbes[detail.gbes?detail.gbes:0]}</Descriptions.Item>

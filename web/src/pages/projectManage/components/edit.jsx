@@ -67,12 +67,7 @@ const Edit = props => {
       }
       values.architecturalType = architecturalType[values.architecturalType];
       if(values.division){
-        if(values.division.length==4){
-          values.province = values.division[0];
-          values.city = values.division[1];
-          values.district = values.division[2];
-          values.street = values.division[3];
-        }else if(values.division.length==3){
+        if(values.division.length==3){
           values.province = values.division[0];
           values.city = values.division[1];
           values.district = values.division[2];
@@ -202,18 +197,18 @@ const Edit = props => {
                     </Form.Item>
                   </Col>
                   <Col span={10}>
-                      <Form.Item
-                        name="architecturalType"
-                        label="建筑类型"
-                        rules={[
-                          {
-                            required: true,
-                            message: '请输入',
-                          },
-                        ]}
-                      >
-                        {renderSelect(architecturalType)}
-                      </Form.Item>
+                    <Form.Item
+                      name="projectName"
+                      label="工程名称"
+                      rules={[
+                        {
+                          required: true,
+                          message: '请输入',
+                        },
+                      ]}
+                    >
+                      <Input/>
+                    </Form.Item>
                   </Col>
               </Row> 
               <Row gutter={gutter}>
@@ -248,17 +243,17 @@ const Edit = props => {
               </Row>
               <Row gutter={gutter}>
                 <Col span={10}>
-                      <Form.Item
-                        name="floor"
-                        label="层数"
-                        // rules={[
-                        //   {
-                        //     required: true,
-                        //     message: '请输入',
-                        //   },
-                        // ]}
+                    <Form.Item
+                        name="architecturalType"
+                        label="建筑类型"
+                        rules={[
+                          {
+                            required: true,
+                            message: '请输入',
+                          },
+                        ]}
                       >
-                        <Input/>
+                        {renderSelect(architecturalType)}
                       </Form.Item>
                   </Col>
                 <Col span={10}>
@@ -280,8 +275,8 @@ const Edit = props => {
               <Row gutter={gutter}>
                     <Col span={10}>
                       <Form.Item
-                        name="gbes"
-                        label="绿建星级"
+                        name="floor"
+                        label="层数"
                         // rules={[
                         //   {
                         //     required: true,
@@ -289,7 +284,7 @@ const Edit = props => {
                         //   },
                         // ]}
                       >
-                        {renderSelect(gbes)}
+                        <Input/>
                       </Form.Item>
                     </Col>
                     <Col span={10}>
@@ -324,7 +319,23 @@ const Edit = props => {
                     </Form.Item>
                   </Col>
                   <Col span={10}>
-                      <Form.Item
+                    <Form.Item
+                        name="gbes"
+                        label="绿建星级"
+                        // rules={[
+                        //   {
+                        //     required: true,
+                        //     message: '请输入',
+                        //   },
+                        // ]}
+                      >
+                        {renderSelect(gbes)}
+                      </Form.Item>
+                  </Col>
+              </Row>
+              <Row gutter={gutter}>
+                <Col span={10}>
+                <Form.Item
                         name="heatingMode"
                         label="供暖方式"
                         // rules={[
@@ -335,22 +346,6 @@ const Edit = props => {
                         // ]}
                       >
                         {renderSelect(heatingMode)}
-                      </Form.Item>
-                  </Col>
-              </Row>
-              <Row gutter={gutter}>
-                <Col span={10}>
-                      <Form.Item
-                        name="whetherToUseRenewableResources"
-                        label="是否利用可再生能源"
-                        // rules={[
-                        //   {
-                        //     required: true,
-                        //     message: '请输入',
-                        //   },
-                        // ]}
-                      >
-                        {renderSelect(whetherToUseRenewableResources)}
                       </Form.Item>
                   </Col>
                   <Col span={10}>
@@ -401,6 +396,18 @@ const Edit = props => {
                         
                     </Col>
                     <Col span={10}>
+                        <Form.Item
+                          name="whetherToUseRenewableResources"
+                          label="是否利用可再生能源"
+                          // rules={[
+                          //   {
+                          //     required: true,
+                          //     message: '请输入',
+                          //   },
+                          // ]}
+                        >
+                          {renderSelect(whetherToUseRenewableResources)}
+                        </Form.Item>
                         <Form.Item
                           label="图片"
                         >
