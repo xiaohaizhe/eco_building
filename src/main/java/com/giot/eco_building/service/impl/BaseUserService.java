@@ -10,6 +10,8 @@ import lombok.extern.flogger.Flogger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -50,6 +52,7 @@ public class BaseUserService implements UserService {
      * @return
      */
     @Override
+    @CacheEvict(value = "admin", allEntries = true)
     public WebResponse insert(User user) {
         String username = user.getUsername();
         if (username == null || "".equals(username)) {
@@ -90,6 +93,7 @@ public class BaseUserService implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "admin", allEntries = true)
     public WebResponse delete(Long userId) {
         Optional<User> optionalUser = userRepository.findByIdAndDelStatus(userId, Constants.DelStatus.NORMAL.isValue());
         if (optionalUser.isPresent()) {
@@ -103,6 +107,7 @@ public class BaseUserService implements UserService {
     }
 
     @Override
+    @Cacheable(value = "admin", key = "#number+'_'+#size")
     public WebResponse getUserPage(Integer number, Integer size) {
         Sort sort = Sort.by(Sort.Direction.DESC,
                 "created"); //创建时间降序排序

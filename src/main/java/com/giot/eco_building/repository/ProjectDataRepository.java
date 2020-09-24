@@ -23,5 +23,7 @@ public interface ProjectDataRepository extends JpaRepository<ProjectData, Long> 
 
     ProjectData findTopByProjectIdAndIsMonthAndTypeAndValueGreaterThanOrderByActualDateDesc(Long projectId, Boolean isMonth, Integer type, Double value);
 
+    ProjectData findByProjectIdAndIsMonthAndTypeAndActualDate(Long projectId, Boolean isMonth, Integer type, Date actualDate);
+
     List<ProjectData> findByProjectIdAndIsMonthAndType(Long projectId, Boolean isMonth, Integer type);
 }

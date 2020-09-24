@@ -22,5 +22,7 @@ public interface ProjectDataService {
 
     com.giot.eco_building.entity.ProjectData getLatestYearData(Long projectId, Integer type);
 
+    com.giot.eco_building.entity.ProjectData getByActualDateAndIsMonthAndType(Long projectId, Boolean isMonth, Integer type, Date date);
+
     List<com.giot.eco_building.entity.ProjectData> getDataByTime(Integer type, Boolean isMonth, Long projectId, Date start, Date end);
 }

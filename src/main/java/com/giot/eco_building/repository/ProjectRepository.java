@@ -2,6 +2,7 @@ package com.giot.eco_building.repository;
 
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.CityCount;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -21,10 +22,13 @@ import java.util.Set;
 public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpecificationExecutor<Project> {
     Optional<Project> findByNameAndDelStatus(String name, Boolean delStatus);
 
+    @Cacheable(value = "project", key = "#root.methodName+'_'+#province+'_'+#delStatus")
     @Query(nativeQuery = true, value = "SELECT * FROM project " +
             "WHERE province = :province and del_status = :delStatus ORDER BY power_consumption_per_unit_area DESC LIMIT 10;")
     List<Project> findByProvinceAndDelStatusAndOrderByPowerConsumptionPerUnitAreaDescAndLimit10(@Param("province") String province, @Param("delStatus") Boolean delStatus);
 
+
+    @Cacheable(value = "project", key = "#root.methodName+'_'+#province+'_'+#delStatus")
     @Query(nativeQuery = true,
             value = "SELECT city,COUNT(city) as count FROM `project` where province = :province and city != '' and del_status = :delStatus GROUP BY city ORDER BY count desc LIMIT 5")
     List<Object[]> findCityCountByProvinceAndDelStatus(@Param("province") String province, @Param("delStatus") Boolean delStatus);

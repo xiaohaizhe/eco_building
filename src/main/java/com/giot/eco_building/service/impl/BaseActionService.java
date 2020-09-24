@@ -8,6 +8,8 @@ import com.giot.eco_building.repository.ActionRepository;
 import com.giot.eco_building.service.ActionService;
 import com.giot.eco_building.utils.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,12 +37,14 @@ public class BaseActionService implements ActionService {
     }
 
     @Override
+    @CacheEvict(value = "actions", allEntries = true)
     public void add(Constants.ActionType type, String msg) {
         User user = IpUtil.getUser();
         add(type, msg, user);
     }
 
     @Override
+    @CacheEvict(value = "actions", allEntries = true)
     public void add(Constants.ActionType type, String msg, User user) {
         if (user != null) {
             Action action = new Action();
@@ -62,6 +66,7 @@ public class BaseActionService implements ActionService {
      * @return
      */
     @Override
+    @Cacheable(value = "actions", key = "#userId+'-'+#number+#size+'-'+#actionType+'-'+#start+'-'+#end")
     public WebResponse getActionPage(Long userId, Integer number, Integer size, Integer actionType, String start, String end) {
         Sort sort = Sort.by(Sort.Direction.DESC,
                 "actionTime"); //创建时间降序排序
@@ -135,6 +140,7 @@ public class BaseActionService implements ActionService {
      * @return
      */
     @Override
+    @Cacheable(value = "actions")
     public WebResponse getActionType() {
         Object[] list = {
                 "登入/登出", 0,

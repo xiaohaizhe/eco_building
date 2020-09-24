@@ -5,6 +5,8 @@ import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.entity.User;
 import com.giot.eco_building.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 /**

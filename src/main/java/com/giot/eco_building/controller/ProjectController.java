@@ -7,6 +7,8 @@ import com.giot.eco_building.model.ProjectModel;
 import com.giot.eco_building.service.ProjectService;
 import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,18 +35,25 @@ public class ProjectController {
 
     @PostMapping("update")
     @SystemControllerLog(description = "项目修改")
+    @CacheEvict(value = "project", allEntries = true)
     public WebResponse update(@RequestBody ProjectModel project) {
         return projectService.update(project);
     }
 
     @PostMapping("updateData")
     @SystemControllerLog(description = "项目数据修改")
+    @CacheEvict(value = "project", allEntries = true)
     public WebResponse updateData(@RequestBody List<DataModel> dataModelList) {
-        return projectService.updateData(dataModelList);
+        try {
+            return projectService.updateData(dataModelList);
+        } catch (ParseException e) {
+            return WebResponse.exception(e);
+        }
     }
 
     @PostMapping("importExcel")
     @SystemControllerLog(description = "上传")
+    @CacheEvict(value = "project", allEntries = true)
     public WebResponse importExcel(MultipartFile file, HttpServletRequest request) {
         try {
             return projectService.importExcel(file, request);
@@ -56,9 +65,10 @@ public class ProjectController {
 
     @PostMapping("import")
     @SystemControllerLog(description = "上传")
+    @CacheEvict(value = "project", allEntries = true)
     public WebResponse importFile(MultipartFile[] files, HttpServletRequest request) {
         try {
-            return projectService.importFile(files,  request);
+            return projectService.importFile(files, request);
         } catch (IOException | CsvValidationException | ParseException e) {
             return WebResponse.exception(e);
         }
@@ -89,14 +99,15 @@ public class ProjectController {
 
     @GetMapping("screenPage")
     public WebResponse projectcreenPage(String name,
-                                   String province, String city, String district,
-                                   String architecturalType,
-                                   Integer number, Integer size) {
+                                        String province, String city, String district,
+                                        String architecturalType,
+                                        Integer number, Integer size) {
         return projectService.page(name, province, city, district, architecturalType, number, size);
     }
 
     @PostMapping("delete")
     @SystemControllerLog(description = "项目删除")
+    @CacheEvict(value = "project", allEntries = true)
     public WebResponse deleteById(Long id) {
         return projectService.deleteById(id);
     }
@@ -106,9 +117,9 @@ public class ProjectController {
         return projectService.getDataByTime(dataType, timeType, projectId, start, end);
     }
 
-    @GetMapping("shape")
-    public void updateShape(){
+    /*@GetMapping("shape")
+    public void updateShape() {
         projectService.insertShape();
-    }
+    }*/
 
 }

@@ -8,6 +8,7 @@ import com.giot.eco_building.repository.ProjectDataRepository;
 import com.giot.eco_building.repository.ProjectRepository;
 import com.giot.eco_building.service.ProjectDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,6 +141,14 @@ public class BaseProjectDataService implements ProjectDataService {
     }
 
     @Override
+    public com.giot.eco_building.entity.ProjectData getByActualDateAndIsMonthAndType(Long projectId, Boolean isMonth, Integer type, Date date) {
+        com.giot.eco_building.entity.ProjectData projectData =
+                projectDataRepository.findByProjectIdAndIsMonthAndTypeAndActualDate(projectId, isMonth, type, date);
+        return projectData;
+    }
+
+    @Override
+    @Cacheable(value = "project", key = "#projectId+'_'+#start+'_'+#end")
     public WebResponse getElecDataByProjectIdAndMonth(Long projectId, String start, String end) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
         Date sdate = sdf.parse(start);
@@ -149,6 +158,7 @@ public class BaseProjectDataService implements ProjectDataService {
     }
 
     @Override
+    @Cacheable(value = "project", key = "#root.menthodName+'_'+#projectId+'_'+#start+'_'+#end+'_'+#type+'_'+#isMonth")
     public List<com.giot.eco_building.entity.ProjectData> getDataByTime(Integer type, Boolean isMonth, Long projectId, Date start, Date end) {
         List<com.giot.eco_building.entity.ProjectData> projectDataList
                 = projectDataRepository.findByProjectIdAndIsMonthAndTypeAndActualDateBetween(projectId, type, isMonth, start, end);

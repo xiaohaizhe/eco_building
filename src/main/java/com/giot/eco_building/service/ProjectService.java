@@ -27,9 +27,9 @@ public interface ProjectService {
 
     void reDealWithProjectAddress();
 
-    void latestYearData();
+    void updatelatestYearData() throws ParseException;
 
-    WebResponse updateData(List<DataModel> dataModel);
+    WebResponse updateData(List<DataModel> dataModel) throws ParseException;
 
     WebResponse update(ProjectModel project);
 

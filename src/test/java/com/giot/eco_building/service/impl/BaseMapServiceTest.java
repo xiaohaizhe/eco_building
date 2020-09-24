@@ -11,6 +11,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -31,9 +35,7 @@ public class BaseMapServiceTest {
     private MapService mapService;
 
     @Test
-    public void getPoiId() {
-
-
+    public void getPoiId() throws ParseException {
     }
 
     @Test

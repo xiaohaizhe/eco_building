@@ -30,11 +30,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -59,6 +61,7 @@ import java.util.*;
  */
 @Service
 @Transactional
+@Component("BaseProjectService")
 public class BaseProjectService implements ProjectService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -208,7 +211,7 @@ public class BaseProjectService implements ProjectService {
     }
 
     @Override
-    public WebResponse updateData(List<DataModel> dataModelList) {
+    public WebResponse updateData(List<DataModel> dataModelList) throws ParseException {
         List<com.giot.eco_building.entity.ProjectData> projectDataList = new ArrayList<>();
         boolean flag = false;
         Set<Long> projectIds = new HashSet<>();
@@ -273,7 +276,7 @@ public class BaseProjectService implements ProjectService {
                 }
             }
         }
-        List<com.giot.eco_building.entity.ProjectData> result = projectDataRepository.saveAll(projectDataList);
+        projectDataRepository.saveAll(projectDataList);
         if (flag) {//存在更新年数据
             List<Project> projectList = projectRepository.findAll();
             for (Project project :
@@ -363,6 +366,9 @@ public class BaseProjectService implements ProjectService {
                 }
                 if (projectNew.getWhetherToUseRenewableResources() != null) {
                     projectOld.setWhetherToUseRenewableResources(projectNew.getWhetherToUseRenewableResources());
+                }
+                if (projectNew.getShape() != null) {
+                    projectOld.setShape(projectNew.getShape());
                 }
                 projectRepository.saveAndFlush(projectOld);
                 return WebResponse.success(projectOld);
@@ -629,6 +635,7 @@ public class BaseProjectService implements ProjectService {
                     dataList.add(projectData);
                 }
                 projectDataService.saveOrUpdateByProjectId(dataList);
+                updateLatestYearData(project);
                 message += HttpResponseStatusEnum.SUCCESS.getMessage();
             } else {
                 message += HttpResponseStatusEnum.PROJECT_NOT_EXISTED.getMessage();
@@ -799,23 +806,63 @@ public class BaseProjectService implements ProjectService {
      *
      * @param project
      */
-    private void updateLatestYearData(Project project) {
+    private void updateLatestYearData(Project project) throws ParseException {
         if (project != null && project.getId() != null && project.getArea() != null && project.getArea() > 0) {
             double area = project.getArea();
-            com.giot.eco_building.entity.ProjectData waterData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.WATER.getCode());
-            if (waterData != null) {
-                project.setWaterConsumptionPerUnitArea(waterData.getValue() / area);
-            }
-            com.giot.eco_building.entity.ProjectData elecData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.ELECTRICITY.getCode());
-            if (elecData != null) {
-                project.setPowerConsumptionPerUnitArea(elecData.getValue() / area);
-            }
-            com.giot.eco_building.entity.ProjectData gasData = projectDataService.getLatestYearData(project.getId(), Constants.DataType.GAS.getCode());
-            if (gasData != null) {
-                project.setGasConsumptionPerUnitArea(gasData.getValue() / area);
+            Long projectId = project.getId();
+            String serialNumber = project.getSerialNumber();
+            Calendar cal = Calendar.getInstance();
+            int year = cal.get(Calendar.YEAR);//获取年份
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
+            if (serialNumber.contains("Y")) {//项目数据为年数据
+                logger.info("{}为年数据", project.getName());
+                Date date = sdf.parse((year - 1) + "");
+//                com.giot.eco_building.entity.ProjectData waterData = projectDataService.getLatestYearData(projectId, Constants.DataType.WATER.getCode());
+                com.giot.eco_building.entity.ProjectData waterData = projectDataService.getByActualDateAndIsMonthAndType(projectId, false, Constants.DataType.WATER.getCode(), date);
+                if (waterData != null) {
+                    project.setWaterConsumptionPerUnitArea(waterData.getValue() / area);
+                }
+//                com.giot.eco_building.entity.ProjectData elecData = projectDataService.getLatestYearData(projectId, Constants.DataType.ELECTRICITY.getCode());
+                com.giot.eco_building.entity.ProjectData elecData = projectDataService.getByActualDateAndIsMonthAndType(projectId, false, Constants.DataType.ELECTRICITY.getCode(), date);
+                if (elecData != null) {
+                    project.setPowerConsumptionPerUnitArea(elecData.getValue() / area);
+                }
+//                com.giot.eco_building.entity.ProjectData gasData = projectDataService.getLatestYearData(projectId, Constants.DataType.GAS.getCode());
+                com.giot.eco_building.entity.ProjectData gasData = projectDataService.getByActualDateAndIsMonthAndType(projectId, false, Constants.DataType.GAS.getCode(), date);
+                if (gasData != null) {
+                    project.setGasConsumptionPerUnitArea(gasData.getValue() / area);
+                }
+            } else {
+                /**
+                 * 项目数据为月数据
+                 * 统计去年1月到12月数据
+                 */
+                logger.info("{}为月数据", project.getName());
+                SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+                Date start = sdf.parse((year - 1) + "");
+                Date end = sdf.parse(year + "");
+                Calendar date = Calendar.getInstance();
+                date.setTime(end);
+                date.set(Calendar.DATE, date.get(Calendar.SECOND) - 1);
+                Date endDate = sdf1.parse(sdf1.format(date.getTime()));
+                List<com.giot.eco_building.entity.ProjectData> waterData = projectDataService.getDataByTime(Constants.DataType.WATER.getCode(), true, projectId, start, endDate);
+                project.setWaterConsumptionPerUnitArea(getPerUnitData(waterData, area));
+                List<com.giot.eco_building.entity.ProjectData> elecData = projectDataService.getDataByTime(Constants.DataType.ELECTRICITY.getCode(), true, projectId, start, endDate);
+                project.setPowerConsumptionPerUnitArea(getPerUnitData(elecData, area));
+                List<com.giot.eco_building.entity.ProjectData> gasData = projectDataService.getDataByTime(Constants.DataType.GAS.getCode(), true, projectId, start, endDate);
+                project.setGasConsumptionPerUnitArea(getPerUnitData(gasData, area));
             }
             projectRepository.saveAndFlush(project);
         }
+    }
+
+    private Double getPerUnitData(List<com.giot.eco_building.entity.ProjectData> projectDatas, double area) {
+        double count = 0;
+        for (com.giot.eco_building.entity.ProjectData data :
+                projectDatas) {
+            count += data.getValue();
+        }
+        return count / area;
     }
 
     /**
@@ -823,7 +870,7 @@ public class BaseProjectService implements ProjectService {
      * 更新项目的最近一年的水电气单位面积消耗数据
      */
     @Override
-    public void latestYearData() {
+    public void updatelatestYearData() throws ParseException {
         List<Project> projects = projectRepository.findAll();
         for (Project project :
                 projects) {
@@ -1098,6 +1145,8 @@ public class BaseProjectService implements ProjectService {
     }
 
     @Override
+    @Cacheable(value = "project",
+            key = "#province+'_'+#city+'_'+#district+'_'+#architecturalType+'_'+#gbes+'_'+#energySavingStandard+'_'+#energySavingTransformationOrNot+'_'+#heatingMode+'_'+#coolingMode+'_'+#whetherToUseRenewableResources+'_'+#area+'_'+#floor+'_'+#date+'_'+#powerConsumptionPerUnitArea+'_'+#gasConsumptionPerUnitArea+'_'+#waterConsumptionPerUnitArea")
     public WebResponse screen(String province, String city, String district,
                               //多选
                               String[] architecturalType, Integer[] gbes, Integer[] energySavingStandard,
@@ -1172,13 +1221,14 @@ public class BaseProjectService implements ProjectService {
         JSONObject result = new JSONObject();
 //        result.put("project", projectList);
         result.put("project", projectArray);
-        result.put("water", "" + waterMin + "-" + waterMax);
-        result.put("gas", "" + gasMin + "-" + gasMax);
-        result.put("elec", "" + elecMin + "-" + elecMax);
+        result.put("water", "" + (double) Math.round(waterMin * 100) / 100 + "-" + (double) Math.round(waterMax * 100) / 100);
+        result.put("gas", "" + (double) Math.round(gasMin * 100) / 100 + "-" + (double) Math.round(gasMax * 100) / 100);
+        result.put("elec", "" + (double) Math.round(elecMin * 100) / 100 + "-" + (double) Math.round(elecMax * 100) / 100);
         return WebResponse.success(result);
     }
 
     @Override
+    @Cacheable(value = "project", key = "#projectId")
     public WebResponse projectDetail(Long projectId) {
         Optional<Project> projectOptional = projectRepository.findById(projectId);
         if (projectOptional.isPresent()) {
@@ -1313,6 +1363,7 @@ public class BaseProjectService implements ProjectService {
     }
 
     @Override
+    @Cacheable(value = "project", key = "#name+'_'+#province+'_'+#city+'_'+#district+'_'+#architecturalType+'_'+#number+'_'+#size")
     public WebResponse page(String name, String province, String city, String district, String architecturalType, Integer number, Integer size) {
         Sort sort = Sort.by(Sort.Direction.DESC,
                 "lastModified"); //最新修改时间降序排序
@@ -1362,6 +1413,7 @@ public class BaseProjectService implements ProjectService {
      * @return
      */
     @Override
+    @Cacheable(value = "project", key = "#dataType+'_'+#timeType+'_'+#projectId+'_'+#start+'_'+#end")
     public WebResponse getDataByTime(String dataType, String timeType, Long projectId, String start, String end) {
         Integer type = null;
         switch (dataType) {

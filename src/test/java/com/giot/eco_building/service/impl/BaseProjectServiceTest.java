@@ -7,11 +7,13 @@ import com.giot.eco_building.service.ProjectService;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -24,6 +26,7 @@ import java.util.List;
 @EnableAutoConfiguration
 class BaseProjectServiceTest {
     @Autowired
+    @Qualifier("BaseProjectService")
     private ProjectService projectService;
     @Autowired
     private ProjectRepository projectRepository;
@@ -73,5 +76,10 @@ class BaseProjectServiceTest {
 //        }
 //        projectService.updateData(dataModelList);
 
+    }
+
+    @Test
+    public void updatelatestYearData() throws ParseException {
+        projectService.updatelatestYearData();
     }
 }

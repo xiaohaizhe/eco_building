@@ -4,6 +4,7 @@ import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.service.ProjectDataService;
 import com.giot.eco_building.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
