@@ -15,6 +15,36 @@ const gbes = ['0星','1星','2星','3星','未知'];
 const coolingMode = ['集中供冷','分户供冷','无供冷','未知'];
 const heatingMode = ['集中供暖', '分户采暖',  '无采暖', '未知'];
 const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '未知'];
+const colorStandard = {
+  "商场":{
+    max:200,
+    mid:170
+  },
+  "酒店":{
+    max:200,
+    mid:150
+  },
+  "办公":{
+    max:110,
+    mid:80
+  },
+  "医院":{
+    max:300,
+    mid:200
+  },
+  "餐饮":{
+    max:200,
+    mid:150
+  },
+  "文化教育":{
+    max:110,
+    mid:80
+  },
+  "其他":{
+    max:200,
+    mid:150
+  }
+}
 class display extends React.Component {
   constructor(props) {
     super(props);
@@ -125,22 +155,31 @@ class display extends React.Component {
       if(value.shape && value.shape.length>1){
         let color2 = 'ff414141';
         let color1 = 'ff969696';
-        if(typeData.max-typeData.min!=0){
-          var val = 0;
-          if(flag==='0'){
-            val = value.waterConsumptionPerUnitArea;
-          }else if (flag==='1'){
-            val = value.powerConsumptionPerUnitArea;
-          }else if(flag==='2'){
-            val = value.gasConsumptionPerUnitArea;
+
+        var val = 0;
+        if(flag==='0'){
+          val = value.waterConsumptionPerUnitArea;
+        }else if (flag==='1'){
+          val = value.powerConsumptionPerUnitArea;
+        }else if(flag==='2'){
+          val = value.gasConsumptionPerUnitArea;
+        }
+        
+        if(val || val === 0){
+          let colorS = colorStandard[value.architecturalType];
+          if(val==0){
+            color2 = 'ff0070c0';
+            color1 = 'ff2898e8';
+          }else if(val<colorS.mid || val== colorS.mid){
+            color2 = gradientColor(val,colorS.mid,0,true);
+            color1 = gradientColor(val,colorS.mid,0,false);
+          }else if(val<colorS.max){
+            color2 = gradientColor(val,colorS.max,colorS.mid,true);
+            color1 = gradientColor(val,colorS.max,colorS.mid,false);
+          }else{
+            color2 = 'ffff0000';
+            color1 = 'ffff2828';
           }
-          var max = typeData.max;
-          var min = typeData.min;
-          if(val || val===0){
-            color2 = gradientColor(val,max,min,true);
-            color1 = gradientColor(val,max,min,false);
-          }
-          
         }
           areas.push({path:value.shape,color1: color1,//楼顶颜色
           color2: color2,//楼面颜色
@@ -191,15 +230,26 @@ class display extends React.Component {
     var buildingLayer = new AMap.Buildings({zIndex:99,merge:false,sort:false,map:map});
     buildingLayer.setStyle(options); //此配色优先级高于自定义mapStyle
     function gradientColor(data,max,min,flag){
-      //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
-        let startR = 194;
-        let startG = 107;
-        let startB = 80;
-       
-      //   let endRGB = this.colorRgb('#0000ff'); 
-        let endR = 81;
-        let endG = 153;
-        let endB = 133;
+        let startR = 0;let startG = 0;let startB = 0;let endR = 0;let endG = 0;let endB = 0;
+        if(min==0){
+          //左边
+          startR = 255;
+          startG = 255;
+          startB = 0;
+         
+          endR = 0;
+          endG = 112;
+          endB = 192;
+        }else{
+          //右边
+          startR = 255;
+          startG = 0;
+          startB = 0;
+         
+          endR = 255;
+          endG = 255;
+          endB = 0;
+        }
        
         let step = (max-data)/(max-min);
         let sR = (endR-startR)*step;//总差值
@@ -211,7 +261,7 @@ class display extends React.Component {
         if(flag){
           color = 'ff'+ parseInt((sR+startR)).toString(16)+ parseInt((sG+startG)).toString(16)+parseInt((sB+startB)).toString(16)
         }else{
-          color = 'ff'+ parseInt((sR+startR+40)).toString(16)+ parseInt((sG+startG+40)).toString(16)+parseInt((sB+startB+40)).toString(16)
+          color = 'ff'+ parseInt((sR+startR+40)>255?255:(sR+startR+40)).toString(16)+ parseInt((sG+startG+40)>255?255:(sG+startG+40)).toString(16)+parseInt((sB+startB+40)>255?255:(sB+startB+40)).toString(16)
         }
         
         return color;
@@ -248,8 +298,9 @@ class display extends React.Component {
           </div>
           <div className="legend">
             <div className="gradientLegend"></div>
-            <p className="max">{Math.ceil(maxMin[this.state.radio].max)}</p>
-            <p className="min">{Math.floor(maxMin[this.state.radio].min)}</p>
+            <p className="max">约束值</p>
+            <p className="mid">引导值</p>
+            <p className="min">0</p>
           </div>
         </div>
       </PageHeaderWrapper>)

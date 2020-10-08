@@ -65,7 +65,7 @@ const Edit = props => {
       if(values.imgUrl){
         values.imgUrl = values.imgUrl.fileList?values.imgUrl.fileList[0].response.result:'';
       }
-      values.architecturalType = architecturalType[values.architecturalType];
+      values.architecturalType = typeof (values.architecturalType)=='string'?values.architecturalType: architecturalType[values.architecturalType];
       if(values.division){
         if(values.division.length==3){
           values.province = values.division[0];

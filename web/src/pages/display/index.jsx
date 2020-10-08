@@ -14,6 +14,36 @@ const gbes = ['0星','1星','2星','3星','未知'];
 const coolingMode = ['集中供冷','分户供冷','无供冷','未知'];
 const heatingMode = ['集中供暖', '分户采暖',  '无采暖', '未知'];
 const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '未知'];
+const colorStandard = {
+  "商场":{
+    max:200,
+    mid:170
+  },
+  "酒店":{
+    max:200,
+    mid:150
+  },
+  "办公":{
+    max:110,
+    mid:80
+  },
+  "医院":{
+    max:300,
+    mid:200
+  },
+  "餐饮":{
+    max:200,
+    mid:150
+  },
+  "文化教育":{
+    max:110,
+    mid:80
+  },
+  "其他":{
+    max:200,
+    mid:150
+  }
+}
 class display extends React.Component {
   constructor(props) {
     super(props);
@@ -27,20 +57,20 @@ class display extends React.Component {
 
   componentDidMount() {
     const { dispatch,display} = this.props;
-    const { mapData,maxMin } = display;
+    const { mapData } = display;
     if (dispatch) {
       dispatch({
         type: 'display/getMap',
       });
     }
-    this.loadMap(mapData,maxMin[this.state.radio]);
+    this.loadMap(mapData);
   }
   
   componentDidUpdate(preProps) {
     const { display } = this.props;
-    const { mapData,maxMin } = display;
+    const { mapData } = display;
     if (preProps && JSON.stringify(preProps.display) !== JSON.stringify(display)) {
-        this.loadMap(mapData,maxMin[this.state.radio]);
+        this.loadMap(mapData);
     }
   }
   //打开详情浮窗
@@ -104,7 +134,7 @@ class display extends React.Component {
     }
   }
   //生成地图
-  loadMap(mapData,typeData){
+  loadMap(mapData){
     if (infoWin) {
       infoWin.close();
     }
@@ -120,20 +150,25 @@ class display extends React.Component {
     //添加点
     mapData.forEach(value => {
       let color = '#0000ff'
-      if(typeData.max-typeData.min!=0){
-        var val = 0;
-        if(that.state.radio=='0'){
-          val = value.waterConsumptionPerUnitArea || 0;
-        }else if (that.state.radio=='1'){
-          val = value.powerConsumptionPerUnitArea || 0;
-        }else if(that.state.radio=='2'){
-          val = value.gasConsumptionPerUnitArea || 0;
-        }
-        var max = typeData.max;
-        var min = typeData.min;
-        
-        color = gradientColor(val,max,min);
+      var val = 0; //数值
+      if(that.state.radio=='0'){
+        val = value.waterConsumptionPerUnitArea || 0;
+      }else if (that.state.radio=='1'){
+        val = value.powerConsumptionPerUnitArea || 0;
+      }else if(that.state.radio=='2'){
+        val = value.gasConsumptionPerUnitArea || 0;
       }
+      if(val != 0){
+        let colorS = colorStandard[value.architecturalType];
+        if(val<colorS.mid || val== colorS.mid){
+          color = gradientColor(val,colorS.mid,0);
+        }else if(val<colorS.max){
+          color = gradientColor(val,colorS.max,colorS.mid);
+        }else{
+          color = '#ff0000'
+        }
+      }
+
       let content = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1600329129334" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3195" xmlns:xlink="http://www.w3.org/1999/xlink" width="30" height="30"><defs><style type="text/css"></style></defs><path d="M512 0C345.975467 0 152.234667 101.444267 152.234667 359.765333c0 175.3088 276.753067 562.7904 359.765333 664.234667 73.796267-101.444267 359.765333-479.709867 359.765333-664.234667C871.765333 101.512533 678.024533 0 512 0z" fill='+color+' p-id="3196"></path></svg>'
       let marker = new AMap.Marker({
         value,
@@ -163,15 +198,28 @@ class display extends React.Component {
               },rawData.id);
           });
           function gradientColor(data,max,min){
-              //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
-                let startR = 192;
-                let startG = 0;
-                let startB = 0;
+            debugger
+            let startR = 0;let startG = 0;let startB = 0;let endR = 0;let endG = 0;let endB = 0;
+              if(min==0){
+                //左边
+                startR = 255;
+                startG = 255;
+                startB = 0;
                
-              //   let endRGB = this.colorRgb('#0000ff'); 
-                let endR = 0;
-                let endG = 176;
-                let endB = 80;
+                endR = 0;
+                endG = 112;
+                endB = 192;
+              }else{
+                //右边
+                startR = 255;
+                startG = 0;
+                startB = 0;
+               
+                endR = 255;
+                endG = 255;
+                endB = 0;
+              }
+                
                
                 let step = (max-data)/(max-min);
                 let sR = (endR-startR)*step;//总差值
@@ -315,8 +363,9 @@ class display extends React.Component {
           </div>
           <div className="legend">
             <div className="gradientLegend"></div>
-            <p className="max">{Math.ceil(maxMin[this.state.radio].max)}</p>
-            <p className="min">{Math.floor(maxMin[this.state.radio].min)}</p>
+            <p className="max">约束值</p>
+            <p className="mid">引导值</p>
+            <p className="min">0</p>
           </div>
         </div>
       </PageHeaderWrapper>)
