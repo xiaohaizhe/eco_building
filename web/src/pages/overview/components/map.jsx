@@ -3,7 +3,7 @@ import AMap from 'AMap';
 import Loca from 'Loca'
 import { Card } from 'antd';
 import { connect } from 'umi';
-import bounds from './jiangsu.json'
+import bounds from './jiangyin.json' //https://lbs.amap.com/api/javascript-api/example/marker/labelsmarker-text/?sug_index=0
 import { toJSONSchema } from 'mockjs';
 import '../index.less'
 
@@ -58,8 +58,8 @@ class Map extends React.Component {
         }
         var map = new AMap.Map("container", {
             resizeEnable: true,
-            center: [119.5,33],
-            zoom: 7,
+            center: [120.292838,31.856763],
+            zoom: 11,
             mapStyle: "amap://styles/dark"
         });
         //标注江苏省
@@ -144,8 +144,8 @@ class Map extends React.Component {
             // div.style.color = fontColor;
             // div.style.fontSize = '12px';
             // div.style.textAlign = 'center';
-            if(level<11||level==11){
-                div.innerHTML = '<div class="name"><div>'+context.markers[0].w.city+'</div>'+
+            if(level<9){
+                div.innerHTML = '<div class="name"><div>'+context.markers[0].w.district+'</div>'+
                 '<div>'+context.count+'</div></div>';
             }
             // else if(level<12||level==12){
@@ -153,8 +153,8 @@ class Map extends React.Component {
             //     +'<div>'+context.count+'</div></div>';
             // }
             else if(level<13||level==13){
-                div.innerHTML = '<div class="name"><div>'+context.markers[0].w.district+'</div>'
-                +'<div>'+context.count+'</div></div>';
+                div.innerHTML = //'<div class="name"><div>'+context.markers[0].w.district+'</div>'+
+                '<div>'+context.count+'</div></div>';
             }else{
                 div.innerHTML = '<div class="name"><div>'+context.markers[0].w.title+'</div>'
                 +'<div>'+context.count+'</div></div>';

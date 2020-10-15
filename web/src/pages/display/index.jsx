@@ -140,10 +140,10 @@ class display extends React.Component {
     }
     let that = this;
     var map = new AMap.Map('container', {
-          center: [108.5525, 34.3227],
+          center:[120.292838,31.886763],
           mapStyle:'amap://styles/macaron',
           rotation: 0,
-          zoom: 4.5,
+          zoom: 13,
           pitch: 0,
           skyColor: '#33216a'
       });

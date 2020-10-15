@@ -121,6 +121,12 @@ const BasicLayout = props => {
           {titleDom}
         </Link>
       )}
+      headerContentRender={(props)=>{
+        if(props.location.pathname==='/overview'){
+          return <p style={{textAlign: 'center',fontSize:'20px'}}>江苏省江阴市公建能耗总览</p>
+        }
+      }
+      }
       onCollapse={handleMenuCollapse}
       menuItemRender={(menuItemProps, defaultDom) => {
         if (menuItemProps.isUrl || !menuItemProps.path) {

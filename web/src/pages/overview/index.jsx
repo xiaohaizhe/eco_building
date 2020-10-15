@@ -63,7 +63,7 @@ class overview extends React.Component {
     const { fetching, data, value } = this.state;
     
     return (
-      <PageHeaderWrapper title={false}>
+      <PageHeaderWrapper title={false} key="overview">
         <Select
           showSearch
           value={value}
@@ -81,10 +81,10 @@ class overview extends React.Component {
           {data.length>0 && <Option style={{color:'#26B99A'}} key="more" value="more">更多</Option>}
         </Select>
         <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}>
-          <Col span={12}>
+          <Col span={10}>
             <Map ></Map>
           </Col>
-          <Col span={12}>
+          <Col span={14}>
             <div>
               <Treemap></Treemap>
             </div>
