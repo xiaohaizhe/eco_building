@@ -75,7 +75,13 @@ const paginationProps = {
       {
         title: '操作时间',
         dataIndex: 'actionTime',
-        valueType:'dateRange',
+        valueType:'dateTimeRange',
+        hideInTable:'true'
+      },
+      {
+        title: '操作时间',
+        dataIndex: 'actionTime',
+        hideInSearch:'true'
       },
     ];
     return (

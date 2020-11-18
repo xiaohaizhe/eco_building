@@ -222,7 +222,7 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
             />
           );
         }
-        return <span onClick={e => toggleEditable(e, record.key, "edit_year")}>{text}</span>;
+        return <span style={{ height: 30, display: 'inline-block' }} onClick={e => toggleEditable(e, record.key, "edit_year")}>{text}</span>;
       },
     }    
   ];
@@ -296,7 +296,7 @@ const TableForm = ({ props, onChange, name , format , dataType , timeType }) => 
               />
             );
           }
-          return <span style={{minWidth: 50, height: 30, display: 'inline-block' }} onClick={e => toggleEditable(e, record.key, editKey)}>{text}</span>;
+          return <span style={{minWidth: 30, height: 30, display: 'inline-block' }} onClick={e => toggleEditable(e, record.key, editKey)}>{text}</span>;
         },
       }
     )

@@ -35,7 +35,7 @@ const menuDataRender = (menuList,currentUser) =>{
       const localItem = { ...item, children: item.children ? menuDataRender(item.children,currentUser) : [] };
       return Authorized.check(item.authority, localItem, null);
     }else{
-      if(item.path.indexOf("overview") > -1 || item.path.indexOf("display") > -1){
+      if(item.path.indexOf("overview") > -1 || item.path.indexOf("display") > -1|| item.path.indexOf("3dmap") > -1){
         const localItem = { ...item, children: item.children ? menuDataRender(item.children,currentUser) : [] };
         return Authorized.check(item.authority, localItem, null);
       }
@@ -121,6 +121,12 @@ const BasicLayout = props => {
           {titleDom}
         </Link>
       )}
+      headerContentRender={(props)=>{
+        if(props.location.pathname==='/overview'){
+          return <p style={{textAlign: 'center',fontSize:'20px'}}>江苏省江阴市公建能耗总览</p>
+        }
+      }
+      }
       onCollapse={handleMenuCollapse}
       menuItemRender={(menuItemProps, defaultDom) => {
         if (menuItemProps.isUrl || !menuItemProps.path) {

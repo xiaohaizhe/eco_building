@@ -133,14 +133,14 @@ const projectManage = props => {
         title: '地址',
         dataIndex: 'address',
         // valueType:'option',
-        renderFormItem: (_, { type, defaultRender,onChange,...rest }, form) => {
-          
+        renderFormItem: (_, { type, defaultRender, ...rest }, form) => {
+          console.log(rest)
           if (type === 'form') {
             return null;
           }
           const status = form.getFieldValue('state');
           if (status !== 'open') {
-            return  <Cascader options={address} onChange={onChange} changeOnSelect placeholder="请选择行政区划" />
+            return  <Cascader options={address} changeOnSelect placeholder="请选择行政区划" />
           }
           return defaultRender(_);
         }

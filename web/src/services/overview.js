@@ -11,3 +11,15 @@ export async function getTop5() {
     method: 'GET'
   });
 }
+
+export async function getTypeData() {
+  return request('/api/overview/statistic', {
+    method: 'GET'
+  });
+}
+
+export async function getExcel() {
+  return request('/api/overview/excel', {
+    method: 'GET'
+  });
+}
