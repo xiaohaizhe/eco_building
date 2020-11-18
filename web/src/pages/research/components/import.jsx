@@ -40,7 +40,7 @@ const ImportModal = props => {
       
       setLoading(true);
        dispatch({
-        type: 'projectManage/submit',
+        type: 'research/submit',
         payload: temp,
         callback: (res) => {
           setLoading(false);
@@ -70,8 +70,8 @@ const ImportModal = props => {
 
     const beforeUpload = file=>{
       let fileend = file.name.substring(file.name.indexOf("."))
-      if (['.xls','.xlsx','.csv'].indexOf(fileend.toLowerCase()) === -1) {
-        message.error("只支持上传文件类型为csv,xls,xlsx");
+      if (['.xls','.xlsx'].indexOf(fileend.toLowerCase()) === -1) {
+        message.error("只支持上传文件类型为xls,xlsx");
       }else{
         setFileList(fileList.concat(file) )
       }
@@ -85,47 +85,6 @@ const ImportModal = props => {
       setFileList(newFileList)
       return false;
     }
-    const downloadExcel=()=>{
-        //loading
-          // const loading = this.$loading({
-          //     lock: true,
-          //     text: 'Loading',
-          //     spinner: 'el-icon-loading',
-          //     background: 'rgba(0, 0, 0, 0.7)'
-          // });
-          window.URL = window.URL || window.webkitURL;  // Take care of vendor prefixes.
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', '/api/project/downloadExample', true);
-          xhr.responseType = 'blob';
-
-          xhr.onload = function(e) {
-              // loading.close();
-              if (this.status == 200) {
-                  var blob = this.response;
-                  var URL = window.URL || window.webkitURL;  //兼容处理
-                  // for ie 10 and later
-                  if (window.navigator.msSaveBlob) {
-                      try { 
-                          window.navigator.msSaveBlob(blob, 'example.xlsx');
-                      }
-                      catch (e) {
-                          console.log(e);
-                      }
-                  }else{
-                        let blobUrl = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.style.display = 'none';
-                        a.download = 'example.xlsx';
-                        a.href = blobUrl;
-                        a.click();
-                        // document.body.removeChild(a);
-                  }
-              }
-              
-          };
-
-          xhr.send();
-      }
     const getModalContent = () => {
       return (
         <Spin spinning={loading}>
@@ -163,11 +122,11 @@ const ImportModal = props => {
                 </div>
                 
             </Form.Item>
-            <Form.Item
+            {/* <Form.Item
               label="下载模板"
             >
               <a onClick={downloadExcel}>点击下载excel模板</a>
-            </Form.Item>
+            </Form.Item> */}
           </Form>
         </Spin>
       );

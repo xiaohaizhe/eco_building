@@ -16,7 +16,7 @@ export async function getProjectScreenPage(params) {
 }
 //导入
 export async function importExcel(params) {
-  return request('/api/project/importExcel', {
+  return request('/api/project/import', {
     method: 'POST',
     data: params,
   });

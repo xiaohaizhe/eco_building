@@ -43,7 +43,7 @@ const Model = {
 
     *logout(_, { call, put }) {
       // const { redirect } = getPageQuery(); // Note: There may be security issues, please note
-      debugger
+
       const response = yield call(logout);
       yield put({
         type: 'changeLoginStatus',

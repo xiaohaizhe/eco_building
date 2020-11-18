@@ -2,7 +2,7 @@ import React from 'react';
 import AMap from 'AMap';
 import Loca from 'Loca'
 import { Card } from 'antd';
-import { connect } from 'umi';
+import { connect ,history} from 'umi';
 import bounds from './jiangyin.json' //https://lbs.amap.com/api/javascript-api/example/marker/labelsmarker-text/?sug_index=0
 import { toJSONSchema } from 'mockjs';
 import '../index.less'
@@ -16,17 +16,17 @@ class Map extends React.Component {
     }
   
     componentDidMount() {
-        const { dispatch,projectManage } = this.props;
+        const { dispatch,research } = this.props;
         if (dispatch) {
             dispatch({
-                type: 'projectManage/filterData'
+                type: 'research/filterData'
             });
         }
         this.loadMap()
     }
     componentDidUpdate(preProps) {
-        const { projectManage } = this.props;
-        if (preProps && JSON.stringify(preProps.projectManage) !== JSON.stringify(projectManage)) {
+        const { research } = this.props;
+        if (preProps && JSON.stringify(preProps.research) !== JSON.stringify(research)) {
             this.loadMap()
         }
       }
@@ -47,10 +47,15 @@ class Map extends React.Component {
     //     }
     //     this.loadMap(data);
     // }
-    
+    toDetail(id){
+        history.push({
+            pathname: `/research/detail/${id}`,
+          });
+    }
     loadMap(){
-        const { projectManage } = this.props;
-        const {mapData,cityData}=projectManage;
+        let that = this;
+        const { research } = this.props;
+        const {mapData,cityData}=research;
         var cluster, markers = [];
         var mask = []
         for(var i =0;i<bounds.length;i+=1){
@@ -84,7 +89,11 @@ class Map extends React.Component {
                 // street:mapData[i].street,
                 position: [mapData[i].longitude,mapData[i].latitude],
                 offset: new AMap.Pixel(-24, 5),
+                id:mapData[i].id
             });
+            marker.on('click', function (ev) {
+                that.toDetail(ev.target.Ce.id)
+            })
             markers.push(marker);
         }
         map.plugin(["AMap.MarkerClusterer"], function() {
@@ -208,7 +217,7 @@ class Map extends React.Component {
             </Card>)
         }
 }
-export default connect(({ projectManage, loading }) => ({
-    projectManage,
-    loading: loading.models.projectManage,
+export default connect(({ research, loading }) => ({
+    research,
+    loading: loading.models.research,
   }))(Map);

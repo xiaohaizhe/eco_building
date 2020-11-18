@@ -8,7 +8,6 @@ import { connect ,history} from 'umi';
 import ItemSelect from './components/ItemSelect';
 import  './index.less';
 var infoWin;
-var polygon;
 var map;
 const energySavingStandard = ['不执行节能标准','50%','65%','75%以上','未知'];
 const energySavingTransformationOrNot = ['是','否','未知'];
@@ -16,6 +15,36 @@ const gbes = ['0星','1星','2星','3星','未知'];
 const coolingMode = ['集中供冷','分户供冷','无供冷','未知'];
 const heatingMode = ['集中供暖', '分户采暖',  '无采暖', '未知'];
 const whetherToUseRenewableResources =['否','浅层地热能', '太阳能', '未知'];
+const colorStandard = {
+  "商场":{
+    max:200,
+    mid:170
+  },
+  "酒店":{
+    max:200,
+    mid:150
+  },
+  "办公":{
+    max:110,
+    mid:80
+  },
+  "医院":{
+    max:300,
+    mid:200
+  },
+  "餐饮":{
+    max:200,
+    mid:150
+  },
+  "文化教育":{
+    max:110,
+    mid:80
+  },
+  "其他":{
+    max:200,
+    mid:150
+  }
+}
 class display extends React.Component {
   constructor(props) {
     super(props);
@@ -36,14 +65,14 @@ class display extends React.Component {
       });
     }
     
-    this.loadMap(mapData,maxMin[this.state.radio]);
+    this.loadMap(mapData,maxMin[this.state.radio],this.state.radio);
   }
   
   componentDidUpdate(preProps) {
     const { display } = this.props;
     const { mapData,maxMin } = display;
     if (preProps && JSON.stringify(preProps.display) !== JSON.stringify(display)) {
-        this.loadMap(mapData,maxMin[this.state.radio]);
+        this.loadMap(mapData,maxMin[this.state.radio],this.state.radio);
     }
   }
   //打开详情浮窗
@@ -57,8 +86,8 @@ class display extends React.Component {
         });
     }
 
-    var x = event.x;
-    var y = event.y;
+    var x = event.x+30;
+    var y = event.y+120;
     var lngLat = map.containerToLngLat(new AMap.Pixel(x, y));
     if (!tableDom) {
         let infoDom = document.createElement('div');
@@ -103,12 +132,11 @@ class display extends React.Component {
     function closeInfoWin() {
       if (infoWin) {
           infoWin.close();
-          map.remove(polygon);
       }
     }
   }
   //生成地图
-  loadMap(mapData,typeData){
+  loadMap(mapData,typeData,flag){
     if (infoWin) {
       infoWin.close();
     }
@@ -121,34 +149,48 @@ class display extends React.Component {
         features:['bg','point','road'],
         viewMode:'3D',
     });
-    var buildingLayer = new AMap.Buildings({zIndex:50,merge:false,sort:false,map:map});
+    
     let areas = [];
     mapData.forEach(value => {
       if(value.shape && value.shape.length>1){
-        debugger
         let color2 = 'ff414141';
         let color1 = 'ff969696';
-      if(typeData.max-typeData.min!=0){
+
         var val = 0;
-        if(that.state.radio=='0'){
+        if(flag==='0'){
           val = value.waterConsumptionPerUnitArea;
-        }else if (that.state.radio=='1'){
+        }else if (flag==='1'){
           val = value.powerConsumptionPerUnitArea;
-        }else if(that.state.radio=='2'){
+        }else if(flag==='2'){
           val = value.gasConsumptionPerUnitArea;
         }
-        var max = typeData.max;
-        var min = typeData.min;
-        if(val || val===0){
-          color2 = gradientColor(val,max,min,true);
-          color1 = gradientColor(val,max,min,false);
-        }
         
-      }
-
-        areas.push({path:value.shape,color1: color1,//楼顶颜色
-        color2: color2,//楼面颜色
-      })
+        if(val || val === 0){
+          let colorS = colorStandard[value.architecturalType];
+          if(val==0){
+            color2 = 'ff0070c0';
+            color1 = 'ff2898e8';
+          }else if(val<colorS.mid || val== colorS.mid){
+            color2 = gradientColor(val,colorS.mid,0,true);
+            color1 = gradientColor(val,colorS.mid,0,false);
+          }else if(val<colorS.max){
+            color2 = gradientColor(val,colorS.max,colorS.mid,true);
+            color1 = gradientColor(val,colorS.max,colorS.mid,false);
+          }else{
+            color2 = 'ffff0000';
+            color1 = 'ffff2828';
+          }
+        }
+          areas.push({path:value.shape,color1: color1,//楼顶颜色
+          color2: color2,//楼面颜色
+        })
+        new AMap.Polygon({
+          zIndex:50,
+          fillOpacity:0.2,
+          strokeWeight:0.01,
+          path:value.shape,
+          map:map,
+        })
       }
       
       //添加点标记
@@ -158,9 +200,6 @@ class display extends React.Component {
         position: new AMap.LngLat(value['longitude']?value['longitude']:0, value['latitude']?value['latitude']:0),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
       });
       marker.on('click', function (ev) {
-            if(polygon){
-              map.remove(polygon);
-            }
             
             // 事件类型
             var type = ev.type;
@@ -168,19 +207,12 @@ class display extends React.Component {
             var rawData = ev.target.Ce.value;
             // 原始鼠标事件
             var originalEvent = ev.pixel;
-            polygon = new AMap.Polygon({
-                  bubble:false,
-                  fillOpacity:0.3,
-                  strokeWeight:0.1,
-                  path:rawData.shape,
-                  map:map,
-                  zIndex:1
-                })
+            
             that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
                 '建筑类型：': rawData.architecturalType || '无',
-                '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(2)+' kWh/㎡',
-                '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
-                '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
+                '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(3)+' kWh/㎡',
+                '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
+                '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
                 '节能标准：': rawData.energySavingStandard!=undefined?energySavingStandard[rawData.energySavingStandard]:'无',
                 '是否经过节能改造：': rawData.energySavingTransformationOrNot!=undefined?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
                 '绿建等级：': rawData.gbes!=undefined?gbes[rawData.gbes]:'无',
@@ -195,17 +227,29 @@ class display extends React.Component {
          hideWithoutStyle:false,//是否隐藏设定区域外的楼块
          areas:areas
     };
+    var buildingLayer = new AMap.Buildings({zIndex:99,merge:false,sort:false,map:map});
     buildingLayer.setStyle(options); //此配色优先级高于自定义mapStyle
     function gradientColor(data,max,min,flag){
-      //   let startRGB = this.colorRgb('#ff0000');//转换为rgb数组模式
-        let startR = 194;
-        let startG = 107;
-        let startB = 80;
-       
-      //   let endRGB = this.colorRgb('#0000ff'); 
-        let endR = 81;
-        let endG = 153;
-        let endB = 133;
+        let startR = 0;let startG = 0;let startB = 0;let endR = 0;let endG = 0;let endB = 0;
+        if(min==0){
+          //左边
+          startR = 255;
+          startG = 255;
+          startB = 0;
+         
+          endR = 0;
+          endG = 112;
+          endB = 192;
+        }else{
+          //右边
+          startR = 255;
+          startG = 0;
+          startB = 0;
+         
+          endR = 255;
+          endG = 255;
+          endB = 0;
+        }
        
         let step = (max-data)/(max-min);
         let sR = (endR-startR)*step;//总差值
@@ -217,7 +261,7 @@ class display extends React.Component {
         if(flag){
           color = 'ff'+ parseInt((sR+startR)).toString(16)+ parseInt((sG+startG)).toString(16)+parseInt((sB+startB)).toString(16)
         }else{
-          color = 'ff'+ parseInt((sR+startR+40)).toString(16)+ parseInt((sG+startG+40)).toString(16)+parseInt((sB+startB+40)).toString(16)
+          color = 'ff'+ parseInt((sR+startR+40)>255?255:(sR+startR+40)).toString(16)+ parseInt((sG+startG+40)>255?255:(sG+startG+40)).toString(16)+parseInt((sB+startB+40)>255?255:(sB+startB+40)).toString(16)
         }
         
         return color;
@@ -232,7 +276,7 @@ class display extends React.Component {
     this.setState({
       radio: e.target.value,
     });
-    this.loadMap(mapData,maxMin[e.target.value]);
+    this.loadMap(mapData,maxMin[e.target.value],e.target.value);
   };
   render(){
     const { display } = this.props;
@@ -254,8 +298,9 @@ class display extends React.Component {
           </div>
           <div className="legend">
             <div className="gradientLegend"></div>
-            <p className="max">{Math.ceil(maxMin[this.state.radio].max)}</p>
-            <p className="min">{Math.floor(maxMin[this.state.radio].min)}</p>
+            <p className="max">约束值</p>
+            <p className="mid">引导值</p>
+            <p className="min">0</p>
           </div>
         </div>
       </PageHeaderWrapper>)

@@ -5,13 +5,13 @@ import { FullscreenOutlined } from '@ant-design/icons';
 import echarts from 'echarts';
 import moment from 'moment';
 const { RangePicker } = DatePicker;
-const EchartItem = props => {   
+const EchartData = props => {   
     const {dispatch , name , format , echartId , dataType , timeType} = props;
     const params = useParams()
     const { id } = params;
-    const start = '2014-01';
-    const end = '2018-01';  
-    const [sum,setSum] = useState(0)
+    const start = '2020-01';
+    const end = '2020-12';  
+    // const [sum,setSum] = useState(0)
     const [visible, setVisible] = useState(false);
     const [result, setResult] = useState([]); 
 
@@ -23,18 +23,17 @@ const EchartItem = props => {
 
     const getData = function (start,end){
         dispatch({
-            type: 'projectManage/getDataByTime',
+            type: 'research/getEchartData',
             payload:{
                 dataType: dataType,
-                timeType: timeType,
-                start: start+'-01',
-                end: end+'-30',
-                projectId: id,
+                start: start,
+                end: end,
+                id: id,
             },
-            callback: (response,sum) => {
-                setSum(sum);
-                renderChart(response.result);
-                window[`${echartId}_big`] = response.result;
+            callback: (response) => {
+                // setSum(sum);
+                renderChart(response);
+                window[`${echartId}_big`] = response;
             },
         });        
     }
@@ -59,11 +58,7 @@ const EchartItem = props => {
                 data: xAxisData,
                 axisLabel: {
                     formatter: function (value) {
-                        if(timeType=='年'){
-                            return value.substring(0,4)
-                        }else{
                             return value.substring(0,7)
-                        }
                     },
                 }
             },
@@ -90,13 +85,8 @@ const EchartItem = props => {
 
     const onChange = function (e) {
         if(e){     
-            if(format=='YYYY'){
-                var start = e[0].format(format)+'-01';
-                var end = e[1].format(format)+'-12';
-            }else{
-                var start = e[0].format(format);
-                var end = e[1].format(format);
-            } 
+            var start = e[0].format(format);
+            var end = e[1].format(format);
             getData(start,end);
         }
     }
@@ -119,11 +109,7 @@ const EchartItem = props => {
                         data: xAxisData,
                         axisLabel: {
                             formatter: function (value) {
-                                if(timeType=='年'){
-                                    return value.substring(0,4)
-                                }else{
                                     return value.substring(0,7)
-                                }
                             },
                         }
                     },
@@ -170,12 +156,12 @@ const EchartItem = props => {
                     <div className="date">
                         <span style={{marginRight: 10}}>选择日期：</span>
                         <RangePicker
-                            picker={format == "YYYY" ? "year" : "month"}
+                            picker={"month"}
                             defaultValue={[moment(start, format), moment(end, format)]}
                             format={format}
                             onChange={onChange}
                         />
-                        <span style={{margin: '0 10px 0 20px'}}>共计：{sum}</span>
+                        {/* <span style={{margin: '0 10px 0 20px'}}>共计：{sum}</span> */}
                     </div>
                     <div id={echartId} style={{width: '100%' ,height: `${window.innerHeight-500}px`}}></div>
                 </div>           
@@ -193,7 +179,7 @@ const EchartItem = props => {
     )
 }
 
-export default connect(({ projectManage, loading }) => ({
-  projectManage,
-  loading
-}))(EchartItem);
+export default connect(({ research, loading }) => ({
+    research,
+    loading
+}))(EchartData);
