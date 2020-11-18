@@ -2,10 +2,18 @@ spring:
   aop:
     proxy-target-class: true
     auto: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
   thymeleaf:
     cache: false
   profiles:
     active: pro
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
 management:
   endpoint:
     shutdown:

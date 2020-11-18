@@ -6,8 +6,6 @@ import com.opencsv.bean.CsvDate;
 import lombok.*;
 import lombok.experimental.Accessors;
 
-import javax.persistence.Column;
-import java.text.CollationElementIterator;
 import java.util.Date;
 
 /**
@@ -43,6 +41,9 @@ public class Project {
     //    @CsvBindByPosition(position = 4)
     @CsvBindByName(column = "面积")
     private Double area;
+
+    @CsvBindByName(column = "楼栋数")
+    private Integer numberOfBuildings;
 
     @CsvBindByName(column = "竣工日期")
 //    @CsvBindByPosition(position = 5)
@@ -158,6 +159,9 @@ public class Project {
     @CsvBindByName(column = "是否利用可再生资源")
     private String whetherToUseRenewableResources;
 
+    @CsvBindByName(column = "shape")
+    private String shape;
+
     public com.giot.eco_building.entity.Project getEntity() {
         com.giot.eco_building.entity.Project entity = new com.giot.eco_building.entity.Project();
         entity.setSerialNumber(this.serialNumber);
@@ -166,6 +170,7 @@ public class Project {
         entity.setContractor(this.contractor);
         entity.setArea(this.area);
         entity.setBuiltTime(this.builtTime);
+        entity.setNumberOfBuildings(this.numberOfBuildings);
         entity.setArchitecturalType(this.architecturalType);
         entity.setProvince(this.province);
         entity.setCity(this.city);
@@ -181,6 +186,7 @@ public class Project {
         entity.setHeatingMode(this.heatingMode);
         entity.setCoolingMode(this.coolingMode);
         entity.setWhetherToUseRenewableResources(this.whetherToUseRenewableResources);
+        entity.setShape(this.shape);
         entity.setDelStatus(Constants.DelStatus.NORMAL.isValue());
         return entity;
     }

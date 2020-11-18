@@ -158,7 +158,7 @@ public class BaseProjectDataService implements ProjectDataService {
     }
 
     @Override
-    @Cacheable(value = "project", key = "#root.menthodName+'_'+#projectId+'_'+#start+'_'+#end+'_'+#type+'_'+#isMonth")
+    @Cacheable(value = "project", key = "#root.method+'_'+#projectId+'_'+#start+'_'+#end+'_'+#type+'_'+#isMonth")
     public List<com.giot.eco_building.entity.ProjectData> getDataByTime(Integer type, Boolean isMonth, Long projectId, Date start, Date end) {
         List<com.giot.eco_building.entity.ProjectData> projectDataList
                 = projectDataRepository.findByProjectIdAndIsMonthAndTypeAndActualDateBetween(projectId, type, isMonth, start, end);

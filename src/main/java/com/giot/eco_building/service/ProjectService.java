@@ -48,6 +48,10 @@ public interface ProjectService {
 
     WebResponse JiangSuTop5();
 
+    WebResponse energySort();
+
+    WebResponse statistic();
+
 
     WebResponse getAddress();
 

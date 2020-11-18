@@ -3,7 +3,6 @@ package com.giot.eco_building.controller;
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,5 +30,15 @@ public class OverviewController {
     @GetMapping("top10")
     public WebResponse JiangSuElecTop10() {
         return projectService.JiangSuElecTop10();
+    }
+
+    @GetMapping("excel")
+    public WebResponse excel() {
+        return projectService.energySort();
+    }
+
+    @GetMapping("statistic")
+    public WebResponse statistic() {
+        return projectService.statistic();
     }
 }

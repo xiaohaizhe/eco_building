@@ -1,7 +1,6 @@
 package com.giot.eco_building.repository;
 
 import com.giot.eco_building.entity.Project;
-import com.giot.eco_building.model.CityCount;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -24,7 +23,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
 
     @Cacheable(value = "project", key = "#root.methodName+'_'+#province+'_'+#delStatus")
     @Query(nativeQuery = true, value = "SELECT * FROM project " +
-            "WHERE province = :province and del_status = :delStatus ORDER BY power_consumption_per_unit_area DESC LIMIT 10;")
+            "WHERE province = :province and del_status = :delStatus AND architectural_type!= \"住宅\" ORDER BY power_consumption_per_unit_area DESC LIMIT 10;")
     List<Project> findByProvinceAndDelStatusAndOrderByPowerConsumptionPerUnitAreaDescAndLimit10(@Param("province") String province, @Param("delStatus") Boolean delStatus);
 
 
@@ -48,5 +47,12 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpec
     @Query(value = "select serialNumber from Project where del_status = :delStatus", nativeQuery = true)
     Set<String> findSerialNumberByDelStatus(@Param("delStatus") Boolean delStatus);
 
+    @Query(value = "select serialNumber from Project", nativeQuery = true)
+    Set<String> findSerialNumber();
+
     Optional<Project> findBySerialNumberAndDelStatus(String serialNumber, Boolean delStaus);
+
+    Optional<Project> findBySerialNumber(String serialNumber);
+
+    List<Project> findByDelStatus(Boolean delStatus);
 }

@@ -15,9 +15,10 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -36,7 +37,7 @@ public class HttpUtil {
      * @return
      * @throws Exception
      */
-    public static JSONObject getResponseContent(String url, Map<String, List<String>> headerMap, IPBean ipBean) throws Exception {
+    public static JSONObject getResponseContent(String url, Map<String, List<String>> headerMap, IPBean ipBean) throws IOException, NoSuchAlgorithmException, KeyManagementException {
         HttpsURLConnection connection = null;
 
         // 设置代理

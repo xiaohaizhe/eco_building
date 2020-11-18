@@ -5,7 +5,6 @@ import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.ProjectData;
 import com.giot.eco_building.repository.ProjectRepository;
 import com.giot.eco_building.service.UploadService;
-import jdk.nashorn.internal.objects.annotations.Setter;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ooxml.POIXMLDocumentPart;
 import org.apache.poi.ss.usermodel.*;
@@ -32,22 +31,21 @@ import java.util.*;
 @Component
 public class ExcelUtil {
     private static Logger logger = LoggerFactory.getLogger(ExcelUtil.class);
-    /*private static String[] columNames =
-            {"建筑名称", "省", "市", "区县", "街道", "地址", "建筑类型", "建成时间", "项目概况图片",//9
-                    "绿建星级", "执行节能标准", "是否经过节能改造", "供冷方式", "供暖方式", "是否利用可再生能源",//6
-                    "经度", "纬度", "建筑面积", "层数",//4
-                    "电耗", "全年电耗(kWh)", "逐月电耗 (kWh)",
-                    "气耗", "全年气耗(m3)", "逐月气耗 (m3)",
-                    "水耗", "全年水耗(m3)", "逐月水耗 (m3)"};*/
-    /*private static String[] columNames = {
-            "编号", "项目名称", "工程名称", "建设单位", "面积", "竣工日期", "建筑类型",
-            "省", "市", "区县", "详细地址", "经度", "纬度", "层数", "项目概况图片",
-            "绿建星级", "执行节能标准", "是否经过节能改造", "供冷方式", "供暖方式", "是否利用可再生能源"
-    };*/
     public static String[] columNames = {
-            "编号", "项目名称", "工程名称", "建设单位", "面积", "竣工日期", "建筑主要类型",
+            "编号", "项目名称", "工程名称", "建设单位", "面积", "楼栋数", "竣工日期", "建筑主要类型",
             "省", "市", "区县", "详细地址", "经度", "纬度", "层数", "项目概况图",
-            "绿建星级", "执行节能标准", "是否经过节能改造", "供冷方式", "供暖方式", "是否利用可再生能源"
+            "绿建星级", "执行节能标准", "是否经过节能改造", "供冷方式", "供暖方式", "是否利用可再生能源", "shape"
+    };
+
+    public static String[] rColumNames = {
+            "编号", "项目名称", "项目地址", "建设单位", "设计单位", "施工单位", "监理单位", "建成时间", "建筑楼栋信息", "建筑高度", "总建筑面积",
+            "地上建筑面积", "地下建筑面积", "空调面积", "地上建筑层数", "地下建筑层数",
+            "主要遮阳形式", "有无楼宇自控系统", "有无能耗计量/远传电表数据",
+            "有无用水计量/远传水表数据", "窗户/幕墙是否可开启", "新风系统形式", "末端用户数量", "暖通设备概况及信息", "电器设备概况及信息",
+            "给排水系统概况", "近三年能耗数据", "是否建议改造", "改造建议",
+            "经度", "纬度",
+            "建筑整体照片", "空调机房照片", "主机照片", "水泵照片", "冷却塔照片", "空调箱照片", "末端设备照片",
+            "空调系统形式"
     };
     private ProjectRepository projectRepository;
 
@@ -58,7 +56,7 @@ public class ExcelUtil {
         this.uploadService = uploadService;
     }
 
-    @Setter
+    @Autowired
     public void setProjectRepository(ProjectRepository projectRepository) {
         this.projectRepository = projectRepository;
     }
@@ -131,6 +129,23 @@ public class ExcelUtil {
         return map;
     }
 
+    private Map<String, PictureData> getRPicture(HSSFSheet sheet) {
+        Map<String, PictureData> map = new HashMap<>();
+        List<HSSFShape> list = sheet.getDrawingPatriarch().getChildren();
+        for (HSSFShape shape :
+                list) {
+            if (shape instanceof HSSFPicture) {
+                HSSFPicture picture = (HSSFPicture) shape;
+                HSSFClientAnchor clientAnchor = (HSSFClientAnchor) picture.getAnchor();
+                PictureData pictureData = picture.getPictureData();
+                Integer key1 = clientAnchor.getRow1();
+//                Integer key2 = clientAnchor.getCol1();
+                map.put(key1 + "", pictureData);
+            }
+        }
+        return map;
+    }
+
     /**
      * 获取图片以及图片位置（xlsx）
      *
@@ -157,6 +172,27 @@ public class ExcelUtil {
         return map;
     }
 
+    private Map<String, PictureData> getRPicture(XSSFSheet sheet) {
+        Map<String, PictureData> map = new HashMap<>();
+        List<POIXMLDocumentPart> list = sheet.getRelations();
+        for (POIXMLDocumentPart part :
+                list) {
+            if (part instanceof XSSFDrawing) {
+                XSSFDrawing drawing = (XSSFDrawing) part;
+                List<XSSFShape> shapes = drawing.getShapes();
+                for (XSSFShape shape : shapes) {
+                    XSSFPicture picture = (XSSFPicture) shape;
+                    XSSFClientAnchor anchor = picture.getPreferredSize();
+                    CTMarker marker = anchor.getFrom();
+                    Integer key1 = marker.getRow();
+                    Integer key2 = marker.getCol();
+                    map.put(key1 + "," + key2, picture.getPictureData());
+                }
+            }
+        }
+        return map;
+    }
+
     /**
      * 处理每页的第一行数据，获取字段index
      * columNamesIndex的第i个数据的值，
@@ -176,6 +212,26 @@ public class ExcelUtil {
                 for (int j = 0; j < cnsLength; j++) {
                     if (columNamesIndex[j] != null) continue;
                     if (columName.equals(columNames[j])) {
+                        columNamesIndex[j] = i;
+                        break;
+                    }
+                }
+            }
+        }
+        return columNamesIndex;
+    }
+
+    public Integer[] dealWithRFirstRow(Row firstRow) {
+        int cnsLength = rColumNames.length;
+        Integer[] columNamesIndex = new Integer[cnsLength];
+        int cellNum = firstRow.getPhysicalNumberOfCells();
+        for (int i = 0; i < cellNum; i++) {
+            Cell cell = firstRow.getCell(i);
+            if (cell != null && cell.getCellType().equals(CellType.STRING)) {
+                String columName = (String) getCellData(cell);
+                for (int j = 0; j < cnsLength; j++) {
+                    if (columNamesIndex[j] != null) continue;
+                    if (columName.equals(rColumNames[j]) || columName.contains(rColumNames[j])) {
                         columNamesIndex[j] = i;
                         break;
                     }
@@ -706,7 +762,7 @@ public class ExcelUtil {
                             int cindex = columNamesIndex[k];
                             Cell cCell = row.getCell(cindex);
                             Object cellData;
-                            if (k == 5) {
+                            if (k == 6) {
                                 cellData = getDateByCell(cCell);
                             } else {
                                 cellData = getCellData(cCell);
@@ -721,6 +777,95 @@ public class ExcelUtil {
                             String imgUrl = uploadService.uploadProjectImg(projectPic.getData());
                             projectBaseData.put(ExcelUtil.columNames[14], imgUrl);
                         } else projectBaseData.put(ExcelUtil.columNames[14], null);
+                    }
+                }
+                result.add(projectBaseData);
+            }
+        } else {
+            logger.info("当页无数据");
+        }
+        return result;
+    }
+
+    public List<Map<String, Object>> dealWithRExcelSheet(Sheet sheet) throws IOException {
+        int rowNum = sheet.getPhysicalNumberOfRows();
+        logger.info("------------------------------------");
+        /**
+         * 当页数据量>0(第一行为字段名称)
+         */
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (rowNum > 1) {
+//            logger.info("根据第一行确定字段index");
+            //处理每页的第1行数据，获取字段index
+            Integer[] columNamesIndex = dealWithRFirstRow(sheet.getRow(0));
+            //处理图片
+            Map<String, PictureData> picMap = new HashMap<>();
+            if (sheet instanceof XSSFSheet) {
+                picMap = getRPicture((XSSFSheet) sheet);
+            }
+            /*else if (sheet instanceof HSSFSheet) {
+                picMap = getRPicture((HSSFSheet) sheet);
+            }*/
+            Map<Integer, Map<Integer, PictureData>> picMapPre = new HashMap<>();
+            for (String key :
+                    picMap.keySet()) {
+                Integer key1 = Integer.valueOf(key.split(",")[0]);
+                Integer key2 = Integer.valueOf(key.split(",")[1]);
+                if (null != picMapPre.get(key1)) {
+                    Map<Integer, PictureData> map = picMapPre.get(key1);
+                    map.put(key2, picMap.get(key));
+                } else {
+                    Map<Integer, PictureData> map = new HashMap<>();
+                    map.put(key2, picMap.get(key));
+                    picMapPre.put(key1, map);
+                }
+            }
+            for (int j = 1; j < rowNum; j++) {
+                Map<String, Object> projectBaseData = new HashMap<>();
+                Row row = sheet.getRow(j);
+                if (row != null) {
+                    int cellNum = row.getPhysicalNumberOfCells();
+//                    logger.info("第{}行共有{}个参数", (j + 1), cellNum);
+                    int serialNumberIndex = columNamesIndex[0];
+                    Cell serialNumberCell = row.getCell(serialNumberIndex);
+                    if (serialNumberCell != null && serialNumberCell.getCellType().equals(CellType.STRING)) {
+                        String serialNumber = (String) getCellData(serialNumberCell);
+                        logger.info("项目编号:{}的数据有效，开始处理>>>>>>>", serialNumber);
+                        projectBaseData.put(ExcelUtil.rColumNames[0], getCellData(serialNumberCell));
+                        //1.处理表格中的基础数据
+                        for (int k = 1; k < columNamesIndex.length; k++) {
+                            if (columNamesIndex[k] == null) continue;
+                            int cindex = columNamesIndex[k];
+                            Cell cCell = row.getCell(cindex);
+                            Object cellData;
+                            if (k == 6) {
+                                cellData = getDateByCell(cCell);
+                            } else {
+                                cellData = getCellData(cCell);
+                            }
+                            if (cellData != null) {
+                                projectBaseData.put(ExcelUtil.rColumNames[k], cellData);
+                            }
+                        }
+                        //处理基础数据中的图片数据
+                        Map<Integer, PictureData> pictureDataMap = picMapPre.get(j);
+                        for (Integer key :
+                                pictureDataMap.keySet()) {
+                            PictureData projectPic = pictureDataMap.get(key);
+                            Integer index = null;
+                            for (int i = 0; i < columNamesIndex.length; i++) {
+                                if (columNamesIndex[i] != key) {
+                                    continue;
+                                } else {
+                                    index = i;
+                                    break;
+                                }
+                            }
+                            if (projectPic != null) {
+                                String imgUrl = uploadService.uploadProjectImg(projectPic.getData());
+                                projectBaseData.put(ExcelUtil.rColumNames[index], imgUrl);
+                            } else projectBaseData.put(ExcelUtil.rColumNames[index], null);
+                        }
                     }
                 }
                 result.add(projectBaseData);

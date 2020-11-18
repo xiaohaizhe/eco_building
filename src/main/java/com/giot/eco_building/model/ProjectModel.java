@@ -132,6 +132,8 @@ public class ProjectModel {
      */
     private Integer whetherToUseRenewableResources;
 
+    private String shape;
+
     public Project getProject() {
         Project project = new Project();
         project.setId(this.id);
@@ -171,6 +173,7 @@ public class ProjectModel {
         project.setHeatingMode(this.heatingMode);
         project.setCoolingMode(this.coolingMode);
         project.setWhetherToUseRenewableResources(this.whetherToUseRenewableResources);
+        project.setShape(this.shape);
 
         return project;
     }

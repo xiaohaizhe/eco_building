@@ -2,7 +2,6 @@ package com.giot.eco_building.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.giot.eco_building.utils.StringUtil;
 import com.giot.eco_building.utils.validation.LocationValidation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -52,6 +51,11 @@ public class Project implements Serializable {
      * 工程名称
      */
     private String projectName;
+
+    /**
+     * 楼栋数
+     */
+    private Integer numberOfBuildings;
     /**
      * 建筑地址
      */
@@ -89,7 +93,7 @@ public class Project implements Serializable {
     private String architecturalType;
 
     public void setArchitecturalType(String architecturalType) {
-        String[] types = {"办公", "商场", "文化教育", "餐饮", "医院", "酒店", "其他"};
+        String[] types = {"办公", "住宅", "商场", "文化教育", "餐饮", "医院", "酒店", "其他"};
         String type = "其他";
         if (!StringUtils.isEmpty(architecturalType)) {
             for (int i = 0; i < types.length; i++) {

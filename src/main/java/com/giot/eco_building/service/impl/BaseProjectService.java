@@ -8,6 +8,7 @@ import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import com.giot.eco_building.entity.Project;
 import com.giot.eco_building.model.DataModel;
+import com.giot.eco_building.model.EnergySortModel;
 import com.giot.eco_building.model.ProjectData;
 import com.giot.eco_building.model.ProjectModel;
 import com.giot.eco_building.repository.ProjectDataRepository;
@@ -26,6 +27,8 @@ import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,12 +39,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
@@ -49,6 +55,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -82,6 +89,9 @@ public class BaseProjectService implements ProjectService {
     private ProjectDataRepository projectDataRepository;
 
     private MapService mapService;
+
+    @Autowired
+    private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Autowired
     public void setMapService(MapService mapService) {
@@ -502,79 +512,89 @@ public class BaseProjectService implements ProjectService {
                 area = (Double) map.get(ExcelUtil.columNames[4]);
             }
 
-            Date builtTime = null;
+            Integer numberOfBuildings = null;
             if (map.get(ExcelUtil.columNames[5]) != null) {
+                Double value = (Double) map.get(ExcelUtil.columNames[5]);
+                numberOfBuildings = value.intValue();
+            }
+
+            Date builtTime = null;
+            if (map.get(ExcelUtil.columNames[6]) != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                String sdfTime = (String) map.get(ExcelUtil.columNames[5]);
+                String sdfTime = (String) map.get(ExcelUtil.columNames[6]);
                 builtTime = sdf.parse(sdfTime);
             }
 
             String architecturalType = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[6]))) {
-                architecturalType = (String) map.get(ExcelUtil.columNames[6]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[7]))) {
+                architecturalType = (String) map.get(ExcelUtil.columNames[7]);
             }
             String province = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[7]))) {
-                province = (String) map.get(ExcelUtil.columNames[7]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[8]))) {
+                province = (String) map.get(ExcelUtil.columNames[8]);
             }
             String city = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[8]))) {
-                city = (String) map.get(ExcelUtil.columNames[8]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[9]))) {
+                city = (String) map.get(ExcelUtil.columNames[9]);
             }
             String district = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[9]))) {
-                district = (String) map.get(ExcelUtil.columNames[9]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[10]))) {
+                district = (String) map.get(ExcelUtil.columNames[10]);
             }
             String address = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[10]))) {
-                address = (String) map.get(ExcelUtil.columNames[10]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[11]))) {
+                address = (String) map.get(ExcelUtil.columNames[11]);
             }
 
-            Double latitude = null;
-            if (map.get(ExcelUtil.columNames[11]) != null) {
-                latitude = (Double) map.get(ExcelUtil.columNames[11]);
-            }
             Double longitude = null;
             if (map.get(ExcelUtil.columNames[12]) != null) {
                 longitude = (Double) map.get(ExcelUtil.columNames[12]);
             }
+            Double latitude = null;
+            if (map.get(ExcelUtil.columNames[13]) != null) {
+                latitude = (Double) map.get(ExcelUtil.columNames[13]);
+            }
 
             Integer floor = null;
-            if (map.get(ExcelUtil.columNames[13]) != null) {
-                floor = (Integer) map.get(ExcelUtil.columNames[13]);
+            if (map.get(ExcelUtil.columNames[14]) != null) {
+                floor = (Integer) map.get(ExcelUtil.columNames[14]);
             }
             String imgUrl = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[14]))) {
-                imgUrl = (String) map.get(ExcelUtil.columNames[14]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[15]))) {
+                imgUrl = (String) map.get(ExcelUtil.columNames[15]);
             }
             String gbes = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[15]))) {
-                gbes = (String) map.get(ExcelUtil.columNames[15]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[16]))) {
+                gbes = (String) map.get(ExcelUtil.columNames[16]);
             }
             String energySavingStandard = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[16]))) {
-                energySavingStandard = (String) map.get(ExcelUtil.columNames[16]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[17]))) {
+                energySavingStandard = (String) map.get(ExcelUtil.columNames[17]);
             }
             String energySavingTransformationOrNot = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[17]))) {
-                energySavingTransformationOrNot = (String) map.get(ExcelUtil.columNames[17]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[18]))) {
+                energySavingTransformationOrNot = (String) map.get(ExcelUtil.columNames[18]);
             }
             String heatingMode = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[18]))) {
-                heatingMode = (String) map.get(ExcelUtil.columNames[18]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[19]))) {
+                heatingMode = (String) map.get(ExcelUtil.columNames[19]);
             }
             String coolingMode = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[19]))) {
-                coolingMode = (String) map.get(ExcelUtil.columNames[19]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[20]))) {
+                coolingMode = (String) map.get(ExcelUtil.columNames[20]);
             }
             String whetherToUseRenewableResources = null;
-            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[20]))) {
-                whetherToUseRenewableResources = (String) map.get(ExcelUtil.columNames[20]);
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[21]))) {
+                whetherToUseRenewableResources = (String) map.get(ExcelUtil.columNames[21]);
+            }
+            String shape = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.columNames[22]))) {
+                shape = (String) map.get(ExcelUtil.columNames[22]);
             }
             com.giot.eco_building.model.Project project = new com.giot.eco_building.model.Project(serialNumber, name,
-                    projectName, contractor, area, builtTime, architecturalType, province, city, district, address,
+                    projectName, contractor, area, numberOfBuildings, builtTime, architecturalType, province, city, district, address,
                     latitude, longitude, floor, imgUrl, gbes, energySavingStandard, energySavingTransformationOrNot,
-                    heatingMode, coolingMode, whetherToUseRenewableResources);
+                    heatingMode, coolingMode, whetherToUseRenewableResources, shape);
             projectList.add(project);
         }
         return projectList;
@@ -617,25 +637,34 @@ public class BaseProjectService implements ProjectService {
                 if (isYear) {
                     sdf = new SimpleDateFormat("yyyy");
                 } else {
-                    sdf = new SimpleDateFormat("yyyyMM");
-                }
-                for (String date :
-                        dataMap.keySet()) {
-                    com.giot.eco_building.entity.ProjectData projectData = new com.giot.eco_building.entity.ProjectData();
-                    projectData.setIsMonth(!isYear);
-                    projectData.setProjectId(projectId);
-                    projectData.setSerialNumber(serialNumber);
-                    projectData.setDelStatus(Constants.DelStatus.NORMAL.isValue());
+                    if (dataMap.keySet().size() > 0) {
+                        String dateString = (String) dataMap.keySet().toArray()[0];
+                        if (dateString.contains("-")) {
+                            sdf = new SimpleDateFormat("yyyy-MM");
+                        } else {
+                            sdf = new SimpleDateFormat("yyyyMM");
+                        }
+                        for (String date :
+                                dataMap.keySet()) {
+                            com.giot.eco_building.entity.ProjectData projectData = new com.giot.eco_building.entity.ProjectData();
+                            projectData.setIsMonth(!isYear);
+                            projectData.setProjectId(projectId);
+                            projectData.setSerialNumber(serialNumber);
+                            projectData.setDelStatus(Constants.DelStatus.NORMAL.isValue());
 
-                    projectData.setType(projectType);
+                            projectData.setType(projectType);
 
-                    Date d = sdf.parse(date);
-                    projectData.setActualDate(d);
-                    projectData.setValue(dataMap.get(date));
-                    dataList.add(projectData);
+                            Date d = sdf.parse(date);
+                            projectData.setActualDate(d);
+                            projectData.setValue(dataMap.get(date));
+                            dataList.add(projectData);
+                        }
+                    }
                 }
-                projectDataService.saveOrUpdateByProjectId(dataList);
-                updateLatestYearData(project);
+                if (dataList.size() > 0) {
+                    projectDataService.saveOrUpdateByProjectId(dataList);
+                    updateLatestYearData(project);
+                }
                 message += HttpResponseStatusEnum.SUCCESS.getMessage();
             } else {
                 message += HttpResponseStatusEnum.PROJECT_NOT_EXISTED.getMessage();
@@ -670,7 +699,8 @@ public class BaseProjectService implements ProjectService {
 
     private void saveProject(List<com.giot.eco_building.model.Project> projects) {
         //已存在序列号数据
-        Set<String> serialNumberSet = projectRepository.findSerialNumberByDelStatus(Constants.DelStatus.NORMAL.isValue());
+//        Set<String> serialNumberSet = projectRepository.findSerialNumberByDelStatus(Constants.DelStatus.NORMAL.isValue());
+        Set<String> serialNumberSet = projectRepository.findSerialNumber();
         //新增序列号数据
         Set<String> serialNumberSet_n = new HashSet<>();
         //新增项目数据
@@ -703,29 +733,75 @@ public class BaseProjectService implements ProjectService {
         //4.对数据库中已存在需要的更新的数据进行更新赋值
         for (Project project :
                 oldProjectList) {
-            Optional<Project> optionalProject = projectRepository.findBySerialNumberAndDelStatus(project.getSerialNumber(), Constants.DelStatus.NORMAL.isValue());
+            Optional<Project> optionalProject = projectRepository.findBySerialNumber(project.getSerialNumber());
             if (optionalProject.isPresent()) {
                 Project project1 = optionalProject.get();
-                project1.setName(project.getName());
-                project1.setProjectName(project.getProjectName());
-                project1.setContractor(project.getContractor());
-                project1.setArea(project.getArea());
-                project1.setBuiltTime(project.getBuiltTime());
-                project1.setArchitecturalType(project.getArchitecturalType());
-                project1.setProvince(project.getProvince());
-                project1.setCity(project.getCity());
-                project1.setDistrict(project.getDistrict());
-                project1.setAddress(project.getAddress());
-                project1.setLongitude(project.getLongitude());
-                project1.setLatitude(project.getLatitude());
-                project1.setFloor(project.getFloor());
-                project1.setImgUrl(project.getImgUrl());
-                project1.setGbes(project.getGbes());
-                project1.setEnergySavingStandard(project.getEnergySavingStandard());
-                project1.setEnergySavingTransformationOrNot(project.getEnergySavingTransformationOrNot());
-                project1.setHeatingMode(project.getHeatingMode());
-                project1.setCoolingMode(project.getCoolingMode());
-                project1.setWhetherToUseRenewableResources(project.getWhetherToUseRenewableResources());
+                if (!StringUtils.isEmpty(project.getName())) {
+                    project1.setName(project.getName());
+                }
+                if (!StringUtils.isEmpty(project.getProjectName())) {
+                    project1.setProjectName(project.getProjectName());
+                }
+                if (!StringUtils.isEmpty(project.getContractor())) {
+                    project1.setContractor(project.getContractor());
+                }
+                if (!StringUtils.isEmpty(project.getArea())) {
+                    project1.setArea(project.getArea());
+                }
+                if (!StringUtils.isEmpty(project.getBuiltTime())) {
+                    project1.setBuiltTime(project.getBuiltTime());
+                }
+                if (!StringUtils.isEmpty(project.getArchitecturalType())) {
+                    project1.setArchitecturalType(project.getArchitecturalType());
+                }
+                if (!StringUtils.isEmpty(project.getNumberOfBuildings())) {
+                    project1.setNumberOfBuildings(project.getNumberOfBuildings());
+                }
+                if (!StringUtils.isEmpty(project.getProvince())) {
+                    project1.setProvince(project.getProvince());
+                }
+                if (!StringUtils.isEmpty(project.getCity())) {
+                    project1.setCity(project.getCity());
+                }
+                if (!StringUtils.isEmpty(project.getDistrict())) {
+                    project1.setDistrict(project.getDistrict());
+                }
+                if (!StringUtils.isEmpty(project.getAddress())) {
+                    project1.setAddress(project.getAddress());
+                }
+                if (!StringUtils.isEmpty(project.getLongitude())) {
+                    project1.setLongitude(project.getLongitude());
+                }
+                if (!StringUtils.isEmpty(project.getLatitude())) {
+                    project1.setLatitude(project.getLatitude());
+                }
+                if (!StringUtils.isEmpty(project.getFloor())) {
+                    project1.setFloor(project.getFloor());
+                }
+                if (!StringUtils.isEmpty(project.getImgUrl())) {
+                    project1.setImgUrl(project.getImgUrl());
+                }
+                if (!StringUtils.isEmpty(project.getGbes())) {
+                    project1.setGbes(project.getGbes());
+                }
+                if (!StringUtils.isEmpty(project.getEnergySavingStandard())) {
+                    project1.setEnergySavingStandard(project.getEnergySavingStandard());
+                }
+                if (!StringUtils.isEmpty(project.getEnergySavingTransformationOrNot())) {
+                    project1.setEnergySavingTransformationOrNot(project.getEnergySavingTransformationOrNot());
+                }
+                if (!StringUtils.isEmpty(project.getHeatingMode())) {
+                    project1.setHeatingMode(project.getHeatingMode());
+                }
+                if (!StringUtils.isEmpty(project.getCoolingMode())) {
+                    project1.setCoolingMode(project.getCoolingMode());
+                }
+                if (!StringUtils.isEmpty(project.getWhetherToUseRenewableResources())) {
+                    project1.setWhetherToUseRenewableResources(project.getWhetherToUseRenewableResources());
+                }
+                if (!StringUtils.isEmpty(project.getShape())) {
+                    project1.setShape(project.getShape());
+                }
                 project1.setDelStatus(project.getDelStatus());
                 oldProjectListNew.add(project1);
             }
@@ -742,10 +818,18 @@ public class BaseProjectService implements ProjectService {
         String[] strs;
         while ((strs = csvReader.readNext()) != null) {
             if (strs[0] == null || "".equals(strs[0])) continue;
+            if (!strs[0].contains("-")) {
+                continue;
+            }
             if (strs.length == 2) {
                 for (int i = 0; i < strs.length / 2; i++) {
-                    int date = (int) Float.parseFloat(strs[0 + i * 2]);
-                    res.put(date + "", Double.valueOf(strs[1 + i * 2]));
+                    String date;
+                    if (strs[0 + i * 2].contains("-")) {
+                        date = strs[0 + i * 2];
+                    } else {
+                        date = (int) Float.parseFloat(strs[0 + i * 2]) + "";
+                    }
+                    res.put(date, Double.valueOf(strs[1 + i * 2]));
                 }
             } else {
                 throw new IOException("数据列错误");
@@ -1326,6 +1410,87 @@ public class BaseProjectService implements ProjectService {
         }
         return WebResponse.success(cityCounts);
     }
+
+    @Override
+    public WebResponse energySort() {
+        List<Project> projectList = projectRepository.findByDelStatus(Constants.DelStatus.NORMAL.isValue());
+        List<Project> modelList = new ArrayList<>();
+        String[] types = {"办公", "商场", "文化教育", "餐饮", "医院", "酒店", "其他"};
+        for (int i = 0; i < types.length; i++) {
+            String type = types[i];
+            List<Project> projectListByType = new ArrayList<>();
+            for (Project project :
+                    projectList) {
+                if (StringUtils.isEmpty(project.getArchitecturalType())) {
+                    continue;
+                } else {
+                    if (type.equals(project.getArchitecturalType())) {
+                        projectListByType.add(project);
+                    }
+                }
+            }
+            for (int j = 0; j < projectListByType.size() - 1; j++) {
+                for (int k = j + 1; k < projectListByType.size(); k++) {
+                    Project project1 = projectListByType.get(j);
+                    Project project2 = projectListByType.get(k);
+                    Double pcpua1 = project1.getPowerConsumptionPerUnitArea();
+                    Double pcpua2 = project2.getPowerConsumptionPerUnitArea();
+                    if (pcpua1 == null && pcpua2 != null) {
+                        Collections.swap(projectListByType, j, k);
+                        continue;
+                    }
+                    if (pcpua1 != null && pcpua2 != null && pcpua2 > pcpua1) {
+                        Collections.swap(projectListByType, j, k);
+                        continue;
+                    }
+                }
+            }
+            modelList.addAll(projectListByType);
+        }
+        List<EnergySortModel> resList = new ArrayList<>();
+        for (Project project :
+                modelList) {
+            EnergySortModel model = new EnergySortModel();
+            model.setName(project.getSerialNumber());
+            model.setType(project.getArchitecturalType());
+            model.setValue(project.getPowerConsumptionPerUnitArea());
+            resList.add(model);
+        }
+        return WebResponse.success(resList);
+    }
+
+    @Override
+    public WebResponse statistic() {
+        String sql = "SELECT p.architectural_type,COUNT(p.architectural_type),SUM(numberOfBuildings)\n" +
+                "FROM project p GROUP BY p.architectural_type ORDER BY architectural_type DESC;";
+        EntityManager em = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query nativeQuery = em.createNativeQuery(sql.toString());
+        @SuppressWarnings({"unused", "unchecked"})
+        List<Object[]> result = nativeQuery.getResultList();
+        //关闭entityManagerFactory
+        em.close();
+        JSONArray mapRes = new JSONArray();
+        for (Object[] objects :
+                result) {
+            if (objects.length == 3) {
+                String type = (String) objects[0];
+                if (!StringUtils.isEmpty(type)) {
+                    BigInteger value = (BigInteger) objects[1];
+                    BigDecimal sum = (BigDecimal) objects[2];
+                    JSONObject jsonObject = new JSONObject();
+                    if (type.equals("其他")) {
+                        type = "其他公建";
+                    }
+                    jsonObject.put("type", type);
+                    jsonObject.put("number", value);
+                    jsonObject.put("sum", sum);
+                    mapRes.add(jsonObject);
+                }
+            }
+        }
+        return WebResponse.success(mapRes);
+    }
+
 
     @Override
     public WebResponse JiangSuElecTop10() {

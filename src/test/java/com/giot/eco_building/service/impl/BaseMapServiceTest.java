@@ -42,11 +42,21 @@ public class BaseMapServiceTest {
     public void getDistrictLocation() {
 //        String ipUrl = "https://too.ueuz.com/frontapi/public/http/get_ip/index?type=-1&iptimelong=1&ipcount=1&protocol=0&areatype=1&area=&resulttype=txt&duplicate=0&separator=1&other=&show_city=0&show_carrier=0&show_expire=0&isp=-1&auth_key=375c51cbe311019924625fc6074706f0&app_key=68827d59d8784ca7eae70224d50db79d&timestamp=1600598992&sign=9521D75A22739FD9547B2A38DD969084";
 //        HttpUtil.get()
-        String poiid = "B01FE1ACB6";
+        /*String poiid = "B01FE1ACB6";
         try {
             mapService.getDistrictLocation(poiid);
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
+    }
+
+    @Test
+    public void cucTime() {
+        Long time = 1600774016872l;
+        System.out.println(time);
+        long now = new Date().getTime();
+        System.out.println(now);
+        long d = now - time;
+        System.out.println(d);
     }
 }
