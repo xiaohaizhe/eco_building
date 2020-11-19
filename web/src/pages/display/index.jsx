@@ -193,7 +193,7 @@ class display extends React.Component {
                 '建筑类型：': rawData.architecturalType || '无',
                 '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(3)+' kWh/㎡',
                 '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
-                '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
+                '最近一年单位面积气耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
                 '节能标准：': rawData.energySavingStandard!=undefined?energySavingStandard[rawData.energySavingStandard]:'无',
                 '是否经过节能改造：': rawData.energySavingTransformationOrNot!=undefined?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
                 '绿建等级：': rawData.gbes!=undefined?gbes[rawData.gbes]:'无',
@@ -253,7 +253,7 @@ class display extends React.Component {
     //         '建筑类型：': rawData.architecturalType || '无',
     //         '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(2)+' kWh/㎡',
     //         '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
-    //         '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
+    //         '最近一年单位面积气耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
     //         '节能标准：': rawData.energySavingStandard!=undefined?energySavingStandard[rawData.energySavingStandard]:'无',
     //         '是否经过节能改造：': rawData.energySavingTransformationOrNot!=undefined?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
     //         '绿建等级：': rawData.gbes!=undefined?gbes[rawData.gbes]:'无',
@@ -358,7 +358,7 @@ class display extends React.Component {
             <Radio.Group value={this.state.radio} buttonStyle="solid" onChange={(e)=>this.toggleRadio(e)}>
               <Radio.Button value="0">水</Radio.Button>
               <Radio.Button value="1">电</Radio.Button>
-              <Radio.Button value="2">汽</Radio.Button>
+              <Radio.Button value="2">气</Radio.Button>
             </Radio.Group>
             <div className="ant-radio-button-wrapper" onClick={()=>this.toggleForm()}>
               {this.state.show?<UpOutlined />:<DownOutlined />}

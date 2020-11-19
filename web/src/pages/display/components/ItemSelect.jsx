@@ -356,7 +356,7 @@ class ItemSelect extends React.Component {
             </Input.Group>
           </Form.Item>
           <Form.Item
-            label="单位面积汽耗"
+            label="单位面积气耗"
           >
             <Input.Group compact>
               <Form.Item name="gasMin">
