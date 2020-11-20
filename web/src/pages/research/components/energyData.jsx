@@ -39,18 +39,18 @@ const EnergyData = props => {
                   >
                   <Row gutter={gutter}>
                       <Col span={12}>                
-                          <EchartData name = "用电量" format = {'YYYY-MM'} echartId = "energy" dataType="电" timeType={'月'}/>
+                          <EchartData name = "用电量/kWh" format = {'YYYY-MM'} echartId = "energy" dataType="电" timeType={'月'}/>
                       </Col>
                       <Col span={12}>
-                          <EchartData name = "用水量" format = {'YYYY-MM'} echartId = "water" dataType="水" timeType={'月'}/>
+                          <EchartData name = "用水量/m³" format = {'YYYY-MM'} echartId = "water" dataType="水" timeType={'月'}/>
                       </Col>
                   </Row>
                   <Row gutter={gutter}>
                       <Col span={12}>                
-                          <EchartData name = "用气量" format = {'YYYY-MM'} echartId = "gas" dataType="气" timeType={'月'}/>
+                          <EchartData name = "用气量/m³" format = {'YYYY-MM'} echartId = "gas" dataType="气" timeType={'月'}/>
                       </Col>
                       <Col span={12}>
-                          <EchartData name = "用热量" format = {'YYYY-MM'} echartId = "heat" dataType="热" timeType={'月'}/>
+                          <EchartData name = "用热量/t" format = {'YYYY-MM'} echartId = "heat" dataType="热" timeType={'月'}/>
                       </Col>
                   </Row>
                 </PageHeaderWrapper>

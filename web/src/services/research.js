@@ -62,3 +62,26 @@ export async function importExcel(params) {
     data: params,
   });
 }
+export async function getTop10(params) {
+  return request('/api/r_project/top10', {
+    method: 'GET'
+  });
+}
+
+export async function getTypeData() {
+  return request('/api/r_project/statistics', {
+    method: 'GET'
+  });
+}
+
+export async function getExcel() {
+  return request('/api/r_project/excel', {
+    method: 'GET'
+  });
+}
+export async function get3YearsElecData(params) {
+  return request('/api/r_project/get3YearsElecData', {
+    method: 'GET',
+    params: params
+  });
+}

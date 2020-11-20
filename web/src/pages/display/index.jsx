@@ -151,7 +151,7 @@ class display extends React.Component {
     mapData.forEach(value => {
       let color = '#0000ff'
       if(value.architecturalType=='住宅'){
-        color ='#000000'
+        color ='#C0C0C0'
       }else{
         var val = 0; //数值
         if(that.state.radio=='0'){
@@ -191,9 +191,9 @@ class display extends React.Component {
             
             that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
                 '建筑类型：': rawData.architecturalType || '无',
-                '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(3)+' kWh/㎡',
-                '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
-                '最近一年单位面积气耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
+                '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(3)+' kWh/㎡·a',
+                '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡·a',
+                '最近一年单位面积气耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡·a',
                 '节能标准：': rawData.energySavingStandard!=undefined?energySavingStandard[rawData.energySavingStandard]:'无',
                 '是否经过节能改造：': rawData.energySavingTransformationOrNot!=undefined?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
                 '绿建等级：': rawData.gbes!=undefined?gbes[rawData.gbes]:'无',

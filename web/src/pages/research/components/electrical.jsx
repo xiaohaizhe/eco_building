@@ -39,6 +39,11 @@ const Electrical = props => {
         key: 'type',
       },
       {
+        title: '数量',
+        dataIndex: 'number',
+        key: 'number',
+      },
+      {
         title: '额定功率/W',
         dataIndex: 'ratedPower',
         key: 'ratedPower',

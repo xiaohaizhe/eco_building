@@ -3,7 +3,7 @@ import { Link, connect, history, FormattedMessage, formatMessage } from 'umi';
 import { Card, Col, Row, Form, Upload, Input, Spin,Table} from 'antd';
 import echarts from 'echarts'
 import styles from '../index.less';
-class Treemap extends React.Component {
+class Statistics extends React.Component {
     constructor(props) {
       super(props);
       this.state = {
@@ -16,26 +16,26 @@ class Treemap extends React.Component {
 
         if (dispatch) {
             dispatch({
-                type: 'overview/getExcel'
+                type: 'research/getExcel'
             })
             dispatch({
-                type: 'overview/getTop10',
+                type: 'research/getTop10',
             });
             dispatch({
-                type: 'overview/getTypeData',
+                type: 'research/getTypeData',
             });
         }
         this.loadBarChart()
     }
     componentDidUpdate(preProps) {
-        const { overview } = this.props;
-        if (preProps && JSON.stringify(preProps.overview.excel) !== JSON.stringify(overview.excel)) {
+        const { research } = this.props;
+        if (preProps && JSON.stringify(preProps.research.excel) !== JSON.stringify(research.excel)) {
             this.loadBarChart()
         }
       }
       //top5
     loadChart = () => {
-        const { top5 } =this.props.overview;
+        const { top5 } =this.props.research;
         var myChart = echarts.init(document.getElementById('myChart'));
         let option = {
             series: [{
@@ -77,7 +77,7 @@ class Treemap extends React.Component {
         })
     }
     loadBarChart = () =>{
-        const { excel } =this.props.overview;
+        const { excel } =this.props.research;
         var myChart = echarts.init(document.getElementById('barChart'));
         let option = {
             tooltip: {},
@@ -134,40 +134,8 @@ class Treemap extends React.Component {
         })
     }
     render(){
-        const {top10,typeData} = this.props.overview;
-        
-        const columns = [
-            {
-              title: '建筑类型',
-              dataIndex: 'type',
-              key: 'type',
-              render: (value, row, index) => {
-                const obj = {
-                  children: value,
-                  props: {},
-                };
-                if (index === 0) {
-                  obj.props.rowSpan = 7;
-                }
-                // These two are merged into above cell
-                if (index >0 && index<7) {
-                  obj.props.rowSpan = 0;
-                }
-                return obj;
-              },
-            },
-            {
-              title: '项目数量',
-              dataIndex: 'number',
-              key: 'number',
-            },
-            {
-              title: '楼栋数量',
-              dataIndex: 'sum',
-              key: 'sum',
-            }
-          ];
-          const renderLi = function () {
+        const {top10,typeData} = this.props.research;
+        const renderLi = function () {
             const legend = [{color:'#2f4554',name:'办公'},{color:'#61a0a8',name:'商场'},{color:'#d48265',name:'文化教育'},{color:'#bda29a',name:'酒店'},{color:'#ca8622',name:'医院'},{color:'#6e7074',name:'餐饮'},{color:'#91c7ae',name:'其他'}]
             let temp =[];
             legend.forEach(item=>{
@@ -183,20 +151,14 @@ class Treemap extends React.Component {
             typeData.forEach((item,index)=>{
                 if(index==0){
                     temp.push (<tr>
-                        <td rowSpan={typeData.length-1}>公共建筑</td>
+                        <td rowSpan={typeData.length}>公共建筑</td>
                         <td>{item.type}</td>
                         <td>{item.number}</td>
                         <td>{item.sum}</td>
                     </tr>)
-                }else if(index<typeData.length-1){
+                }else{
                     temp.push (<tr>
                         <td>{item.type}</td>
-                        <td>{item.number}</td>
-                        <td>{item.sum}</td>
-                    </tr>)
-                }else if(index==typeData.length-1){
-                    temp.push(<tr>
-                        <td colSpan='2'>{item.type}</td>
                         <td>{item.number}</td>
                         <td>{item.sum}</td>
                     </tr>)
@@ -209,15 +171,17 @@ class Treemap extends React.Component {
             // loading={loading}
             title="项目统计"
             bordered={false}
+            style={{height: `${window.innerHeight-196}px`}}
             bodyStyle={{
                 padding: 0
             }}>
+                
             <Row>
                 <Col span={16}>
                     {/* <div id="myChart" style={{width: '100%', height: `${window.innerHeight-255}px`}}></div> */}
                     <Row className="typeTable">
                         {/* <Table dataSource={typeData} columns={columns} pagination={false} size="small" style={{width:'100%'}}/> */}
-                        <table border='1'>
+                        <table border='1' >
                             <thead>
                                 <tr>
                                     <th colSpan="2">建筑类型</th>
@@ -264,7 +228,7 @@ class Treemap extends React.Component {
     
     }
 
-export default connect(({ overview, loading }) => ({
-  overview,
-  loading
-}))(Treemap);
+export default connect(({ research, loading }) => ({
+    research,
+    loading
+}))(Statistics);

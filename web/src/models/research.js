@@ -1,4 +1,4 @@
-import { getList,getDetail,getHVAC,getElectrical,getGasData,getElecData,getHeatData,getWaterData,importExcel} from '@/services/research';
+import { getList,getDetail,getHVAC,getElectrical,getGasData,getElecData,getHeatData,getWaterData,importExcel,getTop10,getTypeData,getExcel,get3YearsElecData} from '@/services/research';
 
 const ResearchModel = {
   namespace: 'research',
@@ -8,7 +8,10 @@ const ResearchModel = {
     projects: [],
     detail:{},
     HVAC:{},
-    electrical:{}
+    electrical:{},
+    top10:[],
+    typeData:[],
+    excel:[],
   },
   effects: {
     //搜索
@@ -82,6 +85,33 @@ const ResearchModel = {
       }
       
     },
+    *getTop10({}, { call, put }) {
+      const response = yield call(getTop10);
+      yield put({
+        type: 'save10',
+        payload: response,
+      });
+    },
+    *getTypeData({}, { call, put }) {
+      const response = yield call(getTypeData);
+      yield put({
+        type: 'saveTypeData',
+        payload: response,
+      });
+    },
+    *getExcel({}, { call, put }) {
+      const response = yield call(getExcel);
+      yield put({
+        type: 'saveExcel',
+        payload: response,
+      });
+    },
+    *get3YearsElecData({payload,callback}, { call, put }) {
+      const response = yield call(get3YearsElecData,payload);
+      if(response.code==0){
+        callback(response)
+      }
+    },
   },
   reducers: {
     saveDetail(state, { payload }){
@@ -99,6 +129,22 @@ const ResearchModel = {
     saveCitydata(state, { payload }){
       let mapData = payload.result;
       return { ...state, mapData:mapData};
+    },
+    save10(state, { payload }){
+      return { ...state, top10: payload.result};
+    },
+    saveTypeData(state, { payload }){
+      return { ...state, typeData: payload.result};
+    },
+    saveExcel(state, { payload }){
+      let x = [];
+      payload.result.forEach(element => {
+        x.push(element.name)
+      });
+      return { ...state, excel: {
+        x:x,
+        data:payload.result
+      }};
     },
   },
 };

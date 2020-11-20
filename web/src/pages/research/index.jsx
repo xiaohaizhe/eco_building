@@ -5,7 +5,7 @@ import { Row,Col,Select ,Spin,Button  } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { connect } from 'umi';
 import Map from './components/map.jsx'
-import ResearchTable from './components/researchTable.jsx'
+import Statistics from './components/statistics.jsx'
 import ImportModal from './components/import';
 import './index.less'
 const { Option } = Select;
@@ -91,7 +91,8 @@ class research extends React.Component {
             <Map></Map>
           </Col>
           <Col span={14}>
-            <ResearchTable onRef={ref=>this.child=ref}></ResearchTable>
+            {/* <ResearchTable onRef={ref=>this.child=ref}></ResearchTable> */}
+            <Statistics></Statistics>
           </Col>
         </Row>
         <ImportModal

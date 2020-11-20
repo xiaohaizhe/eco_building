@@ -349,7 +349,7 @@ class ItemSelect extends React.Component {
                     textAlign: 'center',
                   }}
                   placeholder="最大值"
-                  suffix="kWh/㎡"
+                  suffix="kWh/㎡·a"
                 />
               </Form.Item>
               
@@ -381,7 +381,7 @@ class ItemSelect extends React.Component {
                     textAlign: 'center',
                   }}
                   placeholder="最大值"
-                  suffix="m³/㎡"
+                  suffix="m³/㎡·a"
                 />
               </Form.Item>
               
@@ -415,7 +415,7 @@ class ItemSelect extends React.Component {
                     textAlign: 'center',
                   }}
                   placeholder="最大值"
-                  suffix="m³/㎡"
+                  suffix="m³/㎡·a"
                 />
               </Form.Item>
               

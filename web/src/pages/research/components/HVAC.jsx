@@ -44,11 +44,6 @@ const HVAC = props => {
         key: 'ratedCoolingCapacity',
       },
       {
-        title: '功率/kW',
-        dataIndex: 'power',
-        key: 'power',
-      },
-      {
         title: '额定制热量/kW',
         dataIndex: 'ratedHeatingCapacity',
         key: 'ratedHeatingCapacity',
@@ -257,7 +252,7 @@ const HVAC = props => {
                       <Table size="small" dataSource={HVAC.mainEngine.data} columns={mainEngineCol} title={() => '主机设备信息'} pagination={false}/>
                     </Col>
                     <Col span={6}>
-                      <img shape="square" src={HVAC.mainEngine.photo==='/'?nopic:HVAC.mainEngine.photo} style={{height:'200px',width:'200px'}}/>
+                      <img shape="square" src={HVAC.mainEngine.photo?nopic:HVAC.mainEngine.photo} style={{height:'200px',width:'200px'}}/>
                     </Col>
                   </Row>
                   
@@ -266,7 +261,7 @@ const HVAC = props => {
                       <Table size="small" dataSource={HVAC.waterPump.data} columns={waterPumpCol} title={() => '水泵（含热水泵）设备信息'} pagination={false}/>
                     </Col>
                     <Col span={6}>
-                      <img shape="square" src={HVAC.waterPump.photo==='/'?nopic:HVAC.waterPump.photo} style={{height:'200px',width:'200px'}}/>
+                      <img shape="square" src={HVAC.waterPump.photo?nopic:HVAC.waterPump.photo} style={{height:'200px',width:'200px'}}/>
                     </Col>
                   </Row>
 
@@ -275,7 +270,7 @@ const HVAC = props => {
                       <Table size="small" dataSource={HVAC.coolingTower.data} columns={coolingTowerCol} title={() => '冷却塔（在辅楼屋顶）设备信息'} pagination={false}/>
                     </Col>
                     <Col span={6}>
-                      <img shape="square" src={HVAC.coolingTower.photo==='/'?nopic:HVAC.coolingTower.photo} style={{height:'200px',width:'200px'}}/>
+                      <img shape="square" src={HVAC.coolingTower.photo?nopic:HVAC.coolingTower.photo} style={{height:'200px',width:'200px'}}/>
                     </Col>
                   </Row>
 
@@ -284,7 +279,7 @@ const HVAC = props => {
                       <Table size="small" dataSource={HVAC.airConditionBox.data} columns={airConditionBoxCol} title={() => '空调箱设备信息'} pagination={false}/>
                     </Col>
                     <Col span={6}>
-                      <img shape="square" src={HVAC.airConditionBox.photo==='/'?nopic:HVAC.airConditionBox.photo} style={{height:'200px',width:'200px'}}/>
+                      <img shape="square" src={HVAC.airConditionBox.photo?nopic:HVAC.airConditionBox.photo} style={{height:'200px',width:'200px'}}/>
                     </Col>
                   </Row>
 
@@ -293,7 +288,7 @@ const HVAC = props => {
                       <Table size="small" dataSource={HVAC.terminalEquipment.data} columns={terminalEquipmentCol} title={() => '末端设备信息'} pagination={false}/>
                     </Col>
                     <Col span={6}>
-                      <img shape="square" src={HVAC.terminalEquipment.photo==='/'?nopic:HVAC.terminalEquipment.photo} style={{height:'200px',width:'200px'}}/>
+                      <img shape="square" src={HVAC.terminalEquipment.photo?nopic:HVAC.terminalEquipment.photo} style={{height:'200px',width:'200px'}}/>
                     </Col>
                   </Row>
 
