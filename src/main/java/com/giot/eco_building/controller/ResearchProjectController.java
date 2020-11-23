@@ -38,6 +38,21 @@ public class ResearchProjectController {
         }
     }
 
+    @GetMapping("statistics")
+    public WebResponse statistics() {
+        return researchProjectService.statistic();
+    }
+
+    @GetMapping("excel")
+    public WebResponse energySort() {
+        return researchProjectService.energySort();
+    }
+
+    @GetMapping("top10")
+    public WebResponse Top10() {
+        return researchProjectService.Top10();
+    }
+
     @GetMapping("list")
     public WebResponse list(
             @RequestParam(required = false) String name,
@@ -73,6 +88,15 @@ public class ResearchProjectController {
     public WebResponse getElecData(Long id, String start, String end) {
         try {
             return WebResponse.success(researchProjectService.getDataByTypeAndTime(id, 1, start, end));
+        } catch (ParseException e) {
+            return WebResponse.exception(e);
+        }
+    }
+
+    @GetMapping("get3YearsElecData")
+    public WebResponse get3YearsElecData(Long id) {
+        try {
+            return WebResponse.success(researchProjectService.get3YearsElecData(id));
         } catch (ParseException e) {
             return WebResponse.exception(e);
         }

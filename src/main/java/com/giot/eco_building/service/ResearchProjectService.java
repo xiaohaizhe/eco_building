@@ -1,5 +1,6 @@
 package com.giot.eco_building.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.giot.eco_building.bean.WebResponse;
 import com.giot.eco_building.entity.ReseachProject;
@@ -29,7 +30,14 @@ public interface ResearchProjectService {
 
     JSONObject getElectricalEquipmentById(Long id);
 
-    List<ResearchProjectData> getDataByTypeAndTime(Long id,Integer type, String start, String end) throws ParseException;
+    List<ResearchProjectData> getDataByTypeAndTime(Long id, Integer type, String start, String end) throws ParseException;
 
+    JSONArray get3YearsElecData(Long id) throws ParseException;
+
+    WebResponse statistic();
+
+    WebResponse energySort();
+
+    WebResponse Top10();
 
 }

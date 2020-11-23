@@ -57,6 +57,14 @@ public class ReseachProjectModel {
      */
     private Date builtTime;
     /**
+     * 建筑类型
+     */
+    private String type;
+    /**
+     * 建筑楼栋数量
+     */
+    private Integer numberOfBuildings;
+    /**
      * 建筑楼栋信息
      */
     private String buildingInfo;
@@ -189,7 +197,7 @@ public class ReseachProjectModel {
                                String transformationSuggestions, String overallPhotoUrl, String airConditioningRoomPhotoUrl,
                                String hostPhotoUrl, String waterPumpPhotoUrl, String coolingTowerPhotoUrl,
                                String airConditioningBoxPhotoUrl, String terminalEquipmentPhotoUrl,
-                               String airConditioningSystem) {
+                               String airConditioningSystem, String type, Integer numberOfBuildings) {
         this.serialNumber = serialNumber;
         this.name = name;
         this.address = address;
@@ -229,6 +237,8 @@ public class ReseachProjectModel {
         this.airConditioningBoxPhotoUrl = airConditioningBoxPhotoUrl;
         this.terminalEquipmentPhotoUrl = terminalEquipmentPhotoUrl;
         this.airConditioningSystem = airConditioningSystem;
+        this.type = type;
+        this.numberOfBuildings = numberOfBuildings;
     }
 
     public ReseachProject toEntity() {

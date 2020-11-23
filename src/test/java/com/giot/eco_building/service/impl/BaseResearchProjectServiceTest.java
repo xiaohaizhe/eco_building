@@ -1,14 +1,17 @@
 package com.giot.eco_building.service.impl;
 
 import com.giot.eco_building.EcoBuildingApplication;
-import com.giot.eco_building.entity.LightingEquipment;
+import com.giot.eco_building.entity.ReseachProject;
+import com.giot.eco_building.repository.ReseachProjectRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import sun.util.resources.cldr.zu.CalendarData_zu_ZA;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 /**
@@ -24,6 +27,8 @@ import java.util.List;
 public class BaseResearchProjectServiceTest {
     @Autowired
     private BaseResearchProjectService baseResearchProjectService;
+    @Autowired
+    private ReseachProjectRepository reseachProjectRepository;
 
     /*@Test
     public void dealWithExcel() {
@@ -36,6 +41,27 @@ public class BaseResearchProjectServiceTest {
         }
         for (LightingEquipment lightingEquipment : list) {
             System.out.println(lightingEquipment.toString());
+        }
+    }*/
+
+    /*@Test
+    public void deleteSymbol() throws IllegalAccessException {
+        List<ReseachProject> reseachProjectList = reseachProjectRepository.findAll();
+        for (ReseachProject p :
+                reseachProjectList) {
+            Field[] fields = ReseachProject.class.getDeclaredFields();
+            System.out.println("++++++++++++++++++++++++++++++++++++++++++++");
+            for (Field field :
+                    fields) {
+                String name = field.getName();
+                field.setAccessible(true);
+                Object value = field.get(p);
+                if ("/".equals(value)) {
+                    System.out.println(name+":"+value);
+                    field.set(p, null);
+                }
+            }
+            reseachProjectRepository.saveAndFlush(p);
         }
     }*/
 }
