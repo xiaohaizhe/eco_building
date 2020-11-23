@@ -2,10 +2,13 @@ package com.giot.eco_building.service.impl;
 
 import cn.afterturn.easypoi.excel.ExcelImportUtil;
 import cn.afterturn.easypoi.excel.entity.ImportParams;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.giot.eco_building.bean.WebResponse;
+import com.giot.eco_building.constant.Constants;
 import com.giot.eco_building.constant.HttpResponseStatusEnum;
 import com.giot.eco_building.entity.*;
+import com.giot.eco_building.model.EnergySortModel;
 import com.giot.eco_building.model.ReseachProjectModel;
 import com.giot.eco_building.model.ResearchProjectDataModel;
 import com.giot.eco_building.repository.*;
@@ -16,14 +19,19 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -52,6 +60,9 @@ public class BaseResearchProjectService implements ResearchProjectService {
     private TerminalEquipmentRepository terminalEquipmentRepository;
     private WaterPumpRepository waterPumpRepository;
     private ResearchProjectDataRepository researchProjectDataRepository;
+
+    @Autowired
+    private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Autowired
     public void setResearchProjectDataRepository(ResearchProjectDataRepository researchProjectDataRepository) {
@@ -151,6 +162,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
         JSONObject result = new JSONObject();
         Optional<ReseachProject> optional = reseachProjectRepository.findById(id);
         if (optional.isPresent() && !optional.get().getDelStatus()) {
+            result.put("projectName", optional.get().getName());
             ReseachProject reseachProject = optional.get();
             String serialNumer = reseachProject.getSerialNumber();
 
@@ -195,6 +207,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
         Optional<ReseachProject> optional = reseachProjectRepository.findById(id);
         if (optional.isPresent() && !optional.get().getDelStatus()) {
             ReseachProject reseachProject = optional.get();
+            result.put("projectName", reseachProject);
             List<LightingEquipment> lightingEquipmentList = lightingEquipmentRepository.findBySerialNumber(reseachProject.getSerialNumber());
             result.put("lightingEquipment", lightingEquipmentList);
             List<ElectricalLoad> electricalLoadList = electricalLoadRepository.findBySerialNumber(reseachProject.getSerialNumber());
@@ -220,6 +233,143 @@ public class BaseResearchProjectService implements ResearchProjectService {
         List<ResearchProjectData> dataList =
                 researchProjectDataRepository.findByReseachProjectIdAndTypeAndActualDateBetweenOrderByActualDate(id, type, startDate, endDate);
         return dataList;
+    }
+
+    @Override
+    public JSONArray get3YearsElecData(Long id) throws ParseException {
+        JSONArray array = new JSONArray();
+        String start = "2017-01";
+        String end = "2020-01";
+        JSONArray year1 = new JSONArray();
+        JSONArray year2 = new JSONArray();
+        JSONArray year3 = new JSONArray();
+        List<ResearchProjectData> dataList = getDataByTypeAndTime(id, 1, start, end);
+        Calendar calendar = Calendar.getInstance();
+        for (int i = 2017; i < 2020; i++) {
+            for (int j = 0; j < 12; j++) {
+                JSONObject data = new JSONObject();
+                boolean flag = true;
+                for (ResearchProjectData rp :
+                        dataList) {
+                    Date actualDate = rp.getActualDate();
+                    calendar.setTime(actualDate);                    //放入Date类型数据
+                    int year = calendar.get(Calendar.YEAR);
+                    int month = calendar.get(Calendar.MONTH);
+                    if (year == i && month == j) {
+                        data.put("name", (month + 1) > 9 ? (month + 1)+"" : "0" + (month + 1));
+                        data.put("value", rp.getValue());
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag) {
+                    data.put("name", (j + 1 > 9 ? (j + 1)+"" : "0" + (j + 1)));
+                    data.put("value", 0);
+                }
+                switch (i) {
+                    case 2017:
+                        year1.add(data);
+                        break;
+                    case 2018:
+                        year2.add(data);
+                        break;
+                    case 2019:
+                        year3.add(data);
+                        break;
+                }
+            }
+        }
+
+        array.add(year1);
+        array.add(year2);
+        array.add(year3);
+        return array;
+    }
+
+    @Override
+    public WebResponse statistic() {
+        String sql = "SELECT p.type,COUNT(p.type),SUM(numberOfBuildings) FROM research_project p " +
+                "GROUP BY p.type ORDER BY type DESC;";
+        EntityManager em = entityManagerFactory.getNativeEntityManagerFactory().createEntityManager();
+        Query nativeQuery = em.createNativeQuery(sql.toString());
+        @SuppressWarnings({"unused", "unchecked"})
+        List<Object[]> result = nativeQuery.getResultList();
+        //关闭entityManagerFactory
+        em.close();
+        JSONArray mapRes = new JSONArray();
+        for (Object[] objects :
+                result) {
+            if (objects.length == 3) {
+                String type = (String) objects[0];
+                if (!StringUtils.isEmpty(type)) {
+                    BigInteger value = (BigInteger) objects[1];
+                    BigDecimal sum = (BigDecimal) objects[2];
+                    JSONObject jsonObject = new JSONObject();
+                    if (type.equals("其他")) {
+                        type = "其他公建";
+                    }
+                    jsonObject.put("type", type);
+                    jsonObject.put("number", value);
+                    jsonObject.put("sum", sum);
+                    mapRes.add(jsonObject);
+                }
+            }
+        }
+        return WebResponse.success(mapRes);
+    }
+
+    @Override
+    public WebResponse energySort() {
+        List<ReseachProject> projectList = reseachProjectRepository.findByDelStatus(Constants.DelStatus.NORMAL.isValue());
+        List<ReseachProject> modelList = new ArrayList<>();
+        String[] types = {"办公", "商场", "文化教育", "餐饮", "医院", "酒店", "其他"};
+        for (int i = 0; i < types.length; i++) {
+            String type = types[i];
+            List<ReseachProject> projectListByType = new ArrayList<>();
+            for (ReseachProject project :
+                    projectList) {
+                if (StringUtils.isEmpty(project.getType())) {
+                    continue;
+                } else {
+                    if (type.equals(project.getType())) {
+                        projectListByType.add(project);
+                    }
+                }
+            }
+            for (int j = 0; j < projectListByType.size() - 1; j++) {
+                for (int k = j + 1; k < projectListByType.size(); k++) {
+                    ReseachProject project1 = projectListByType.get(j);
+                    ReseachProject project2 = projectListByType.get(k);
+                    Double pcpua1 = project1.getPowerConsumptionPerUnitArea();
+                    Double pcpua2 = project2.getPowerConsumptionPerUnitArea();
+                    if (pcpua1 == null && pcpua2 != null) {
+                        Collections.swap(projectListByType, j, k);
+                        continue;
+                    }
+                    if (pcpua1 != null && pcpua2 != null && pcpua2 > pcpua1) {
+                        Collections.swap(projectListByType, j, k);
+                        continue;
+                    }
+                }
+            }
+            modelList.addAll(projectListByType);
+        }
+        List<EnergySortModel> resList = new ArrayList<>();
+        for (ReseachProject project :
+                modelList) {
+            EnergySortModel model = new EnergySortModel();
+            model.setName(project.getSerialNumber());
+            model.setType(project.getType());
+            model.setValue(project.getPowerConsumptionPerUnitArea());
+            resList.add(model);
+        }
+        return WebResponse.success(resList);
+    }
+
+    @Override
+    public WebResponse Top10() {
+        List<ReseachProject> list = reseachProjectRepository.findByDelStatusAndOrderByPowerConsumptionPerUnitAreaDescAndLimit10(false);
+        return WebResponse.success(list);
     }
 
     /**
@@ -482,11 +632,48 @@ public class BaseResearchProjectService implements ResearchProjectService {
                         }
                     }
                     researchProjectDataRepository.saveAll(dataListNew);
+                    updateLatestYearData(reseachProject);
                     break;
             }
         } else {
             logger.error("文件:{}所属调研项目不存在.", fileName);
         }
+    }
+
+    /**
+     * 更新项目的最近一年的水电气单位面积消耗数据
+     *
+     * @param project
+     */
+    private void updateLatestYearData(ReseachProject project) throws ParseException {
+        if (project != null && project.getId() != null && project.getTotalArea() != null && project.getTotalArea() > 0) {
+            double area = project.getTotalArea();
+            Long projectId = project.getId();
+            String serialNumber = project.getSerialNumber();
+            Calendar cal = Calendar.getInstance();
+            int year = cal.get(Calendar.YEAR);//获取年份
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
+            logger.info("{}为月数据", project.getName());
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+            Date start = sdf.parse((year - 1) + "");
+            Date end = sdf.parse(year + "");
+            Calendar date = Calendar.getInstance();
+            date.setTime(end);
+            date.set(Calendar.DATE, date.get(Calendar.SECOND) - 1);
+            Date endDate = sdf1.parse(sdf1.format(date.getTime()));
+            List<ResearchProjectData> elecData = researchProjectDataRepository.findByProjectIdAndIsMonthAndTypeAndActualDateBetween(projectId, Constants.DataType.ELECTRICITY.getCode(), start, endDate);
+            project.setPowerConsumptionPerUnitArea(getPerUnitData(elecData, area));
+            reseachProjectRepository.saveAndFlush(project);
+        }
+    }
+
+    private Double getPerUnitData(List<ResearchProjectData> projectDatas, double area) {
+        double count = 0;
+        for (ResearchProjectData data :
+                projectDatas) {
+            count += data.getValue();
+        }
+        return count / area;
     }
 
     public List dealWithExcel(MultipartFile file, Class<?> pojoClass) {
@@ -628,6 +815,12 @@ public class BaseResearchProjectService implements ResearchProjectService {
                 if (!StringUtils.isEmpty(project.getAirConditioningSystem())) {
                     reseachProjectOld.setAirConditioningSystem(project.getAirConditioningSystem());
                 }
+                if (!StringUtils.isEmpty(project.getType())) {
+                    reseachProjectOld.setType(project.getType());
+                }
+                if (!StringUtils.isEmpty(project.getNumberOfBuildings())) {
+                    reseachProjectOld.setNumberOfBuildings(project.getNumberOfBuildings());
+                }
                 reseachProjectRepository.saveAndFlush(reseachProjectOld);
             } else {
                 ReseachProject reseachProjectNew = project.toEntity();
@@ -691,7 +884,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Date builtTime = null;
             if (map.get(ExcelUtil.rColumNames[7]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[7]);
-                if (!value.equals("/")) {
+                if (!"/".equals(value)) {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
                     Double d_value = (Double) value;
                     String sdfTime = d_value.intValue() + "";
@@ -711,7 +904,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Double height = null;
             if (map.get(ExcelUtil.rColumNames[9]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[9]);
-                if (!value.equals("/")) {
+                if (!("/").equals(value)) {
                     height = (Double) map.get(ExcelUtil.rColumNames[9]);
                 }
             }
@@ -721,7 +914,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Double totalArea = null;
             if (map.get(ExcelUtil.rColumNames[10]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[10]);
-                if (!value.equals("/")) {
+                if (!("/").equals(value)) {
                     totalArea = (Double) map.get(ExcelUtil.rColumNames[10]);
                 }
             }
@@ -732,7 +925,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Double abovegroundArea = null;
             if (map.get(ExcelUtil.rColumNames[11]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[11]);
-                if (!value.equals("/")) {
+                if (!("/").equals(value)) {
                     abovegroundArea = (Double) map.get(ExcelUtil.rColumNames[11]);
                 }
             }
@@ -742,7 +935,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Double undergroundArea = null;
             if (map.get(ExcelUtil.rColumNames[12]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[12]);
-                if (!value.equals("/")) {
+                if (!("/").equals(value)) {
                     undergroundArea = (Double) map.get(ExcelUtil.rColumNames[12]);
                 }
             }
@@ -753,7 +946,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Double airConditionArea = null;
             if (map.get(ExcelUtil.rColumNames[13]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[13]);
-                if (!value.equals("/")) {
+                if (!("/").equals(value)) {
                     airConditionArea = (Double) map.get(ExcelUtil.rColumNames[13]);
                 }
             }
@@ -763,7 +956,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Integer abovegroundFloor = null;
             if (map.get(ExcelUtil.rColumNames[14]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[14]);
-                if (!value.equals("/")) {
+                if (!("/").equals(value)) {
                     abovegroundFloor = ((Double) map.get(ExcelUtil.rColumNames[14])).intValue();
                 }
             }
@@ -773,7 +966,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Integer undergroundFloor = null;
             if (map.get(ExcelUtil.rColumNames[15]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[17]);
-                if (!value.equals("/")) {
+                if (!("/").equals(value)) {
                     undergroundFloor = ((Double) map.get(ExcelUtil.rColumNames[15])).intValue();
                 }
             }
@@ -873,7 +1066,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Integer numberOfEndUsers = null;
             if (map.get(ExcelUtil.rColumNames[22]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[22]);
-                if (!value.equals("/")) {
+                if (!"/".equals(value)) {
                     numberOfEndUsers = ((Double) map.get(ExcelUtil.rColumNames[22])).intValue();
                 }
             }
@@ -938,7 +1131,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Double longitude = null;
             if (map.get(ExcelUtil.rColumNames[29]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[29]);
-                if (!value.equals("/")) {
+                if (!"/".equals(value)) {
                     longitude = (Double) map.get(ExcelUtil.rColumNames[29]);
                 }
             }
@@ -948,7 +1141,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
             Double latitude = null;
             if (map.get(ExcelUtil.rColumNames[30]) != null) {
                 Object value = map.get(ExcelUtil.rColumNames[30]);
-                if (!value.equals("/")) {
+                if (!"/".equals(value)) {
                     latitude = (Double) map.get(ExcelUtil.rColumNames[30]);
                 }
             }
@@ -1005,6 +1198,23 @@ public class BaseResearchProjectService implements ResearchProjectService {
             if (!StringUtils.isEmpty(map.get(ExcelUtil.rColumNames[38]))) {
                 airConditioningSystem = (String) map.get(ExcelUtil.rColumNames[38]);
             }
+            /**
+             * 建筑类型
+             */
+            String type = null;
+            if (!StringUtils.isEmpty(map.get(ExcelUtil.rColumNames[39]))) {
+                type = (String) map.get(ExcelUtil.rColumNames[39]);
+            }
+            /**
+             * 建筑楼栋数量
+             */
+            Integer numberOfBuildings = null;
+            if (map.get(ExcelUtil.rColumNames[40]) != null) {
+                Object value = map.get(ExcelUtil.rColumNames[40]);
+                if (!"/".equals(value)) {
+                    numberOfBuildings = ((Double) map.get(ExcelUtil.rColumNames[40])).intValue();
+                }
+            }
 
             ReseachProjectModel model = new ReseachProjectModel(serialNumber, name, address, constractor, longitude, latitude,
                     designer, constructor, supervisor, builtTime, buildingInfo, height, totalArea, abovegroundArea, undergroundArea,
@@ -1012,7 +1222,7 @@ public class BaseResearchProjectService implements ResearchProjectService {
                     windowIsOpen, CDOAS, numberOfEndUsers, overviewOfHVACEquipment, overviewOfElectricalEquipment, overviewOfWaterSupplyAndDrainageSystem,
                     energyConsumptionDataInRecentThreeYears, isItSuggestedToTransform, transformationSuggestions, overallPhotoUrl, airConditioningRoomPhotoUrl,
                     hostPhotoUrl, waterPumpPhotoUrl, coolingTowerPhotoUrl, airConditioningBoxPhotoUrl, terminalEquipmentPhotoUrl,
-                    airConditioningSystem
+                    airConditioningSystem, type, numberOfBuildings
             );
             result.add(model);
         }

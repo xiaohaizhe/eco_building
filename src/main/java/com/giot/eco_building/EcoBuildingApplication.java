@@ -36,8 +36,12 @@ public class EcoBuildingApplication {
         serializeConfig.put(BigInteger.class, ToStringSerializer.instance);
         serializeConfig.put(Long.class, ToStringSerializer.instance);
         serializeConfig.put(Long.TYPE, ToStringSerializer.instance);
+
         config.setSerializeConfig(serializeConfig);
         config.setDateFormat("yyyy-MM-dd HH:mm:ss");
+        config.setSerializerFeatures(SerializerFeature.PrettyFormat);
+        config.setSerializerFeatures(SerializerFeature.DisableCircularReferenceDetect);
+
         List<MediaType> supportedMediaTypes = new ArrayList<>();
         supportedMediaTypes.add(MediaType.APPLICATION_JSON);
         supportedMediaTypes.add(MediaType.APPLICATION_ATOM_XML);
@@ -56,9 +60,11 @@ public class EcoBuildingApplication {
         supportedMediaTypes.add(MediaType.TEXT_PLAIN);
         supportedMediaTypes.add(MediaType.TEXT_XML);
         converter.setSupportedMediaTypes(supportedMediaTypes);
-        config.setSerializerFeatures(SerializerFeature.PrettyFormat);
+
+
         converter.setFastJsonConfig(config);
-        HttpMessageConverter<?> httpMessageConverter = converter;
+        HttpMessageConverter<?>
+                httpMessageConverter = converter;
         return new HttpMessageConverters(httpMessageConverter);
     }
 

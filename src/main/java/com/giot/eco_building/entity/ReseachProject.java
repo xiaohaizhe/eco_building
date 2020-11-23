@@ -1,7 +1,9 @@
 package com.giot.eco_building.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -70,6 +72,29 @@ public class ReseachProject implements Serializable {
      */
     @Column(name = "built_time")
     private Date builtTime;
+    /**
+     * 建筑类型
+     */
+    private String type;
+
+    public void setType(String type) {
+        String t = "其他";
+        String[] types = {"办公", "住宅", "商场", "文化教育", "餐饮", "医院", "酒店", "其他"};
+        if (!StringUtils.isEmpty(type)) {
+            for (int i = 0; i < types.length; i++) {
+                if (type.equals(types[i])) {
+                    t = type;
+                    break;
+                }
+            }
+        }
+        this.type = type;
+    }
+
+    /**
+     * 建筑楼栋数量
+     */
+    private Integer numberOfBuildings;
     /**
      * 建筑楼栋信息
      */
@@ -200,6 +225,13 @@ public class ReseachProject implements Serializable {
      * 末端设备照片
      */
     private String terminalEquipmentPhotoUrl;
+
+    /**
+     * 单位面积电耗
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Column(name = "power_consumption_per_unit_area")
+    private Double powerConsumptionPerUnitArea;
     /**
      * 创建时间
      */

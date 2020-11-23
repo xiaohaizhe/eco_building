@@ -38,14 +38,11 @@ public class ExcelUtil {
     };
 
     public static String[] rColumNames = {
-            "编号", "项目名称", "项目地址", "建设单位", "设计单位", "施工单位", "监理单位", "建成时间", "建筑楼栋信息", "建筑高度", "总建筑面积",
-            "地上建筑面积", "地下建筑面积", "空调面积", "地上建筑层数", "地下建筑层数",
-            "主要遮阳形式", "有无楼宇自控系统", "有无能耗计量/远传电表数据",
-            "有无用水计量/远传水表数据", "窗户/幕墙是否可开启", "新风系统形式", "末端用户数量", "暖通设备概况及信息", "电器设备概况及信息",
-            "给排水系统概况", "近三年能耗数据", "是否建议改造", "改造建议",
-            "经度", "纬度",
-            "建筑整体照片", "空调机房照片", "主机照片", "水泵照片", "冷却塔照片", "空调箱照片", "末端设备照片",
-            "空调系统形式"
+            "编号", "项目名称", "项目地址", "建设单位", "设计单位", "施工单位", "监理单位", "建成时间", "建筑楼栋信息", "建筑高度",
+            "总建筑面积", "地上建筑面积", "地下建筑面积", "空调面积", "地上建筑层数", "地下建筑层数", "主要遮阳形式", "有无楼宇自控系统", "有无能耗计量/远传电表数据", "有无用水计量/远传水表数据",
+            "窗户/幕墙是否可开启", "新风系统形式", "末端用户数量", "暖通设备概况及信息", "电器设备概况及信息", "给排水系统概况", "近三年能耗数据", "是否建议改造", "改造建议", "经度",
+            "纬度", "建筑整体照片", "空调机房照片", "主机照片", "水泵照片", "冷却塔照片", "空调箱照片", "末端设备照片", "空调系统形式", "建筑类型",
+            "建筑楼栋数量"
     };
     private ProjectRepository projectRepository;
 
@@ -843,28 +840,30 @@ public class ExcelUtil {
                             } else {
                                 cellData = getCellData(cCell);
                             }
-                            if (cellData != null) {
+                            if (cellData != null && !"/".equals(cellData)) {
                                 projectBaseData.put(ExcelUtil.rColumNames[k], cellData);
                             }
                         }
                         //处理基础数据中的图片数据
                         Map<Integer, PictureData> pictureDataMap = picMapPre.get(j);
-                        for (Integer key :
-                                pictureDataMap.keySet()) {
-                            PictureData projectPic = pictureDataMap.get(key);
-                            Integer index = null;
-                            for (int i = 0; i < columNamesIndex.length; i++) {
-                                if (columNamesIndex[i] != key) {
-                                    continue;
-                                } else {
-                                    index = i;
-                                    break;
+                        if (null != pictureDataMap && pictureDataMap.size() > 0) {
+                            for (Integer key :
+                                    pictureDataMap.keySet()) {
+                                PictureData projectPic = pictureDataMap.get(key);
+                                Integer index = null;
+                                for (int i = 0; i < columNamesIndex.length; i++) {
+                                    if (columNamesIndex[i] != key) {
+                                        continue;
+                                    } else {
+                                        index = i;
+                                        break;
+                                    }
                                 }
+                                if (projectPic != null) {
+                                    String imgUrl = uploadService.uploadProjectImg(projectPic.getData());
+                                    projectBaseData.put(ExcelUtil.rColumNames[index], imgUrl);
+                                } else projectBaseData.put(ExcelUtil.rColumNames[index], null);
                             }
-                            if (projectPic != null) {
-                                String imgUrl = uploadService.uploadProjectImg(projectPic.getData());
-                                projectBaseData.put(ExcelUtil.rColumNames[index], imgUrl);
-                            } else projectBaseData.put(ExcelUtil.rColumNames[index], null);
                         }
                     }
                 }
