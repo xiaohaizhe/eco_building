@@ -63,7 +63,7 @@ class overview extends React.Component {
     const { fetching, data, value } = this.state;
     
     return (
-      <PageHeaderWrapper title={false} key="overview">
+      <PageHeaderWrapper title={false} key="overview" className="overview">
         <Select
           showSearch
           value={value}
@@ -82,7 +82,7 @@ class overview extends React.Component {
         </Select>
         <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}>
           <Col span={10}>
-            <Map ></Map>
+            <Map></Map>
           </Col>
           <Col span={14}>
             <div>

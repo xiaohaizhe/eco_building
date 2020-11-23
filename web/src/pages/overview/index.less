@@ -1,5 +1,5 @@
 @import '~antd/es/style/themes/default.less';
-.searchAll{
+.overview .searchAll{
   width: 50%;
   margin: 15px auto;
   display: flex;
@@ -86,29 +86,37 @@
     }
   }
   .typeTable{
-    padding: 24px;
+    padding: 22px;
+    table {
+      td,th{
+        padding:0 25px;
+        text-align: center;
+      }
+    }
   }
-  .typeTable .ant-table-thead > tr > th{
-    background: none;
-  }
-  .typeTable .ant-table table{
-    border-top: 2px solid;
-    border-bottom: 2px solid;
-    border-radius: 0;
-  }
-  .typeTable .ant-table-tbody > tr > td{
-    border-bottom: 0;
-  }
-  .typeTable  .ant-table.ant-table-small .ant-table-title, .ant-table.ant-table-small .ant-table-footer, .ant-table.ant-table-small .ant-table-thead > tr > th, .ant-table.ant-table-small .ant-table-tbody > tr > td, .ant-table.ant-table-small tfoot > tr > th, .ant-table.ant-table-small tfoot > tr > td{
-    padding: 0 !important;
-  }
+  
+  // .typeTable .ant-table-thead > tr > th{
+  //   background: none;
+  // }
+  // .typeTable .ant-table table{
+  //   border-top: 2px solid;
+  //   border-bottom: 2px solid;
+  //   border-radius: 0;
+  // }
+  // .typeTable .ant-table-tbody > tr > td{
+  //   border-bottom: 0;
+  // }
+  // .typeTable  .ant-table.ant-table-small .ant-table-title, .ant-table.ant-table-small .ant-table-footer, .ant-table.ant-table-small .ant-table-thead > tr > th, .ant-table.ant-table-small .ant-table-tbody > tr > td, .ant-table.ant-table-small tfoot > tr > th, .ant-table.ant-table-small tfoot > tr > td{
+  //   padding: 0 !important;
+  // }
   .typeLegend{
     display: flex;
+    padding: 0 0 0 22px ;
   }
   .typeLegend li{
     display: flex;
     align-items: center;
-    margin-left: 10px;
+    margin-right: 10px;
   }
   .typeLegend .len{
     width: 25px;

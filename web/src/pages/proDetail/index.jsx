@@ -52,7 +52,7 @@ const proDetail = props => {
           <Descriptions.Item label="建筑面积">{detail.area?detail.area:''}㎡</Descriptions.Item> 
           <Descriptions.Item label="围栏坐标">{detail.shape?detail.shape.split(';')[0]+"...":'无'}</Descriptions.Item>     
           <Descriptions.Item label="建筑类型">{detail.architecturalType?detail.architecturalType:''}</Descriptions.Item>
-          <Descriptions.Item label="建成时间">{detail.builtTime?detail.builtTime:''}</Descriptions.Item>
+          <Descriptions.Item label="建成时间">{detail.builtTime?detail.builtTime.substring(0, 10):''}</Descriptions.Item>
           <Descriptions.Item label="绿建星级">{gbes[detail.gbes?detail.gbes:0]}</Descriptions.Item>
           <Descriptions.Item label="节能标准">{energySavingStandard[detail.energySavingStandard?detail.energySavingStandard:0]}</Descriptions.Item>
           <Descriptions.Item label="是否经过节能改造">{energySavingTransformationOrNot[detail.energySavingTransformationOrNot?detail.energySavingTransformationOrNot:0]}</Descriptions.Item>

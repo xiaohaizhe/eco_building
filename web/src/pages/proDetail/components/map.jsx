@@ -135,7 +135,7 @@ class Map extends React.Component {
             '建筑类型：': rawData.architecturalType || '无',
             '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(3)+' kWh/㎡',
             '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
-            '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
+            '最近一年单位面积气耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
             '节能标准：': rawData.energySavingStandard?energySavingStandard[rawData.energySavingStandard]:'无',
             '是否经过节能改造：': rawData.energySavingTransformationOrNot?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
             '绿建等级：': rawData.gbes?gbes[rawData.gbes]:'无',

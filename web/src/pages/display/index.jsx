@@ -150,24 +150,29 @@ class display extends React.Component {
     //添加点
     mapData.forEach(value => {
       let color = '#0000ff'
-      var val = 0; //数值
-      if(that.state.radio=='0'){
-        val = value.waterConsumptionPerUnitArea || 0;
-      }else if (that.state.radio=='1'){
-        val = value.powerConsumptionPerUnitArea || 0;
-      }else if(that.state.radio=='2'){
-        val = value.gasConsumptionPerUnitArea || 0;
-      }
-      if(val != 0){
-        let colorS = colorStandard[value.architecturalType];
-        if(val<colorS.mid || val== colorS.mid){
-          color = gradientColor(val,colorS.mid,0);
-        }else if(val<colorS.max){
-          color = gradientColor(val,colorS.max,colorS.mid);
-        }else{
-          color = '#ff0000'
+      if(value.architecturalType=='住宅'){
+        color ='#C0C0C0'
+      }else{
+        var val = 0; //数值
+        if(that.state.radio=='0'){
+          val = value.waterConsumptionPerUnitArea || 0;
+        }else if (that.state.radio=='1'){
+          val = value.powerConsumptionPerUnitArea || 0;
+        }else if(that.state.radio=='2'){
+          val = value.gasConsumptionPerUnitArea || 0;
+        }
+        if(val != 0){
+          let colorS = colorStandard[value.architecturalType];
+          if(val<colorS.mid || val== colorS.mid){
+            color = gradientColor(val,colorS.mid,0);
+          }else if(val<colorS.max){
+            color = gradientColor(val,colorS.max,colorS.mid);
+          }else{
+            color = '#ff0000'
+          }
         }
       }
+      
 
       let content = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1600329129334" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3195" xmlns:xlink="http://www.w3.org/1999/xlink" width="30" height="30"><defs><style type="text/css"></style></defs><path d="M512 0C345.975467 0 152.234667 101.444267 152.234667 359.765333c0 175.3088 276.753067 562.7904 359.765333 664.234667 73.796267-101.444267 359.765333-479.709867 359.765333-664.234667C871.765333 101.512533 678.024533 0 512 0z" fill='+color+' p-id="3196"></path></svg>'
       let marker = new AMap.Marker({
@@ -186,9 +191,9 @@ class display extends React.Component {
             
             that.openInfoWin(map, originalEvent, rawData.name,rawData.address,{
                 '建筑类型：': rawData.architecturalType || '无',
-                '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(3)+' kWh/㎡',
-                '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
-                '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡',
+                '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(3)+' kWh/㎡·a',
+                '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡·a',
+                '最近一年单位面积气耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(3)+' m³/㎡·a',
                 '节能标准：': rawData.energySavingStandard!=undefined?energySavingStandard[rawData.energySavingStandard]:'无',
                 '是否经过节能改造：': rawData.energySavingTransformationOrNot!=undefined?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
                 '绿建等级：': rawData.gbes!=undefined?gbes[rawData.gbes]:'无',
@@ -198,7 +203,6 @@ class display extends React.Component {
               },rawData.id);
           });
           function gradientColor(data,max,min){
-            debugger
             let startR = 0;let startG = 0;let startB = 0;let endR = 0;let endG = 0;let endB = 0;
               if(min==0){
                 //左边
@@ -249,7 +253,7 @@ class display extends React.Component {
     //         '建筑类型：': rawData.architecturalType || '无',
     //         '最近一年单位面积电耗：': (rawData.powerConsumptionPerUnitArea || 0 ).toFixed(2)+' kWh/㎡',
     //         '最近一年单位面积水耗：': (rawData.waterConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
-    //         '最近一年单位面积汽耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
+    //         '最近一年单位面积气耗：': (rawData.gasConsumptionPerUnitArea || 0).toFixed(2)+' m³/㎡',
     //         '节能标准：': rawData.energySavingStandard!=undefined?energySavingStandard[rawData.energySavingStandard]:'无',
     //         '是否经过节能改造：': rawData.energySavingTransformationOrNot!=undefined?energySavingTransformationOrNot[rawData.energySavingTransformationOrNot]:'无',
     //         '绿建等级：': rawData.gbes!=undefined?gbes[rawData.gbes]:'无',
@@ -354,7 +358,7 @@ class display extends React.Component {
             <Radio.Group value={this.state.radio} buttonStyle="solid" onChange={(e)=>this.toggleRadio(e)}>
               <Radio.Button value="0">水</Radio.Button>
               <Radio.Button value="1">电</Radio.Button>
-              <Radio.Button value="2">汽</Radio.Button>
+              <Radio.Button value="2">气</Radio.Button>
             </Radio.Group>
             <div className="ant-radio-button-wrapper" onClick={()=>this.toggleForm()}>
               {this.state.show?<UpOutlined />:<DownOutlined />}

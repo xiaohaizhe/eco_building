@@ -85,6 +85,46 @@ export default defineConfig({
               component: './3dMap',
             },
             {
+              path: '/research',
+              name: 'research',
+              icon: 'project',
+              hideChildrenInMenu:true,
+              routes: [
+                {
+                  path: '/research',
+                  name: '',
+                  component: './research',
+                },
+                {
+                  path: '/research/detail/:id',
+                  name:"researchDetail",
+                  routes:[
+                    {
+                      path: '/research/detail/:id',
+                      name: '',
+                      component: './research/components/researchDetail',
+                    },
+                    {
+                      path: '/research/detail/:id/HVAC',
+                      name:"HVAC",
+                      component: './research/components/HVAC',
+                    },
+                    {
+                      path: '/research/detail/:id/electrical',
+                      name:"electrical",
+                      component: './research/components/electrical',
+                    },
+                    {
+                      path: '/research/detail/:id/energyData',
+                      name:"energyData",
+                      component: './research/components/energyData',
+                    },
+                  ]
+                }
+          
+              ]
+            },
+            {
               path: '/projectManage',
               name: 'projectManage',
               icon: 'project',
@@ -107,6 +147,7 @@ export default defineConfig({
                 },
               ]
             },
+            
             {
               path: '/log',
               name: 'log',
