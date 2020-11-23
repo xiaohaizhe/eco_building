@@ -54,6 +54,7 @@ class Map extends React.Component {
                 map: map,
                 position: new AMap.LngLat(value['longitude']?value['longitude']:0, value['latitude']?value['latitude']:0),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
               });
+              marker.setTitle(value.name);
               marker.on('click', function (ev) {
                 // 当前元素的原始数据
                 var rawData = ev.target.Ce.value;

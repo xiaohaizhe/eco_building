@@ -35,6 +35,9 @@ const ElecChart = props => {
             tooltip: {
                 trigger: 'axis',
             },
+            legend: {
+                data: ['2017','2018','2019']
+            },
             xAxis: {
                 name: '月',
                 type: 'category',
